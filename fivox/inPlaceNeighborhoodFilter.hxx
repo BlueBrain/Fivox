@@ -30,7 +30,7 @@ void InPlaceNeighborhoodFilter< TImage >::PrintSelf(std::ostream & os,
 
 template< typename TImage >
 void InPlaceNeighborhoodFilter< TImage >::ThreadedGenerateData(
-  const ImageRegionType& outputRegionForThread, itk::ThreadIdType threadId)
+  const ImageRegionType& /*outputRegionForThread*/, itk::ThreadIdType threadId)
 {
   itkDebugMacro(<< "Actually executing");
 

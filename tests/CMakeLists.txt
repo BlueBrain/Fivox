@@ -7,7 +7,7 @@ include(InstallFiles)
 include_directories(${CMAKE_SOURCE_DIR}) # some tests need private headers
 
 # TEST_LIBRARIES variable is used by the CommonCTest.cmake script to link against the given libraries
-set(TEST_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} Hello)
+set(TEST_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} Fivox)
 
 # CommonCTest, in the current folder recursively compiles targets for *.cpp files using TEST_LIBRARIES
 include(CommonCTest)
