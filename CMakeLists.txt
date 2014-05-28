@@ -14,8 +14,7 @@ set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
 
-set(FIVOX_DESCRIPTION
-  "Library to sample fields into regular volume data sets")
+set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
 set(COMMON_USE_CXX03 ON)
 
 include(Common)
@@ -24,7 +23,7 @@ include(${ITK_USE_FILE})
 
 add_subdirectory(fivox)
 add_subdirectory(apps)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
 include(CPackConfig)
 include(DoxygenRule)

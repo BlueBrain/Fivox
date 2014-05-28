@@ -4,7 +4,12 @@
 
 source_group(\\ FILES CMakeLists.txt)
 
-set(FIVOX_PUBLIC_HEADERS ${COMMON_INCLUDES})
+set(FIVOX_PUBLIC_HEADERS
+  ${COMMON_INCLUDES}
+  inPlaceNeighborhoodFilter.h
+  inPlaceNeighborhoodFilter.hxx
+)
+
 set(FIVOX_HEADERS)
 set(FIVOX_SOURCES ${COMMON_SOURCES})
 set(FIVOX_LINK_LIBRARIES ${ITK_LIBRARIES})

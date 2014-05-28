@@ -3,7 +3,8 @@
  *                     Stefan.Eilemann@epfl.ch
  */
 
-#include <fivox/kernelFilter.h>
+//#include <fivox/binarySphereFunctor.h>
+#include <fivox/inPlaceNeighborhoodFilter.h>
 
 #define BOOST_TEST_MODULE KernelFilter
 #include <boost/test/unit_test.hpp>
