@@ -44,6 +44,10 @@ public:
   /** ImageDimension enumeration */
   itkStaticConstMacro(ImageDimension, unsigned int, ImageType::ImageDimension);
 
+  /** @return the functor executed for each pixel during update. */
+  itkGetMacro(Functor, TFunctor&);
+  itkGetConstMacro(Functor, const TFunctor&);
+
 protected:
   ImageSource();
   ~ImageSource() {}

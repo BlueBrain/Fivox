@@ -28,9 +28,11 @@ public:
 
     inline TPixel operator()( const TPoint& /*point*/ ) const
     {
-        const TAccumulator sum = 1;
-        return static_cast< TPixel >( sum );
+        //const TAccumulator sum = value;
+        return value;
     }
+
+    float value;
 };
 }
 
@@ -66,10 +68,14 @@ BOOST_AUTO_TEST_CASE(KernelFilter)
     Filter::Pointer filter = Filter::New();
     Image::Pointer output = filter->GetOutput();
     output->SetRegions( region );
-    output->Update();
-    //filter->SetKernel( kernel );
 
+    filter->GetFunctor().value =42.f;
     filter->Update();
 
-    //BOOST_CHECK_EQUAL( ret, 3 );
+    Image::IndexType index;
+    index[0] = 1;
+    index[1] = 2;
+    index[2] = 3;
+    const Image::PixelType& pixel = output->GetPixel( index );
+    BOOST_CHECK_EQUAL( pixel, 42.f );
 }
