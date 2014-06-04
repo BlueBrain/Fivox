@@ -6,8 +6,8 @@ source_group(\\ FILES CMakeLists.txt)
 
 set(FIVOX_PUBLIC_HEADERS
   ${COMMON_INCLUDES}
-  inPlaceNeighborhoodFilter.h
-  inPlaceNeighborhoodFilter.hxx
+  imageSource.h
+  imageSource.hxx
 )
 
 set(FIVOX_HEADERS)
