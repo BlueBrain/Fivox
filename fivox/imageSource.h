@@ -11,7 +11,7 @@
 namespace fivox
 {
 /** image source using ... */
-template< typename TImage >
+template< typename TImage, typename TFunctor >
 class ImageSource : public itk::ImageSource< TImage >
 {
 public:
@@ -57,6 +57,8 @@ protected:
 private:
   ImageSource(const Self &); //purposely not implemented
   void operator=(const Self &);   //purposely not implemented
+
+  TFunctor m_Functor;
 };
 } // end namespace fivox
 

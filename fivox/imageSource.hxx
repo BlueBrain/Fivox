@@ -14,7 +14,8 @@
 
 namespace fivox
 {
-template< typename TImage > ImageSource< TImage >::ImageSource()
+template< typename TImage, typename TFunctor >
+ImageSource< TImage, TFunctor >::ImageSource()
 {
   // set up default size
   static const size_t size = 128;
@@ -27,15 +28,15 @@ template< typename TImage > ImageSource< TImage >::ImageSource()
   output->SetRequestedRegion( region );
 }
 
-template< typename TImage >
-void ImageSource< TImage >::PrintSelf(std::ostream & os,
-                                      itk::Indent indent) const
+template< typename TImage, typename TFunctor >
+void ImageSource< TImage, TFunctor >::PrintSelf(std::ostream & os,
+                                                itk::Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
 
-template< typename TImage >
-void ImageSource< TImage >::ThreadedGenerateData(
+template< typename TImage, typename TFunctor >
+void ImageSource< TImage, TFunctor >::ThreadedGenerateData(
   const ImageRegionType& outputRegionForThread, itk::ThreadIdType threadId)
 {
   itkDebugMacro(<< "Actually executing");
@@ -48,8 +49,7 @@ void ImageSource< TImage >::ThreadedGenerateData(
 
   itk::ProgressReporter progress( this, threadId,
                                   outputRegionForThread.GetNumberOfPixels( ));
-
-  while( !i.IsAtEnd() )
+  while( !i.IsAtEnd( ))
   {
     const ImageIndexType& index = i.GetIndex();
 
@@ -57,8 +57,7 @@ void ImageSource< TImage >::ThreadedGenerateData(
     PointType point;
     image->TransformIndexToPhysicalPoint( index, point );
 
-
-    //outIt.Set( PixelType );
+    i.Set( m_Functor( point ));
 
     if( i.IsAtEndOfLine( ))
       i.NextLine();
