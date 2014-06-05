@@ -4,9 +4,19 @@
  */
 
 #define BOOST_TEST_MODULE KernelFilter
+#ifndef FIVOX_USE_BBPSDK
+#  ifdef FIVOX_USE_BBPTESTDATA
+#    undef FIVOX_USE_BBPTESTDATA
+#  endif
+#endif
 
+#include <fivox/compartmentFunctor.h>
 #include <fivox/imageSource.h>
+#ifdef FIVOX_USE_BBPTESTDATA
+#  include <BBP/TestDatasets.h>
+#endif
 #include <itkTimeProbe.h>
+#include <boost/make_shared.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iomanip>
 
@@ -23,7 +33,6 @@ template< typename TImage > class StaticFunctor
 public:
     typedef typename TImage::PixelType TPixel;
     typedef typename TImage::PointType TPoint;
-    typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
 
     StaticFunctor() {}
     ~StaticFunctor() {}
@@ -34,7 +43,6 @@ public:
 
     inline TPixel operator()( const TPoint& /*point*/ ) const
     {
-        //const TAccumulator sum = value;
         return value;
     }
 
@@ -56,8 +64,7 @@ inline void _setSize( typename TImage::Pointer image, const size_t size )
 template< typename T, size_t dim >
 inline void _testStaticKernel( const size_t size )
 {
-    typedef T Pixel;
-    typedef itk::Image< Pixel, dim > Image;
+    typedef itk::Image< T, dim > Image;
     typedef StaticFunctor< Image > Functor;
     typedef fivox::ImageSource< Image, Functor > Filter;
 
@@ -79,9 +86,11 @@ inline void _testStaticKernel( const size_t size )
 
 BOOST_AUTO_TEST_CASE(KernelFilter)
 {
+#ifdef NDEBUG
     std::cout.setf( std::ios::right, std::ios::adjustfield );
     std::cout.precision( 5 );
     std::cout << "Volume size, byte GVox/sec, float GVox/sec" << std::endl;
+#endif
 
     for( size_t i = 1; i <= maxSize; i = i << 1 )
     {
@@ -90,17 +99,78 @@ BOOST_AUTO_TEST_CASE(KernelFilter)
             clock.Start();
             _testStaticKernel< unsigned char, 3 >( i );
             clock.Stop();
+#ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
                       << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal();
+#endif
         }
         {
             itk::TimeProbe clock;
             clock.Start();
             _testStaticKernel< float, 3 >( i );
             clock.Stop();
+#ifdef NDEBUG
             std::cout << ',' << std::setw(15)
                       << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal()
                       << std::endl;
+#endif
         }
     }
 }
+
+#ifdef FIVOX_USE_BBPTESTDATA
+namespace
+{
+template< typename T >
+inline void _testSDKKernel( const size_t size )
+{
+    typedef itk::Image< T, 3 > Image;
+    typedef fivox::CompartmentFunctor< Image > Functor;
+    typedef fivox::ImageSource< Image, Functor > Filter;
+
+    typename Filter::Pointer filter = Filter::New();
+    typename Image::Pointer output = filter->GetOutput();
+    _setSize< Image >( output, size );
+
+    filter->GetFunctor().setLoader(
+        boost::make_shared< fivox::CompartmentLoader >(
+            bbp::test::getBlueconfig(), "L5CSPC" ));
+    filter->Update();
+}
+
+}
+
+BOOST_AUTO_TEST_CASE(SDKFilter)
+{
+#ifdef NDEBUG
+    std::cout.setf( std::ios::right, std::ios::adjustfield );
+    std::cout.precision( 5 );
+    std::cout << "Volume size, byte GVox/sec, float GVox/sec" << std::endl;
+#endif
+
+    for( size_t i = 1; i <= maxSize; i = i << 1 )
+    {
+        {
+            itk::TimeProbe clock;
+            clock.Start();
+            _testSDKKernel< float >( i );
+            clock.Stop();
+#ifdef NDEBUG
+            std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
+                      << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal();
+#endif
+        }
+        {
+            itk::TimeProbe clock;
+            clock.Start();
+            _testSDKKernel< float >( i );
+            clock.Stop();
+#ifdef NDEBUG
+            std::cout << ',' << std::setw(15)
+                      << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal()
+                      << std::endl;
+#endif
+        }
+    }
+}
+#endif

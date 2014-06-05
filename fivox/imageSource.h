@@ -10,7 +10,7 @@
 
 namespace fivox
 {
-/** image source using ... */
+/** Image source filter using a functor on each pixel to generate the output */
 template< typename TImage, typename TFunctor >
 class ImageSource : public itk::ImageSource< TImage >
 {
