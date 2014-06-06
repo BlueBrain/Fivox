@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(KernelFilter)
 #ifdef NDEBUG
     std::cout.setf( std::ios::right, std::ios::adjustfield );
     std::cout.precision( 5 );
-    std::cout << "Volume size, byte GVox/sec, float GVox/sec" << std::endl;
+    std::cout << "Static fill, byte MVox/sec, float MVox/sec" << std::endl;
 #endif
 
     for( size_t i = 1; i <= maxSize; i = i << 1 )
@@ -145,7 +145,7 @@ BOOST_AUTO_TEST_CASE(SDKFilter)
 #ifdef NDEBUG
     std::cout.setf( std::ios::right, std::ios::adjustfield );
     std::cout.precision( 5 );
-    std::cout << "Volume size, byte GVox/sec, float GVox/sec" << std::endl;
+    std::cout << " SDK Kernel, byte MVox/sec, float MVox/sec" << std::endl;
 #endif
 
     for( size_t i = 1; i <= maxSize; i = i << 1 )
