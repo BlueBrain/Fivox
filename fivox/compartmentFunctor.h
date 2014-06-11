@@ -82,18 +82,31 @@ public:
         { return !( *this != other ); }
 
 
-    inline TPixel operator()( const TPoint& /*point*/ ) const
+    inline TPixel operator()( const TPoint& point ) const
     {
       if( !_loader )
         return 0;
 
       TAccumulator sum = 0;
 #ifdef FIVOX_USE_BBPSDK
+      static const float rho = 3.54f; //omh*m == 354 ohm*cm
+      static const float factor = rho /( 4.f * M_PI );
+
+      bbp::Vector3f base;
+      const size_t components = std::min( point.Size(), 3u );
+      for( size_t i = 0; i < components; ++i )
+        base[i] = point[i];
+
       const bbp::Neurons& neurons = _loader->getNeurons();
       for( bbp::Neurons::const_iterator i = neurons.begin();
            i != neurons.end(); ++i )
       {
-        sum += i->voltage();
+		const bbp::Vector3f& position = i->soma().position();
+        const float distance = (base - position).length();
+        if( distance < 1.f )
+          sum += i->voltage() * factor;
+        else
+          sum += i->voltage() * factor / distance;
       }
 #endif
       return sum;
