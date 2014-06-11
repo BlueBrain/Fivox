@@ -15,6 +15,7 @@
 #ifdef FIVOX_USE_BBPTESTDATA
 #  include <BBP/TestDatasets.h>
 #endif
+#include <itkImageFileWriter.h>
 #include <itkTimeProbe.h>
 #include <boost/make_shared.hpp>
 #include <boost/test/unit_test.hpp>
@@ -23,8 +24,9 @@
 #ifdef NDEBUG
 static const size_t maxSize = 1024;
 #else
-static const size_t maxSize = 128;
+static const size_t maxSize = 64;
 #endif
+static const std::string targetName( "Column" );
 
 namespace
 {
@@ -132,10 +134,20 @@ inline void _testSDKKernel( const size_t size )
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
 
-    filter->GetFunctor().setLoader(
+    fivox::CompartmentLoaderPtr loader =
         boost::make_shared< fivox::CompartmentLoader >(
-            bbp::test::getBlueconfig(), "L5CSPC" ));
-    filter->Update();
+            bbp::test::getBlueconfig(), targetName, 1.5f );
+    filter->GetFunctor().setLoader( loader );
+
+    std::ostringstream os;
+    os << targetName << '_' << size << ".mhd";
+
+    typedef itk::ImageFileWriter< Image > Writer;
+    typename Writer::Pointer writer = Writer::New();
+    writer->SetInput( filter->GetOutput( ));
+    writer->SetFileName( os.str( ));
+
+    writer->Update();
 }
 
 }
