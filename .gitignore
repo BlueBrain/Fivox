@@ -3,3 +3,5 @@ Release
 Makefile
 CMakeLists.txt.user*
 CMake/common/
+*.mhd
+*.raw

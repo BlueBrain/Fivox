@@ -30,7 +30,7 @@ public:
     {
       const bbp::Cell_Target& target_ = _experiment.cell_target( target );
       bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-      microcircuit.load( target_, bbp::NEURONS );
+      microcircuit.load( target_, bbp::NEURONS | bbp::MORPHOLOGIES );
       loadFrame( time );
     }
 #else
@@ -49,18 +49,27 @@ public:
     }
 
     _experiment.microcircuit().update( _frame );
+    const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
+    _values.clear();
+    _values.reserve( neurons.size( ));
+
+    for( bbp::Neurons::const_iterator i = neurons.begin();
+         i != neurons.end(); ++i )
+    {
+      _values.push_back( bbp::Vector4f( i->soma().position(), i->voltage( )));
+    }
     return true;
   }
 
-  const bbp::Neurons& getNeurons() const
-      { return _experiment.microcircuit().neurons(); }
+  const bbp::Vector4fs& getValues() const { return _values; }
 #endif
 
 private:
 #ifdef FIVOX_USE_BBPSDK
-    bbp::Experiment _experiment;
-    bbp::CompartmentReportReader _reader;
-    bbp::CompartmentReportFrame _frame;
+  bbp::Experiment _experiment;
+  bbp::CompartmentReportReader _reader;
+  bbp::CompartmentReportFrame _frame;
+  bbp::Vector4fs _values;
 #endif
 };
 
@@ -91,22 +100,26 @@ public:
 #ifdef FIVOX_USE_BBPSDK
       static const float rho = 3.54f; //omh*m == 354 ohm*cm
       static const float factor = rho /( 4.f * M_PI );
+      static const float threshold = 5.f;
 
       bbp::Vector3f base;
       const size_t components = std::min( point.Size(), 3u );
       for( size_t i = 0; i < components; ++i )
         base[i] = point[i];
 
-      const bbp::Neurons& neurons = _loader->getNeurons();
-      for( bbp::Neurons::const_iterator i = neurons.begin();
-           i != neurons.end(); ++i )
+      const bbp::Vector4fs& values = _loader->getValues();
+      for( bbp::Vector4fs::const_iterator i = values.begin();
+           i != values.end(); ++i )
       {
-		const bbp::Vector3f& position = i->soma().position();
+		const bbp::Vector3f& position = i->get_sub_vector<3>();
         const float distance = (base - position).length();
+        if( distance < threshold )
+          continue;
+
         if( distance < 1.f )
-          sum += i->voltage() * factor;
+          sum += (*i)[3] * factor;
         else
-          sum += i->voltage() * factor / distance;
+          sum += (*i)[3] * factor / distance;
       }
 #endif
       return sum;

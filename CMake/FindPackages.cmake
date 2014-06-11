@@ -116,7 +116,7 @@ if(Boost_name)
   endif()
 endif()
 
-set(FIVOX_BUILD_DEBS autoconf;automake;cmake;doxygen;git;git-review;libavahi-compat-libdnssd-dev;libboost-date-time-dev;libboost-filesystem-dev;libboost-iostreams-dev;libboost-program-options-dev;libboost-regex-dev;libboost-serialization-dev;libboost-system-dev;libboost-test-dev;libboost-thread-dev;libhdf5-serial-dev;libhwloc-dev;libibverbs-dev;libinsighttoolkit4-dev;libjpeg-turbo8-dev;librdmacm-dev;libturbojpeg;libudt-dev;pkg-config;subversion)
+set(FIVOX_BUILD_DEBS autoconf;automake;cmake;doxygen;git;git-review;libavahi-compat-libdnssd-dev;libboost-date-time-dev;libboost-filesystem-dev;libboost-iostreams-dev;libboost-program-options-dev;libboost-regex-dev;libboost-serialization-dev;libboost-system-dev;libboost-test-dev;libboost-thread-dev;libhdf5-serial-dev;libhwloc-dev;libibverbs-dev;libjpeg-turbo8-dev;librdmacm-dev;libturbojpeg;libudt-dev;pkg-config;subversion)
 
 set(FIVOX_DEPENDS BBPSDK;BBPTestData;ITK;Boost)
 

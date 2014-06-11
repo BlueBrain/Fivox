@@ -41,7 +41,6 @@ before_install:
  - sudo apt-get install -qq libhdf5-serial-dev || /bin/true
  - sudo apt-get install -qq libhwloc-dev || /bin/true
  - sudo apt-get install -qq libibverbs-dev || /bin/true
- - sudo apt-get install -qq libinsighttoolkit4-dev || /bin/true
  - sudo apt-get install -qq libjpeg-turbo8-dev || /bin/true
  - sudo apt-get install -qq librdmacm-dev || /bin/true
  - sudo apt-get install -qq libturbojpeg || /bin/true
