@@ -22,7 +22,7 @@ class CompartmentLoader
 {
 public:
     CompartmentLoader( const std::string& blueconfig,
-                       const std::string& target )
+                       const std::string& target, const float time = 0.f )
 #ifdef FIVOX_USE_BBPSDK
         : _experiment( blueconfig )
         , _reader( *_experiment.reports().find( "voltage" ),
@@ -31,6 +31,7 @@ public:
       const bbp::Cell_Target& target_ = _experiment.cell_target( target );
       bbp::Microcircuit& microcircuit = _experiment.microcircuit();
       microcircuit.load( target_, bbp::NEURONS );
+      loadFrame( time );
     }
 #else
     {
