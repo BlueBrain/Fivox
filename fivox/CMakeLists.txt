@@ -7,6 +7,7 @@ source_group(\\ FILES CMakeLists.txt)
 set(FIVOX_PUBLIC_HEADERS
   ${COMMON_INCLUDES}
   compartmentFunctor.h
+  compartmentLoader.h
   imageSource.h
   imageSource.hxx
 )
