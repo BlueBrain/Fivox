@@ -140,7 +140,7 @@ inline void _testSDKKernel( const size_t size )
     filter->GetFunctor().setLoader( loader );
 
     std::ostringstream os;
-    os << targetName << '_' << size << ".mhd";
+    os << targetName << '_' << size << '_' << typeid( T ).name() << ".mhd";
 
     typedef itk::ImageFileWriter< Image > Writer;
     typename Writer::Pointer writer = Writer::New();
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(SDKFilter)
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i );
+            _testSDKKernel< unsigned char >( i );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
