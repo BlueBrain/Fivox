@@ -46,7 +46,7 @@ public:
 #ifdef FIVOX_USE_BBPSDK
     static const float rho = 3.54f; //omh*m == 354 ohm*cm
     static const float factor = rho /( 4.f * M_PI );
-    static const float threshold2 = 10.f * 10.f;
+    static const float threshold2 = 100.f;
 
     bbp::Vector3f base;
     const size_t components = std::min( point.Size(), 3u );

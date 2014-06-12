@@ -22,7 +22,7 @@
 #include <iomanip>
 
 #ifdef NDEBUG
-static const size_t maxSize = 1024;
+static const size_t maxSize = 512;
 #else
 static const size_t maxSize = 64;
 #endif
@@ -138,6 +138,20 @@ inline void _testSDKKernel( const size_t size )
         boost::make_shared< fivox::CompartmentLoader >(
             bbp::test::getBlueconfig(), targetName, 1.5f );
     filter->GetFunctor().setLoader( loader );
+
+    // set up size and origin for loaded circuit
+    const bbp::Vector3f& min = loader->getMin();
+    const bbp::Vector3f& bbox = loader->getMax() - min;
+    const float extent = bbox.find_max();
+    const float position = min.find_min();
+
+    typename Image::SpacingType spacing;
+    spacing.Fill( extent / float( size ));
+    output->SetSpacing( spacing );
+
+    typename Image::PointType origin;
+    origin.Fill( position );
+    output->SetOrigin( origin );
 
     std::ostringstream os;
     os << targetName << '_' << size << '_' << typeid( T ).name() << ".mhd";
