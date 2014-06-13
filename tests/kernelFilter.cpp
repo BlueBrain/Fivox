@@ -74,7 +74,7 @@ inline void _testStaticKernel( const size_t size )
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
 
-    filter->GetFunctor().value = 4.2;
+    filter->GetFunctor().value = typename Functor::TPixel( 4.2 );
     filter->Update();
 
     typename Image::IndexType index;

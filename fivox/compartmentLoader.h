@@ -49,10 +49,9 @@ public:
 #endif
     }
 
+#ifdef FIVOX_USE_BBPSDK
   bool loadFrame( const float time )
   {
-
-#ifdef FIVOX_USE_BBPSDK
     if( !_reader.loadFrame( time, _frame ))
     {
       std::cerr << "Could not load frame at " << time << "ms" << std::endl;
@@ -71,25 +70,23 @@ public:
       _values.push_back( bbp::Vector4f( position, i->voltage() + 65.f ));
     }
     return true;
-#else
-    return false;
-#endif
   }
 
   const bbp::Vector4fs& getValues() const { return _values; }
   const bbp::Vector3f& getMin() const { return _min; }
   const bbp::Vector3f& getMax() const { return _max; }
+#endif
 
 private:
 #ifdef FIVOX_USE_BBPSDK
   bbp::Experiment _experiment;
   bbp::CompartmentReportReader _reader;
   bbp::CompartmentReportFrame _frame;
-#endif
 
   bbp::Vector4fs _values;
   bbp::Vector3f _min;
   bbp::Vector3f _max;
+#endif
 };
 
 typedef boost::shared_ptr< CompartmentLoader > CompartmentLoaderPtr;
