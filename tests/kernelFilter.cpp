@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(KernelFilter)
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
-                      << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal();
+                      << i*i*i / 1024.f / 1024.f / clock.GetTotal();
 #endif
         }
         {
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE(KernelFilter)
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)
-                      << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal()
+                      << i*i*i / 1024.f / 1024.f / clock.GetTotal()
                       << std::endl;
 #endif
         }
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(SDKFilter)
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
-                      << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal();
+                      << i*i*i / 1024.f / 1024.f / clock.GetTotal();
 #endif
         }
         {
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(SDKFilter)
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)
-                      << std::pow( i, 3 ) / 1024.f / 1024.f / clock.GetTotal()
+                      << i*i*i / 1024.f / 1024.f / clock.GetTotal()
                       << std::endl;
 #endif
         }
