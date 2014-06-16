@@ -10,9 +10,10 @@
 #  endif
 #endif
 
-#include <fivox/compartmentFunctor.h>
+#include <fivox/eventFunctor.h>
 #include <fivox/imageSource.h>
 #ifdef FIVOX_USE_BBPTESTDATA
+#  include <fivox/somaLoader.h>
 #  include <BBP/TestDatasets.h>
 #endif
 #include <itkImageFileWriter.h>
@@ -127,21 +128,21 @@ template< typename T >
 inline void _testSDKKernel( const size_t size )
 {
     typedef itk::Image< T, 3 > Image;
-    typedef fivox::CompartmentFunctor< Image > Functor;
+    typedef fivox::EventFunctor< Image > Functor;
     typedef fivox::ImageSource< Image, Functor > Filter;
 
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
 
-    fivox::CompartmentLoaderPtr loader =
-        boost::make_shared< fivox::CompartmentLoader >(
+    fivox::EventSourcePtr source =
+        boost::make_shared< fivox::SomaLoader >(
             bbp::test::getBlueconfig(), targetName, 1.5f );
-    filter->GetFunctor().setLoader( loader );
+    filter->GetFunctor().setSource( source );
 
     // set up size and origin for loaded circuit
-    const bbp::Vector3f& min = loader->getMin();
-    const bbp::Vector3f& bbox = loader->getMax() - min;
+    const bbp::Vector3f& min = source->getMin();
+    const bbp::Vector3f& bbox = source->getMax() - min;
     const float extent = bbox.find_max();
     const float position = min.find_min();
 

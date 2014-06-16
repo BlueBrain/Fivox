@@ -6,10 +6,13 @@ source_group(\\ FILES CMakeLists.txt)
 
 set(FIVOX_PUBLIC_HEADERS
   ${COMMON_INCLUDES}
-  compartmentFunctor.h
-  compartmentLoader.h
+  event.h
+  eventFunctor.h
+  eventSource.h
   imageSource.h
   imageSource.hxx
+  somaLoader.h
+  types.h
 )
 
 set(FIVOX_HEADERS)
