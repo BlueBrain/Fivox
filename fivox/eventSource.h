@@ -32,7 +32,6 @@ public:
   /** @return the maximum of the bounding box of all events. */
   const Vector3f& getMax() const { return _max; }
 
-protected:
   /** Clear all stored events and bounding box. */
   void clear()
   {
@@ -44,6 +43,9 @@ protected:
   /** Add a new event and update the bounding box. */
   void add( const Event& event )
   {
+    assert( event.position.find_min() > -std::numeric_limits< float >::max( ));
+    assert( event.position.find_max() < std::numeric_limits< float >::max( ));
+
     _min = vmml::min( _min, event.position );
     _max = vmml::max( _max, event.position );
     _events.push_back( event );

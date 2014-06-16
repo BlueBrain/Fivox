@@ -19,4 +19,11 @@ set(FIVOX_HEADERS)
 set(FIVOX_SOURCES ${COMMON_SOURCES})
 set(FIVOX_LINK_LIBRARIES ${ITK_LIBRARIES})
 
+if(BBPSDK_FOUND)
+  list(APPEND FIVOX_SOURCES
+    compartmentLoader.cpp
+    somaLoader.cpp)
+  list(APPEND FIVOX_LINK_LIBRARIES ${BBPSDK_LIBRARIES})
+endif()
+
 common_library(Fivox)

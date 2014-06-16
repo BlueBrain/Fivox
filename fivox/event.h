@@ -14,7 +14,6 @@ namespace fivox
 /** A positional event with a value to be sampled. */
 struct Event
 {
-public:
   Event( const Vector3f& pos, const float val )
       : position( pos )
       , value( val )
