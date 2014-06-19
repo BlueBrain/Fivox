@@ -12,7 +12,7 @@
 
 namespace
 {
-static const std::string targetName( "Column" );
+static const std::string targetName( "L5CSPC" );
 
 template< typename T, typename K >
 inline void _testSDKKernel( const size_t size )
@@ -45,7 +45,8 @@ inline void _testSDKKernel( const size_t size )
     output->SetOrigin( origin );
 
     std::ostringstream os;
-    os << targetName << '_' << size << '_' << typeid( T ).name() << ".mhd";
+    os << targetName << '_' << size << '_' << typeid( K ).name() << '_'
+       << typeid( T ).name() << ".mhd";
 
     typedef itk::ImageFileWriter< Image > Writer;
     typename Writer::Pointer writer = Writer::New();

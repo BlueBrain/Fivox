@@ -38,7 +38,7 @@ public:
                      const std::string& target, const float time )
       : _output( output )
       , _experiment( blueconfig )
-      , _reader( *_experiment.reports().find( "voltage" ),
+      , _reader( *_experiment.reports().find( "allCompartments" ),
                  _experiment.cell_target( target ))
   {
     const bbp::Cell_Target& target_ = _experiment.cell_target( target );
@@ -50,10 +50,10 @@ public:
     if( !_reader.loadFrame( time, frame ))
       throw std::runtime_error( "Can't load compartment report" );
 
-    const bbp::Neurons& neurons = microcircuit.neurons();
     size_t i=0;
-    BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
+    BOOST_FOREACH( const uint32_t gid, target_ )
     {
+      const bbp::Neuron& neuron = microcircuit.neuron( gid );
       const bbp::Sections& sections = neuron.dendrites();
       size_t j = 0;
       BOOST_FOREACH( const bbp::Section& section, sections )
@@ -66,7 +66,7 @@ public:
         position /= segments.size() * 2;
 
         output.add( Event( position, 0.f ));
-        _sections.push_back( SectionInfo( section.getNumCompartments(),
+        _sections.push_back( SectionInfo( _reader.getCompartmentCounts()[i][j],
                                           _reader.getOffsets()[i][j] ));
         ++j;
       }
