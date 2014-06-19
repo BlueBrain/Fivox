@@ -46,7 +46,7 @@ public:
     TAccumulator sum = 0;
     static const float rho = 3.54f; //omh*m == 354 ohm*cm
     static const float factor = rho /( 4.f * M_PI );
-    static const float threshold2 = 10.f;
+    static const float threshold2 = 1000.f;
 
     Vector3f base;
     const size_t components = std::min( point.Size(), 3u );
@@ -57,7 +57,7 @@ public:
     BOOST_FOREACH( const Event& event, events )
     {
       const float distance2 = (base - event.position).squared_length();
-      if( distance2 < threshold2 )
+      if( distance2 > threshold2 )
         continue;
 
       if( distance2 < 1.f )
