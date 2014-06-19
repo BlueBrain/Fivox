@@ -45,7 +45,7 @@ public:
 
     TAccumulator sum = 0;
     static const float rho = 3.54f; //omh*m == 354 ohm*cm
-    static const float factor = rho /( 4.f * M_PI );
+    static const float factor = rho /( 4.f * M_PI ) / 10.f;
     static const float threshold2 = 1000.f;
 
     Vector3f base;
