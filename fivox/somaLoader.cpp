@@ -49,7 +49,7 @@ public:
     const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
     size_t i = 0;
     BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
-      _output.updateValue( i++, neuron.voltage() + 65.f );
+      _output.update( i++, neuron.voltage() + 65.f );
 
     return true;
   }

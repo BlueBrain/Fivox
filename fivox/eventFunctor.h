@@ -17,9 +17,9 @@ namespace fivox
 namespace
 {
 template< class T > inline T _scale( const float value )
-    { return value; }
+  { return value; }
 template<> inline unsigned char _scale( const float value )
-    { return value * 256.f; }
+  { return value * 256.f; }
 }
 
 /** Functor sampling spatial events into the given pixel. */
@@ -35,7 +35,7 @@ public:
 
   bool operator!=(const EventFunctor &) const { return false; }
   bool operator==(const EventFunctor & other) const
-  { return !( *this != other ); }
+    { return !( *this != other ); }
 
 
   inline TPixel operator()( const TPoint& point ) const

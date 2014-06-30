@@ -52,7 +52,7 @@ public:
   }
 
   /** Update the value of an existing event */
-  void updateValue( const size_t index, const float value )
+  void update( const size_t index, const float value )
   {
     assert( index < _events.size( ));
     _events[ index ].value = value;
