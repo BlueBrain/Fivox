@@ -59,10 +59,9 @@ void ImageSource< TImage, TFunctor >::ThreadedGenerateData(
 
     i.Set( m_Functor( point ));
 
+    ++i;
     if( i.IsAtEndOfLine( ))
       i.NextLine();
-    else
-      ++i;
     progress.CompletedPixel();
   }
 }
