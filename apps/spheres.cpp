@@ -16,7 +16,7 @@ namespace po = boost::program_options;
 typedef unsigned char               PixelType;
 typedef itk::Image< PixelType, 3 >  ImageType;
 
-int main( const int argc, const char* argv[] )
+int main( int argc, char* argv[] )
 {
     // Default values
     size_t size = 32;
@@ -32,7 +32,7 @@ int main( const int argc, const char* argv[] )
           "Size of the output volume" )
         ( "output,o", po::value< std::string >()->default_value( outputFile ),
           "Name of the output volume file" );
-    po::store( parse_command_line( argc, argv, desc ), vm );
+    po::store( po::parse_command_line( argc, argv, desc ), vm );
     po::notify( vm );
 
     if( vm.count( "help" ))
