@@ -17,8 +17,6 @@ class EventSource
 {
 public:
   EventSource()
-      : _min( Vector3f( std::numeric_limits< float >::max( )))
-      , _max( -_min )
   {}
 
   virtual ~EventSource() {}
@@ -26,28 +24,20 @@ public:
   /** @return the list of events. */
   const Events& getEvents() const { return _events; }
 
-  /** @return the minimum of the bounding box of all events. */
-  const Vector3f& getMin() const { return _min; }
-
-  /** @return the maximum of the bounding box of all events. */
-  const Vector3f& getMax() const { return _max; }
+  /** @return the bounding box of all events. */
+  const AABBf& getBoundingBox() const { return _boundingBox; }
 
   /** Clear all stored events and bounding box. */
   void clear()
   {
     _events.clear();
-    _min = Vector3f( std::numeric_limits< float >::max( ));
-    _max = -_min;
+    _boundingBox.setEmpty();
   }
 
   /** Add a new event and update the bounding box. */
   void add( const Event& event )
   {
-    assert( event.position.find_min() > -std::numeric_limits< float >::max( ));
-    assert( event.position.find_max() < std::numeric_limits< float >::max( ));
-
-    _min = vmml::min( _min, event.position );
-    _max = vmml::max( _max, event.position );
+    _boundingBox.merge( event.position );
     _events.push_back( event );
   }
 
@@ -60,11 +50,11 @@ public:
 
 private:
   Events _events;
-  Vector3f _min;
-  Vector3f _max;
+  AABBf _boundingBox;
 };
 
 typedef boost::shared_ptr< EventSource > EventSourcePtr;
+typedef boost::shared_ptr< const EventSource > ConstEventSourcePtr;
 } // end namespace fivox
 
 #endif

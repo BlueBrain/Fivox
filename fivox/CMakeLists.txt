@@ -6,6 +6,7 @@ source_group(\\ FILES CMakeLists.txt)
 
 set(FIVOX_PUBLIC_HEADERS
   ${COMMON_INCLUDES}
+  compartmentLoader.h
   event.h
   eventFunctor.h
   eventSource.h

@@ -30,10 +30,9 @@ inline void _testSDKKernel( const size_t size )
     filter->GetFunctor().setSource( source );
 
     // set up size and origin for loaded circuit
-    const fivox::Vector3f& min = source->getMin();
-    const fivox::Vector3f& bbox = source->getMax() - min;
-    const float extent = bbox.find_max();
-    const float position = min.find_min();
+    const fivox::AABBf& bbox = source->getBoundingBox();
+    const float extent = bbox.getDimension().find_max();
+    const float position = bbox.getMin().find_min();
     BOOST_CHECK_GT( extent,  0.f );
 
     typename Image::SpacingType spacing;
