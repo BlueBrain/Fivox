@@ -15,7 +15,6 @@ set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
 
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
-set(COMMON_USE_CXX03 ON)
 set(FIVOX_DEPENDENT_LIBRARIES ITK)
 
 include(Common)
