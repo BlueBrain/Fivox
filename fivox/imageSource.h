@@ -6,21 +6,16 @@
 #ifndef FIVOX_IMAGESOURCE_H
 #define FIVOX_IMAGESOURCE_H
 
-#ifdef LB_GCC_4_6_OR_LATER // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=51721
-#  ifndef LB_GCC_4_8 // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56824
-#    pragma GCC diagnostic push
-#  endif
+#pragma GCC diagnostic ignored "-Wsign-promo"
+#ifdef LB_GCC_4_6_OR_LATER
 #  pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#  pragma GCC diagnostic ignored "-Wsign-promo"
+#endif
+#ifdef final
+#  undef final
 #endif
 
 #include <itkImageSource.h>
 
-#ifdef LB_GCC_4_6_OR_LATER
-#  ifndef LB_GCC_4_8
-#    pragma GCC diagnostic pop
-#  endif
-#endif
 
 namespace fivox
 {
