@@ -1,1 +1,1 @@
-config.eilebbp ssh://bbpgit.epfl.ch/user/eilemann/config.eile.git master
+config.bbp ssh://bbpcode.epfl.ch/common/config.bbp master

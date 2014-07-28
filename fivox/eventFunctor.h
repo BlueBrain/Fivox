@@ -8,7 +8,10 @@
 
 #include <fivox/defines.h>
 #include <fivox/eventSource.h>
+
+#pragma GCC diagnostic ignored "-Wtype-limits"
 #include <itkNumericTraits.h>
+
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 

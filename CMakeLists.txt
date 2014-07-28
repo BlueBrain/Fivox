@@ -8,11 +8,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake
   ${CMAKE_SOURCE_DIR}/CMake/common)
 include(GitExternal)
 
-set(RELEASE_VERSION OFF) # OFF or ABI version
 set(LAST_RELEASE 1.0.0)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
+set(VERSION_ABI 1)
 
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
 set(FIVOX_DEPENDENT_LIBRARIES ITK)
