@@ -1,0 +1,6 @@
+[gerrit]
+host=bbpcode.epfl.ch
+project=viz/Fivox
+defaultbranch=master
+port=22
+
