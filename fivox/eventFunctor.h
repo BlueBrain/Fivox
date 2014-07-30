@@ -23,6 +23,8 @@ template< class T > inline T _scale( const float value )
   { return value; }
 template<> inline unsigned char _scale( const float value )
   { return value * 256.f; }
+
+static const bool _useCutoff = true;
 }
 
 /** Functor sampling spatial events into the given pixel. */
@@ -60,7 +62,7 @@ public:
     BOOST_FOREACH( const Event& event, events )
     {
       const float distance2 = (base - event.position).squared_length();
-      if( distance2 > threshold2 )
+      if( _useCutoff && distance2 > threshold2 )
         continue;
 
       if( distance2 < 1.f )

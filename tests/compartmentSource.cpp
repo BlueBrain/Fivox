@@ -38,6 +38,7 @@ BOOST_AUTO_TEST_CASE(CompartmentSource)
                       << i*i*i / 1024.f / 1024.f / clock.GetTotal();
 #endif
         }
+        if( true )
         {
             itk::TimeProbe clock;
             clock.Start();
@@ -45,10 +46,12 @@ BOOST_AUTO_TEST_CASE(CompartmentSource)
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)
-                      << i*i*i / 1024.f / 1024.f / clock.GetTotal()
-                      << std::endl;
+                      << i*i*i / 1024.f / 1024.f / clock.GetTotal();
 #endif
         }
+#ifdef NDEBUG
+        std::cout << std::endl;
+#endif
     }
 }
 
