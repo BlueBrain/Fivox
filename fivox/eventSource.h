@@ -6,51 +6,43 @@
 #ifndef FIVOX_EVENTSOURCE_H
 #define FIVOX_EVENTSOURCE_H
 
-#include <fivox/event.h> // used inline
-#include <vmmlib/util.hpp>
+#include <fivox/types.h>
 #include <boost/shared_ptr.hpp>
 
 namespace fivox
 {
-/** Interface for an Event source.  */
+namespace detail { class EventSource; }
+
+/**
+ * Base class for an Event source.
+ *
+ * An event source is used by an EventFunctor to sample events for a given
+ * point. Subclassing or aggregation provides the events using add() and
+ * update(), and the functor accesses the data using getEvents().
+ */
 class EventSource
 {
 public:
-  EventSource()
-  {}
-
-  virtual ~EventSource() {}
+  EventSource();
+  virtual ~EventSource();
 
   /** @return the list of events. */
-  const Events& getEvents() const { return _events; }
+  const Events& getEvents() const;
 
   /** @return the bounding box of all events. */
-  const AABBf& getBoundingBox() const { return _boundingBox; }
+  const AABBf& getBoundingBox() const;
 
   /** Clear all stored events and bounding box. */
-  void clear()
-  {
-    _events.clear();
-    _boundingBox.setEmpty();
-  }
+  void clear();
 
   /** Add a new event and update the bounding box. */
-  void add( const Event& event )
-  {
-    _boundingBox.merge( event.position );
-    _events.push_back( event );
-  }
+  void add( const Event& event );
 
   /** Update the value of an existing event */
-  void update( const size_t index, const float value )
-  {
-    assert( index < _events.size( ));
-    _events[ index ].value = value;
-  }
+  void update( const size_t index, const float value );
 
 private:
-  Events _events;
-  AABBf _boundingBox;
+  detail::EventSource* const _impl;
 };
 
 typedef boost::shared_ptr< EventSource > EventSourcePtr;

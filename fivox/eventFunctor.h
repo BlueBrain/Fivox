@@ -8,6 +8,7 @@
 
 #include <fivox/defines.h>
 #include <fivox/eventSource.h>
+#include <fivox/event.h>  // used inline
 
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #include <itkNumericTraits.h>

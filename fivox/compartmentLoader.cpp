@@ -5,6 +5,7 @@
  */
 
 #include "compartmentLoader.h"
+#include "event.h"
 
 #include <BBP/BBP.h>
 
@@ -31,7 +32,7 @@ namespace detail
 class CompartmentLoader
 {
 public:
-  CompartmentLoader( EventSource& output, const std::string& blueconfig,
+  CompartmentLoader( fivox::EventSource& output, const std::string& blueconfig,
                      const std::string& target, const float time )
       : _output( output )
       , _experiment( blueconfig )
@@ -97,7 +98,7 @@ public:
   }
 
 private:
-  EventSource& _output;
+  fivox::EventSource& _output;
   bbp::Experiment _experiment;
   bbp::CompartmentReportReader _reader;
   SectionInfos _sections;
