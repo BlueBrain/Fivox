@@ -24,6 +24,11 @@ set(FIVOX_SOURCES
 
 set(FIVOX_LINK_LIBRARIES ${ITK_LIBRARIES} ${Boost_LIBRARIES})
 
+# Optionally enable rtree from boost_geometry, if found
+if(EXISTS "${Boost_INCLUDE_DIR}/boost/geometry.hpp")
+  add_definitions(-DUSE_BOOST_GEOMETRY)
+endif()
+
 if(BBPSDK_FOUND)
   list(APPEND FIVOX_SOURCES
     compartmentLoader.cpp

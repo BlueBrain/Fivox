@@ -94,6 +94,7 @@ public:
 
       _output.update( i, voltage / float( info.numCompartments ) + 65.f );
     }
+    LBINFO << "Updated " << _sections.size() << " events" << std::endl;
     return true;
   }
 

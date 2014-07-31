@@ -26,6 +26,7 @@ template<> inline unsigned char _scale( const float value )
   { return value * 256.f; }
 
 static const bool _useCutoff = true;
+static const bool _useArea = true;
 }
 
 /** Functor sampling spatial events into the given pixel. */
@@ -52,14 +53,18 @@ public:
     TAccumulator sum = 0;
     static const float rho = 3.54f; //omh*m == 354 ohm*cm
     static const float factor = rho /( 4.f * M_PI ) / 10.f;
-    static const float threshold2 = 1000.f;
+    static const float threshold = 30.f;
+    static const float threshold2 = threshold * threshold;
 
     Vector3f base;
     const size_t components = std::min( point.Size(), 3u );
     for( size_t i = 0; i < components; ++i )
       base[i] = point[i];
 
-    const Events& events = _source->getEvents();
+    const AABBf area( base - Vector3f( threshold ),
+                      base + Vector3f( threshold ));
+    const Events& events = _useArea ? _source->findEvents( area ) :
+                                      _source->getEvents();
     BOOST_FOREACH( const Event& event, events )
     {
       const float distance2 = (base - event.position).squared_length();

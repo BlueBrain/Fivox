@@ -29,6 +29,17 @@ public:
   /** @return the list of events. */
   const Events& getEvents() const;
 
+  /**
+   * Find all events in the given area.
+   *
+   * Returns a conservative set of events, may contain events outside of the
+   * area, depending on the implementation.
+   *
+   * @param area The query bounding box.
+   * @return The events contained in the area.
+   */
+  Events findEvents( const AABBf& area ) const;
+
   /** @return the bounding box of all events. */
   const AABBf& getBoundingBox() const;
 
