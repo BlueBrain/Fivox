@@ -92,7 +92,8 @@ public:
       for( uint64_t offset = info.offset; offset < end; ++offset )
         voltage += (*voltages)[ offset ];
 
-      _output.update( i, voltage / float( info.numCompartments ) + 65.f );
+      voltage += 67.f * info.numCompartments;
+      _output.update( i, voltage );
     }
     LBINFO << "Updated " << _sections.size() << " events" << std::endl;
     return true;
