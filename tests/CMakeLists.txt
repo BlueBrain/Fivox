@@ -10,5 +10,9 @@ if(BBPSDK_FOUND)
   list(APPEND TEST_LIBRARIES ${BBPSDK_LIBRARIES})
 endif()
 
+if(NOT BBPTESTDATA_FOUND OR NOT BBPSDK_FOUND)
+  set(EXCLUDE_FROM_TESTS compartmentSource.cpp somaSource.cpp)
+endif()
+
 include(CommonCTest)
 install_files(share/Fivox/tests FILES ${TEST_FILES} COMPONENT examples)

@@ -3,8 +3,6 @@
  *                     Stefan.Eilemann@epfl.ch
  */
 
-#if defined(FIVOX_USE_BBPSDK) && defined(FIVOX_USE_BBPTESTDATA)
-
 #define BOOST_TEST_MODULE SomaSource
 
 #include "sdk.h"
@@ -55,4 +53,3 @@ BOOST_AUTO_TEST_CASE(CompartmentSource)
     }
 }
 
-#endif
