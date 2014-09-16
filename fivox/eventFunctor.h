@@ -81,6 +81,7 @@ public:
 
   void setSource( EventSourcePtr source ) { _source = source; }
   ConstEventSourcePtr getSource() const { return _source; }
+  EventSourcePtr getSource() { return _source; }
 
 private:
   EventSourcePtr _source;
