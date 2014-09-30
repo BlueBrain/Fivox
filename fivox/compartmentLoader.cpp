@@ -1,5 +1,3 @@
-// -*- c-basic-offset: 2 -*-
-
 /* Copyright (c) 2014, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
  */
@@ -36,8 +34,7 @@ public:
                      const std::string& target, const float time )
       : _output( output )
       , _experiment( blueconfig )
-      , _reader( *_experiment.reports().find( "allCompartments" ),
-                 _experiment.cell_target( target ))
+      , _reader( *_experiment.reports().begin(), _experiment.cell_target( target ))
   {
     const bbp::Cell_Target& target_ = _experiment.cell_target( target );
     bbp::Microcircuit& microcircuit = _experiment.microcircuit();
