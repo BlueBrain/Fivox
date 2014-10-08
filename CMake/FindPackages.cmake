@@ -48,15 +48,15 @@ else()
 endif()
 
 if(PKG_CONFIG_EXECUTABLE)
-  find_package(vmmlib 1.7.0)
+  find_package(vmmlib 1.8)
   if((NOT vmmlib_FOUND) AND (NOT VMMLIB_FOUND))
-    pkg_check_modules(vmmlib vmmlib>=1.7.0)
+    pkg_check_modules(vmmlib vmmlib>=1.8)
   endif()
   if((NOT vmmlib_FOUND) AND (NOT VMMLIB_FOUND))
     message(FATAL_ERROR "Could not find vmmlib")
   endif()
 else()
-  find_package(vmmlib 1.7.0  REQUIRED)
+  find_package(vmmlib 1.8  REQUIRED)
 endif()
 
 
@@ -144,7 +144,7 @@ if(vmmlib_name)
   endif()
 endif()
 
-set(FIVOX_BUILD_DEBS autoconf;automake;cmake;doxygen;git;git-review;libavahi-client-dev;libboost-date-time-dev;libboost-filesystem-dev;libboost-iostreams-dev;libboost-program-options-dev;libboost-regex-dev;libboost-serialization-dev;libboost-system-dev;libboost-test-dev;libboost-thread-dev;libhdf5-serial-dev;libhwloc-dev;libibverbs-dev;libjpeg-turbo8-dev;libleveldb-dev;librdmacm-dev;libturbojpeg;libudt-dev;pkg-config;subversion)
+set(FIVOX_BUILD_DEBS autoconf;automake;avahi-daemon;cmake;doxygen;git;git-review;libavahi-client-dev;libboost-date-time-dev;libboost-filesystem-dev;libboost-iostreams-dev;libboost-program-options-dev;libboost-regex-dev;libboost-serialization-dev;libboost-system-dev;libboost-test-dev;libboost-thread-dev;libhdf5-serial-dev;libhwloc-dev;libibverbs-dev;libjpeg-turbo8-dev;libleveldb-dev;librdmacm-dev;libturbojpeg;libudt-dev;pkg-config;subversion)
 
 set(FIVOX_DEPENDS BBPSDK;BBPTestData;ITK;Boost;vmmlib)
 

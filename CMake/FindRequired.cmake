@@ -10,7 +10,7 @@ find_package(Boost 1.41.0 COMPONENTS unit_test_framework program_options system 
 if(NOT Boost_FOUND AND NOT BOOST_FOUND)
   set(FIND_REQUIRED_FAILED "${FIND_REQUIRED_FAILED} Boost")
 endif()
-find_package(vmmlib 1.7.0 QUIET)
+find_package(vmmlib 1.8 QUIET)
 if(NOT vmmlib_FOUND AND NOT VMMLIB_FOUND)
   set(FIND_REQUIRED_FAILED "${FIND_REQUIRED_FAILED} vmmlib")
 endif()

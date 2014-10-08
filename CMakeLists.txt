@@ -5,14 +5,16 @@
 cmake_minimum_required(VERSION 2.8)
 project(Fivox)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake
-  ${CMAKE_SOURCE_DIR}/CMake/common)
+                              ${CMAKE_SOURCE_DIR}/CMake/common)
 include(GitExternal)
 
-set(LAST_RELEASE 1.0.0)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
 set(VERSION_ABI 1)
+
+# Fixes 'constexpr' build error on Ubuntu
+add_definitions(-DVCL_CAN_STATIC_CONST_INIT_FLOAT=0)
 
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
 set(FIVOX_DEPENDENT_LIBRARIES ITK)
@@ -31,5 +33,8 @@ add_subdirectory(fivox)
 add_subdirectory(apps)
 add_subdirectory(tests)
 
+set(GIT_DOCUMENTATION_REPO BBPDocumentation)
+set(COMMON_ORGANIZATION_NAME BBP)
+set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(CPackConfig)
 include(DoxygenRule)
