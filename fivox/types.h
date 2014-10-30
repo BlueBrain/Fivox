@@ -15,7 +15,7 @@ namespace fivox
 struct Event;
 typedef std::vector< Event > Events;
 typedef vmml::vector< 3, float > Vector3f;
-typedef vmml::AxisAlignedBoundingBox< float > AABBf;
+typedef vmml::AABB< float > AABBf;
 } // end namespace fivox
 
 #endif
