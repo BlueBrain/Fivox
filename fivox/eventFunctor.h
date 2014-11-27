@@ -1,5 +1,3 @@
-// -*- c-basic-offset: 2 -*-
-
 /* Copyright (c) 2014, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
  */
@@ -26,7 +24,7 @@ template<> inline unsigned char _scale( const float value )
   { return value * 256.f; }
 
 static const bool _useCutoff = true;
-static const bool _useArea = true;
+static const bool _useRegion = true;
 }
 
 /** Functor sampling spatial events into the given pixel. */
@@ -61,10 +59,10 @@ public:
     for( size_t i = 0; i < components; ++i )
       base[i] = point[i];
 
-    const AABBf area( base - Vector3f( threshold ),
-                      base + Vector3f( threshold ));
-    const Events& events = _useArea ? _source->findEvents( area ) :
-                                      _source->getEvents();
+    const AABBf region( base - Vector3f( threshold ),
+                        base + Vector3f( threshold ));
+    const Events& events = _useRegion ? _source->findEvents( region ) :
+                                        _source->getEvents();
     BOOST_FOREACH( const Event& event, events )
     {
       const float distance2 = (base - event.position).squared_length();

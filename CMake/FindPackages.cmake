@@ -144,7 +144,7 @@ if(vmmlib_name)
   endif()
 endif()
 
-set(FIVOX_BUILD_DEBS autoconf;automake;avahi-daemon;cmake;doxygen;git;git-review;libavahi-client-dev;libboost-date-time-dev;libboost-filesystem-dev;libboost-iostreams-dev;libboost-program-options-dev;libboost-regex-dev;libboost-serialization-dev;libboost-system-dev;libboost-test-dev;libboost-thread-dev;libhdf5-serial-dev;libhwloc-dev;libibverbs-dev;libjpeg-turbo8-dev;libleveldb-dev;librdmacm-dev;libturbojpeg;libudt-dev;pkg-config;subversion)
+set(FIVOX_BUILD_DEBS autoconf;automake;avahi-daemon;cmake;doxygen;git;git-review;libavahi-client-dev;libboost-date-time-dev;libboost-filesystem-dev;libboost-iostreams-dev;libboost-program-options-dev;libboost-regex-dev;libboost-serialization-dev;libboost-system-dev;libboost-test-dev;libboost-thread-dev;libhdf5-serial-dev;libhwloc-dev;libibverbs-dev;libinsighttoolkit4-dev;libjpeg-turbo8-dev;libleveldb-dev;libopenmpi-dev;librdmacm-dev;libturbojpeg;libudt-dev;openmpi-bin;pkg-config;subversion)
 
 set(FIVOX_DEPENDS BBPSDK;BBPTestData;ITK;Boost;vmmlib)
 

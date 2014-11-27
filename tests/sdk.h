@@ -43,6 +43,9 @@ inline void _testSDKKernel( const size_t size )
     origin.Fill( position );
     output->SetOrigin( origin );
 
+#ifdef NDEBUG
+    filter->Update();
+#else
     std::ostringstream os;
     os << targetName << '_' << size << '_' << typeid( K ).name() << '_'
        << typeid( T ).name() << ".mhd";
@@ -53,5 +56,6 @@ inline void _testSDKKernel( const size_t size )
     writer->SetFileName( os.str( ));
 
     writer->Update();
+#endif
 }
 }
