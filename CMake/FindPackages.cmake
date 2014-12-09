@@ -52,7 +52,7 @@ macro(COMMON_PACKAGE Name)
   endif()
 endmacro()
 
-common_package(BBPSDK 0.21   )
+common_package(BBPSDK 0.22   )
 common_package(BBPTestData 2.0   )
 common_package(Livre 0.1.0   )
 common_package(ITK 4.0  REQUIRED )

@@ -2,11 +2,14 @@
 #                        Stefan.Eilemann@epfl.ch
 # All rights reserved. Do not distribute without further notice.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(Fivox)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake
-                              ${CMAKE_SOURCE_DIR}/CMake/common)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
+  ${PROJECT_SOURCE_DIR}/CMake/common)
+
 include(GitExternal)
+include(ITKSettings)
+include(SubProject)
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")

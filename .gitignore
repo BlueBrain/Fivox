@@ -5,3 +5,13 @@ CMakeLists.txt.user*
 CMake/common/
 *.mhd
 *.raw
+BBPSDK/
+Brion/
+Collage/
+ITK/
+Lunchbox/
+Pression/
+build/
+codash/
+dash/
+vmmlib/
