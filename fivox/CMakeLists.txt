@@ -12,6 +12,7 @@ set(FIVOX_PUBLIC_HEADERS
   eventSource.h
   imageSource.h
   imageSource.hxx
+  itk.h
   somaLoader.h
   types.h
 )

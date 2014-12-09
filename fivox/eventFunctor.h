@@ -5,11 +5,9 @@
 #define FIVOX_EVENTFUNCTOR_H
 
 #include <fivox/defines.h>
-#include <fivox/eventSource.h>
-#include <fivox/event.h>  // used inline
-
-#pragma GCC diagnostic ignored "-Wtype-limits"
-#include <itkNumericTraits.h>
+#include <fivox/eventSource.h> // member
+#include <fivox/event.h>       // used inline
+#include <fivox/itk.h>
 
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>

@@ -1,21 +1,10 @@
-// -*- c-basic-offset: 2 -*-
-
 /* Copyright (c) 2014, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
  */
 #ifndef FIVOX_IMAGESOURCE_H
 #define FIVOX_IMAGESOURCE_H
 
-#pragma GCC diagnostic ignored "-Wsign-promo"
-#ifdef LB_GCC_4_6_OR_LATER
-#  pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#endif
-#ifdef final
-#  undef final
-#endif
-
-#include <itkImageSource.h>
-
+#include <fivox/itk.h>
 
 namespace fivox
 {
