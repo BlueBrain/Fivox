@@ -38,3 +38,4 @@ if(BBPSDK_FOUND)
 endif()
 
 common_library(Fivox)
+add_subdirectory(livre)

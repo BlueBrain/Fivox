@@ -1,0 +1,244 @@
+
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
+ *
+ * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License version 3.0 as published
+ * by the Free Software Foundation.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include "dataSource.h"
+
+#include <livre/core/Data/LODNode.h>
+#include <livre/core/Data/MemoryUnit.h>
+#include <livre/core/version.h>
+
+#include <fivox/compartmentLoader.h>
+#include <fivox/eventFunctor.h>
+#include <fivox/imageSource.h>
+
+#include <H5Cpp.h>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/regex.hpp>
+
+#ifdef LIVRE_USE_BBPTESTDATA
+#  include <BBP/TestDatasets.h>
+#endif
+
+extern "C" uint32_t LunchboxPluginGetVersion() { return LIVRE_VERSION_ABI; }
+extern "C" bool LunchboxPluginRegister()
+{
+    lunchbox::PluginRegisterer< fivox::livre::DataSource > registerer;
+    return true;
+}
+
+namespace fivox
+{
+namespace livre
+{
+namespace
+{
+typedef itk::Image< uint8_t, 3 > Image;
+typedef Image::Pointer ImagePtr;
+typedef ::fivox::EventFunctor< Image > Functor;
+typedef ::fivox::ImageSource< Image, Functor > Source;
+typedef Source::Pointer SourcePtr;
+}
+
+namespace detail
+{
+class DataSource
+{
+public:
+    DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
+        : source( Source::New( ) )
+    {
+        const lunchbox::URI& uri = pluginData.getURI();
+        std::string blueconfig = uri.getPath();
+        std::string target = uri.getFragment();
+#ifdef LIVRE_USE_BBPTESTDATA
+        if( blueconfig.empty( ))
+        {
+            blueconfig = bbp::test::getBlueconfig();
+
+            LBINFO << "Using test data " << blueconfig;
+            if( target.empty( ))
+            {
+                target = "L5CSPC";
+                LBINFO << " and target " << target;
+            }
+            LBINFO << std::endl;
+        }
+#endif
+        if( blueconfig.empty() || target.empty( ))
+        {
+            std::stringstream ss;
+
+            ss << "Can't get" << (blueconfig.empty() ? " blueconfig" : "")
+                   << (target.empty() ? " target" : "") << " from " << uri
+                   << std::endl;
+            LBTHROW( std::runtime_error( ss.str()));
+        }
+
+
+        ImagePtr output = source->GetOutput();
+        ::fivox::EventSourcePtr loader =
+              boost::make_shared< ::fivox::CompartmentLoader >( blueconfig,
+                                                                target, 5.f );
+        source->GetFunctor().setSource( loader );
+#ifdef LIVRE_DEBUG_RENDERING
+        std::cout << "Global space: " <<  loader->getBoundingBox() << std::endl;
+#endif
+    }
+
+    ::livre::MemoryUnitPtr sample( const ::livre::LODNode& node, const ::livre::VolumeInformation& info )
+        const
+    {
+        ImagePtr image = source->GetOutput();
+        ::fivox::ConstEventSourcePtr loader = source->GetFunctor().getSource();
+
+        // Alloc voxels
+        const vmml::Vector3i& voxels = info.maximumBlockSize;
+        Image::SizeType vSize;
+        vSize[0] = voxels[0];
+        vSize[1] = voxels[1];
+        vSize[2] = voxels[2];
+
+        Image::RegionType region;
+        region.SetSize( vSize );
+        image->SetRegions( region );
+
+        // Real-world coordinate setup
+        const ::fivox::AABBf& bbox = loader->getBoundingBox();
+        const vmml::Vector3f& baseSpacing = bbox.getDimension() / info.voxels;
+        const int32_t levelFromBottom = node.getMaxRefLevel() -
+                                        node.getRefLevel();
+        const float spacingFactor = 1 << levelFromBottom;
+
+        Image::SpacingType spacing;
+        spacing[0] = baseSpacing[0] * spacingFactor;
+        spacing[1] = baseSpacing[1] * spacingFactor;
+        spacing[2] = baseSpacing[2] * spacingFactor;
+        image->SetSpacing( spacing );
+
+        const vmml::Vector3f& offset = bbox.getMin() +
+                                 node.getRelativePosition()*bbox.getDimension();
+        Image::PointType origin;
+        origin[0] = offset[0];
+        origin[1] = offset[1];
+        origin[2] = offset[2];
+        image->SetOrigin( origin );
+
+#ifdef LIVRE_DEBUG_RENDERING
+        std::cout << "Sample " << node.getRefLevel() << ' '
+                  << node.getRelativePosition() << " (" << spacing << " @ "
+                  << origin << 'x'
+                  << baseSpacing * spacingFactor * voxels << ")"
+                  << std::endl;
+#endif
+        source->Modified();
+        source->Update();
+
+        ::livre::AllocMemoryUnitPtr memoryUnit( new ::livre::AllocMemoryUnit() );
+        const size_t size = voxels[ 0 ] * voxels[ 1 ] * voxels[ 2 ] *
+                            info.compCount * info.getBytesPerVoxel();
+        memoryUnit->allocAndSetData( image->GetBufferPointer(), size );
+        return memoryUnit;
+    }
+
+    SourcePtr source;
+};
+}
+
+DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
+    : _impl( new detail::DataSource( pluginData ) )
+{
+
+    // TODO get from URI
+    size_t size = 1024;
+    size_t blockSize = 32;
+
+    _volumeInfo.voxels = vmml::Vector3ui( size );
+    _volumeInfo.maximumBlockSize = vmml::Vector3ui( blockSize );
+
+    setupRegularTree();
+
+    ::fivox::ConstEventSourcePtr loader =
+          _impl->source->GetFunctor().getSource();
+    const ::fivox::AABBf& bbox = loader->getBoundingBox();
+
+    // SDK uses microns, volume information uses meters
+    _volumeInfo.boundingBox = bbox / 1000000.f;
+}
+
+DataSource::~DataSource()
+{
+    delete _impl;
+}
+
+::livre::MemoryUnitPtr DataSource::getData( const ::livre::LODNode& node )
+{
+    try
+    {
+        return _impl->sample( node, getVolumeInformation( ));
+    }
+    catch( const std::exception& e )
+    {
+        LBWARN << "sample failed: " << e.what() << std::endl;
+        return ::livre::MemoryUnitPtr();
+    }
+    catch( const H5::Exception& e )
+    {
+        LBWARN << "sample failed: " << e.getDetailMsg() << std::endl;
+        return ::livre::MemoryUnitPtr();
+    }
+}
+
+bool DataSource::handles( const ::livre::VolumeDataSourcePluginData& pluginData )
+{
+    return pluginData.getURI().getScheme() == "fivox";
+}
+
+void DataSource::internalNodeToLODNode(
+    const ::livre::InternalTreeNodeStructure& internalNode,
+    ::livre::LODNode& lodNode ) const
+{
+    const uint32_t level = internalNode.refLevel;
+    const vmml::Vector3ui& bricksInRefLevel = _volumeInfo.levelBlockDimensions[ level ];
+    const ::livre::Boxi localBlockPos( internalNode.pos, internalNode.pos + 1u );
+
+    vmml::Vector3f lBoxCoordMin = localBlockPos.getMin();
+    vmml::Vector3f lBoxCoordMax = localBlockPos.getMax();
+
+    const uint32_t index = bricksInRefLevel.find_max_index();
+
+    lBoxCoordMin = lBoxCoordMin / bricksInRefLevel[index];
+    lBoxCoordMax = lBoxCoordMax / bricksInRefLevel[index];
+
+    lodNode = ::livre::LODNode( internalNode.lodNodeId,
+                                internalNode.refLevel,
+                                _volumeInfo.depth,
+                                _volumeInfo.maximumBlockSize -
+                                _volumeInfo.overlap * 2,
+                                internalNode.pos,
+                                ::livre::Boxf( lBoxCoordMin -
+                                               _volumeInfo.worldSize * 0.5f,
+                                               lBoxCoordMax -
+                                               _volumeInfo.worldSize * 0.5f ));
+}
+
+}
+}
