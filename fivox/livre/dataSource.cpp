@@ -38,7 +38,7 @@
 #  include <BBP/TestDatasets.h>
 #endif
 
-extern "C" uint32_t LunchboxPluginGetVersion() { return LIVRE_VERSION_ABI; }
+extern "C" int LunchboxPluginGetVersion() { return LIVRE_VERSION_ABI; }
 extern "C" bool LunchboxPluginRegister()
 {
     lunchbox::PluginRegisterer< fivox::livre::DataSource > registerer;
