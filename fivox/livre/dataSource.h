@@ -31,7 +31,7 @@ namespace detail{ class DataSource; }
 /**
  * Generate volume data sampling BBPSDK simulation reports.
  *
- * Used for volume URIs in the form fivox://BlueConfig#TargetName
+ * Used for volume URIs in the form fivox://BlueConfig#TargetName?time=float
  */
 class DataSource : public ::livre::VolumeDataSourcePlugin
 {

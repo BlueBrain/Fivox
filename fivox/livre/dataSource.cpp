@@ -49,6 +49,8 @@ namespace fivox
 {
 namespace livre
 {
+using boost::lexical_cast;
+
 namespace
 {
 typedef itk::Image< uint8_t, 3 > Image;
@@ -64,7 +66,7 @@ class DataSource
 {
 public:
     DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
-        : source( Source::New( ) )
+        : source( Source::New( ))
     {
         const lunchbox::URI& uri = pluginData.getURI();
         std::string blueconfig = uri.getPath();
@@ -93,18 +95,22 @@ public:
             LBTHROW( std::runtime_error( ss.str()));
         }
 
+        lunchbox::URI::ConstKVIter i = uri.findQuery( "time" );
+        const float time = i == uri.queryEnd() ?
+                                    10.f : lexical_cast< float >( i->second );
 
         ImagePtr output = source->GetOutput();
         ::fivox::EventSourcePtr loader =
               boost::make_shared< ::fivox::CompartmentLoader >( blueconfig,
-                                                                target, 5.f );
+                                                                target, time );
         source->GetFunctor().setSource( loader );
 #ifdef LIVRE_DEBUG_RENDERING
         std::cout << "Global space: " <<  loader->getBoundingBox() << std::endl;
 #endif
     }
 
-    ::livre::MemoryUnitPtr sample( const ::livre::LODNode& node, const ::livre::VolumeInformation& info )
+    ::livre::MemoryUnitPtr sample( const ::livre::LODNode& node,
+                                   const ::livre::VolumeInformation& info )
         const
     {
         ImagePtr image = source->GetOutput();
@@ -217,8 +223,9 @@ void DataSource::internalNodeToLODNode(
     ::livre::LODNode& lodNode ) const
 {
     const uint32_t level = internalNode.refLevel;
-    const vmml::Vector3ui& bricksInRefLevel = _volumeInfo.levelBlockDimensions[ level ];
-    const ::livre::Boxi localBlockPos( internalNode.pos, internalNode.pos + 1u );
+    const vmml::Vector3ui& bricksInRefLevel =
+        _volumeInfo.levelBlockDimensions[ level ];
+    const ::livre::Boxi localBlockPos( internalNode.pos, internalNode.pos+1u );
 
     vmml::Vector3f lBoxCoordMin = localBlockPos.getMin();
     vmml::Vector3f lBoxCoordMax = localBlockPos.getMax();
