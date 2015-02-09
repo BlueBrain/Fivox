@@ -42,7 +42,7 @@ public:
             _circuit.get( gids, brion::NEURON_POSITION_X |
                                 brion::NEURON_POSITION_Y |
                                 brion::NEURON_POSITION_Z );
-        for( size_t i=0, i < gids.size(), ++i )
+        for( size_t i = 0; i < gids.size(); ++i )
         {
             _bbox.merge( Vector3f( lexical_cast< float >( matrix[i][0] ),
                                    lexical_cast< float >( matrix[i][1] ),

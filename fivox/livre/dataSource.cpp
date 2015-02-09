@@ -127,9 +127,6 @@ public:
                                    const ::livre::VolumeInformation& info )
         const
     {
-        ImagePtr image = source->GetOutput();
-        ::fivox::ConstEventSourcePtr loader = source->GetFunctor().getSource();
-
         // Alloc voxels
         const vmml::Vector3i& voxels = info.maximumBlockSize;
         Image::SizeType vSize;
@@ -139,9 +136,9 @@ public:
 
         Image::RegionType region;
         region.SetSize( vSize );
-        image->SetRegions( region );
 
         // Real-world coordinate setup
+        ::fivox::ConstEventSourcePtr loader = source->GetFunctor().getSource();
         const ::fivox::AABBf& bbox = loader->getBoundingBox();
         const vmml::Vector3f& baseSpacing = bbox.getDimension() / info.voxels;
         const int32_t levelFromBottom = node.getMaxRefLevel() -
@@ -152,7 +149,6 @@ public:
         spacing[0] = baseSpacing[0] * spacingFactor;
         spacing[1] = baseSpacing[1] * spacingFactor;
         spacing[2] = baseSpacing[2] * spacingFactor;
-        image->SetSpacing( spacing );
 
         const vmml::Vector3f& offset = bbox.getMin() +
                                  node.getRelativePosition()*bbox.getDimension();
@@ -160,6 +156,12 @@ public:
         origin[0] = offset[0];
         origin[1] = offset[1];
         origin[2] = offset[2];
+
+        // called from multiple render threads, only have one update running
+        lunchbox::ScopedWrite mutex( _lock );
+        ImagePtr image = source->GetOutput();
+        image->SetRegions( region );
+        image->SetSpacing( spacing );
         image->SetOrigin( origin );
 
 #ifdef LIVRE_DEBUG_RENDERING
@@ -172,7 +174,7 @@ public:
         source->Modified();
         source->Update();
 
-        ::livre::AllocMemoryUnitPtr memoryUnit( new ::livre::AllocMemoryUnit() );
+        ::livre::AllocMemoryUnitPtr memoryUnit( new ::livre::AllocMemoryUnit );
         const size_t size = voxels[ 0 ] * voxels[ 1 ] * voxels[ 2 ] *
                             info.compCount * info.getBytesPerVoxel();
         memoryUnit->allocAndSetData( image->GetBufferPointer(), size );
@@ -180,6 +182,9 @@ public:
     }
 
     SourcePtr source;
+
+private:
+    mutable lunchbox::Lock _lock;
 };
 }
 
