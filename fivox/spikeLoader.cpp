@@ -8,6 +8,7 @@
 #include <BBP/BBP.h>
 #include <brion/brion.h>
 #include <lunchbox/bitOperation.h>
+#include <boost/foreach.hpp>
 #ifdef final
 #  undef final
 #endif
