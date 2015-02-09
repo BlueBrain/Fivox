@@ -34,7 +34,8 @@ public:
                      const std::string& target, const float time )
       : _output( output )
       , _experiment( blueconfig )
-      , _reader( *_experiment.reports().begin(), _experiment.cell_target( target ))
+      , _reader( *_experiment.reports().begin(),
+                 _experiment.cell_target( target ))
   {
     const bbp::Cell_Target& target_ = _experiment.cell_target( target );
     bbp::Microcircuit& microcircuit = _experiment.microcircuit();

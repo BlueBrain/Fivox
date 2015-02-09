@@ -1,5 +1,5 @@
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -31,7 +31,16 @@ namespace detail{ class DataSource; }
 /**
  * Generate volume data sampling BBPSDK simulation reports.
  *
- * Used for volume URIs in the form fivox://BlueConfig#TargetName?time=float
+ * Used for volume URIs in the forms:
+ * - Compartment reports: fivoxCompartment://BlueConfig?time=float,target=string
+ * - Soma reports: fivoxSoma://BlueConfig?time=float,target=string
+ * - Spike reports: fivoxSpikes://BlueConfig?time=float,window=float,spikes=path
+ *
+ * Parameters:
+ * - time: initial timestep to load
+ * - window: size of the time window to load spikes
+ * - target: name of the BlueConfig target
+ * - spikes: path to an alternate out.dat file
  */
 class DataSource : public ::livre::VolumeDataSourcePlugin
 {
@@ -41,7 +50,7 @@ public:
 
     ::livre::MemoryUnitPtr getData( const ::livre::LODNode& node ) override;
 
-    static bool handles( const ::livre::VolumeDataSourcePluginData& pluginData );
+    static bool handles( const ::livre::VolumeDataSourcePluginData& data );
 
 private:
     detail::DataSource* const _impl;

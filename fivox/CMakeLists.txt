@@ -14,6 +14,7 @@ set(FIVOX_PUBLIC_HEADERS
   imageSource.hxx
   itk.h
   somaLoader.h
+  spikeLoader.h
   types.h
 )
 
@@ -33,7 +34,8 @@ endif()
 if(BBPSDK_FOUND)
   list(APPEND FIVOX_SOURCES
     compartmentLoader.cpp
-    somaLoader.cpp)
+    somaLoader.cpp
+    spikeLoader.cpp)
   list(APPEND FIVOX_LINK_LIBRARIES ${BBPSDK_LIBRARIES})
 endif()
 

@@ -1,4 +1,3 @@
-// -*- c-basic-offset: 2 -*-
 
 /* Copyright (c) 2014, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch

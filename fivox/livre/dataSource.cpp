@@ -20,14 +20,17 @@
 
 #include "dataSource.h"
 
+#include <fivox/compartmentLoader.h>
+#include <fivox/somaLoader.h>
+#include <fivox/spikeLoader.h>
+#include <fivox/eventFunctor.h>
+#include <fivox/imageSource.h>
+
 #include <livre/core/Data/LODNode.h>
 #include <livre/core/Data/MemoryUnit.h>
 #include <livre/core/version.h>
 
-#include <fivox/compartmentLoader.h>
-#include <fivox/eventFunctor.h>
-#include <fivox/imageSource.h>
-
+#include <BBP/BBP.h>
 #include <H5Cpp.h>
 
 #include <boost/algorithm/string.hpp>
@@ -69,40 +72,51 @@ public:
         : source( Source::New( ))
     {
         const lunchbox::URI& uri = pluginData.getURI();
-        std::string blueconfig = uri.getPath();
+        std::string config = uri.getPath();
         std::string target = uri.getFragment();
-#ifdef LIVRE_USE_BBPTESTDATA
-        if( blueconfig.empty( ))
-        {
-            blueconfig = bbp::test::getBlueconfig();
+        const bool useSpikes = (uri.getScheme() == "fivoxSpikes");
+        const bool useSoma = (uri.getScheme() == "fivoxSoma");
 
-            LBINFO << "Using test data " << blueconfig;
-            if( target.empty( ))
-            {
-                target = "L5CSPC";
-                LBINFO << " and target " << target;
-            }
-            LBINFO << std::endl;
+#ifdef LIVRE_USE_BBPTESTDATA
+        if( config.empty() )
+        {
+            config = bbp::test::getBlueconfig();
+            LBINFO << "Using test data " << config << std::endl;
+        }
+
+        if( !useSpikes && target.empty( ))
+        {
+            target = "L5CSPC";
+            LBINFO << "Using target " << target << std::endl;
         }
 #endif
-        if( blueconfig.empty() || target.empty( ))
-        {
-            std::stringstream ss;
-
-            ss << "Can't get" << (blueconfig.empty() ? " blueconfig" : "")
-                   << (target.empty() ? " target" : "") << " from " << uri
-                   << std::endl;
-            LBTHROW( std::runtime_error( ss.str()));
-        }
-
         lunchbox::URI::ConstKVIter i = uri.findQuery( "time" );
         const float time = i == uri.queryEnd() ?
-                                    10.f : lexical_cast< float >( i->second );
+                                    0.f : lexical_cast< float >( i->second );
 
         ImagePtr output = source->GetOutput();
-        ::fivox::EventSourcePtr loader =
-              boost::make_shared< ::fivox::CompartmentLoader >( blueconfig,
-                                                                target, time );
+        ::fivox::EventSourcePtr loader;
+        if( useSpikes )
+        {
+            i = uri.findQuery( "window" );
+            const float window = i == uri.queryEnd() ?
+                                      10.f : lexical_cast< float >( i->second );
+
+            i = uri.findQuery( "spikes" );
+            if( i != uri.queryEnd( ))
+                target = i->second;
+
+            const bbp::Experiment_Specification spec( config );
+            loader = boost::make_shared< ::fivox::SpikeLoader >( spec, target,
+                                                                 time, window );
+        }
+        else if( useSoma )
+            loader = boost::make_shared< ::fivox::SomaLoader >( config, target,
+                                                                time );
+        else
+            loader = boost::make_shared< ::fivox::CompartmentLoader >(
+                                             config, target, time );
+
         source->GetFunctor().setSource( loader );
 #ifdef LIVRE_DEBUG_RENDERING
         std::cout << "Global space: " <<  loader->getBoundingBox() << std::endl;
@@ -213,9 +227,11 @@ DataSource::~DataSource()
     }
 }
 
-bool DataSource::handles( const ::livre::VolumeDataSourcePluginData& pluginData )
+bool DataSource::handles( const ::livre::VolumeDataSourcePluginData& data )
 {
-    return pluginData.getURI().getScheme() == "fivox";
+    const std::string fivox = "fivox";
+    const std::string& scheme = data.getURI().getScheme();
+    return scheme.substr( 0, fivox.size( )) == fivox;
 }
 
 void DataSource::internalNodeToLODNode(
