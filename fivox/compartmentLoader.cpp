@@ -1,11 +1,12 @@
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 
 #include "compartmentLoader.h"
 #include "event.h"
 
 #include <BBP/BBP.h>
+#include <boost/foreach.hpp>
 
 namespace fivox
 {

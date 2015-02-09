@@ -7,6 +7,7 @@
 #include "event.h"
 
 #include <BBP/BBP.h>
+#include <boost/foreach.hpp>
 #ifdef final
 #  undef final
 #endif
