@@ -16,9 +16,6 @@ set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
 set(VERSION_ABI 1)
 
-# Fixes 'constexpr' build error on Ubuntu
-add_definitions(-DVCL_CAN_STATIC_CONST_INIT_FLOAT=0)
-
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
 set(FIVOX_DEPENDENT_LIBRARIES ITK)
 

@@ -17,6 +17,15 @@ endforeach()
 
 set(ITK_LIBRARIES ITK)
 
+# Fixes 'constexpr' build error on Ubuntu
+add_definitions(-DVCL_CAN_STATIC_CONST_INIT_FLOAT=0)
+
 # ITK_USE_FILE is not set when used as subproject. Set it to myself by
 # default, will be overwritten when used as an external package
 set(ITK_USE_FILE ITKSettings)
+
+# Ubuntu 14.04 has a broken ITK package - force usage of ITK sub project:
+include(LSBInfo)
+if(LSB_CODENAME STREQUAL "trusty")
+  set(DISABLE_SUBPROJECTS OFF CACHE BOOL "Force subprojects for ITK" FORCE)
+endif()
