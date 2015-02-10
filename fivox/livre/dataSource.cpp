@@ -56,6 +56,9 @@ using boost::lexical_cast;
 
 namespace
 {
+const size_t _defaultTotalSize = 8192;
+const size_t _defaultBlockSize = 256;
+
 typedef itk::Image< uint8_t, 3 > Image;
 typedef Image::Pointer ImagePtr;
 typedef ::fivox::EventFunctor< Image > Functor;
@@ -189,14 +192,18 @@ private:
 }
 
 DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
-    : _impl( new detail::DataSource( pluginData ) )
+    : _impl( new detail::DataSource( pluginData ))
 {
+    const lunchbox::URI& uri = pluginData.getURI();
+    lunchbox::URI::ConstKVIter i = uri.findQuery( "totalSize" );
+    lunchbox::URI::ConstKVIter j = uri.findQuery( "blockSize" );
 
-    // TODO get from URI
-    size_t size = 1024;
-    size_t blockSize = 32;
+    const size_t totalSize = (i == uri.queryEnd( )) ? _defaultTotalSize :
+                                             lexical_cast< float >( i->second );
+    const size_t blockSize = (j == uri.queryEnd( )) ? _defaultBlockSize :
+                                             lexical_cast< float >( j->second );
 
-    _volumeInfo.voxels = vmml::Vector3ui( size );
+    _volumeInfo.voxels = vmml::Vector3ui( totalSize );
     _volumeInfo.maximumBlockSize = vmml::Vector3ui( blockSize );
 
     setupRegularTree();
