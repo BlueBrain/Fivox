@@ -11,7 +11,7 @@
 #include <iomanip>
 
 #ifdef NDEBUG
-static const size_t maxSize = 1024;
+static const size_t maxSize = 512;
 #else
 static const size_t maxSize = 128;
 #endif
