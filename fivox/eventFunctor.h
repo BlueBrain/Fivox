@@ -67,10 +67,7 @@ public:
       if( _useCutoff && distance2 > threshold2 )
         continue;
 
-      if( distance2 < 1.f )
-        sum += _scale< TPixel >( event.value * factor );
-      else
-        sum += _scale< TPixel >( event.value * factor / std::sqrt( distance2 ));
+      sum += _scale< TPixel >( event.value * factor / std::sqrt( distance2 ));
     }
     return sum;
   }

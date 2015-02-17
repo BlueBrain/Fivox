@@ -15,12 +15,11 @@ namespace detail { class SpikeLoader; }
 class SpikeLoader : public EventSource
 {
 public:
-    SpikeLoader( const bbp::Experiment_Specification& spec,
-                 const std::string& spikes, const float time,
-                 const float window );
+    SpikeLoader( const std::string& blueconfig, const std::string& spikes,
+                 const float time, const float duration );
     virtual ~SpikeLoader();
 
-    bool loadFrame( const float time, const float window );
+    bool loadFrame( const float time, const float duration );
 
 private:
     detail::SpikeLoader* const _impl;

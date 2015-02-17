@@ -101,17 +101,17 @@ public:
         ::fivox::EventSourcePtr loader;
         if( useSpikes )
         {
-            i = uri.findQuery( "window" );
-            const float window = i == uri.queryEnd() ?
+            i = uri.findQuery( "duration" );
+            const float duration = i == uri.queryEnd() ?
                                       10.f : lexical_cast< float >( i->second );
 
             i = uri.findQuery( "spikes" );
             if( i != uri.queryEnd( ))
                 target = i->second;
 
-            const bbp::Experiment_Specification spec( config );
-            loader = boost::make_shared< ::fivox::SpikeLoader >( spec, target,
-                                                                 time, window );
+            loader = boost::make_shared< ::fivox::SpikeLoader >( config, target,
+                                                                 time,
+                                                                 duration );
         }
         else if( useSoma )
             loader = boost::make_shared< ::fivox::SomaLoader >( config, target,

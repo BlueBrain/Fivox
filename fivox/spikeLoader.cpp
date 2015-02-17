@@ -8,81 +8,90 @@
 #include <BBP/BBP.h>
 #include <brion/brion.h>
 #include <lunchbox/bitOperation.h>
+#include <lunchbox/stdExt.h>
 #include <boost/foreach.hpp>
 #ifdef final
 #  undef final
 #endif
 
 using boost::lexical_cast;
+using brion::Strings;
 
 namespace fivox
 {
 namespace detail
 {
 
+void _loadTarget( brion::GIDSet& gids, const brion::Target& target,
+                  const std::string& name )
+{
+    const Strings& values = target.get( name );
+    BOOST_FOREACH( const std::string& value, values )
+    {
+        try
+        {
+            gids.insert( lexical_cast< uint32_t >( value.substr( 1 )));
+        }
+        catch( ... )
+        {
+            if( value != name )
+                _loadTarget( gids, target, value );
+        }
+    }
+}
+
 class SpikeLoader
 {
 public:
     SpikeLoader( fivox::EventSource& output,
-                 const bbp::Experiment_Specification& spec,
+                 const std::string& blueconfig,
                  const std::string& spikeFile, const float time,
-                 const float window )
+                 const float duration )
         : _output( output )
-        , _spikes( spikeFile.empty() ? spec.spikes_source() :
-                                       lunchbox::URI( spikeFile ),
-                   brion::MODE_READ )
-        , _circuit( spec.circuit_source() + "/circuit.mvd2" )
+        , _experiment( blueconfig )
+        , _spikes( spikeFile.empty() ? _experiment.spikes_source() :
+                                       lunchbox::URI( spikeFile ))
     {
-        // compute bounding box to set correct size for partial spikes
-        const brion::Spikes& spikes = _spikes.getSpikes();
+        // Get all neuron positions and compute bounding box to set correct size
+        // for partial spikes
+        const brion::Circuit circuit( _experiment.circuit_source() +
+                                      "/circuit.mvd2" );
+        const brion::Target target( _experiment.target_source() +
+                                    "/start.target" );
         brion::GIDSet gids;
-        BOOST_FOREACH( const brion::Spike& spike, spikes )
-            gids.insert( spike.second );
+        _loadTarget( gids, target, _experiment.circuit_target( ));
 
         const brion::NeuronMatrix& matrix =
-            _circuit.get( gids, brion::NEURON_POSITION_X |
-                                brion::NEURON_POSITION_Y |
-                                brion::NEURON_POSITION_Z );
-        for( size_t i = 0; i < gids.size(); ++i )
+            circuit.get( gids, brion::NEURON_POSITION_X |
+                               brion::NEURON_POSITION_Y |
+                               brion::NEURON_POSITION_Z );
+
+        size_t i = 0;
+        BOOST_FOREACH( uint32_t gid, gids )
         {
-            _bbox.merge( Vector3f( lexical_cast< float >( matrix[i][0] ),
-                                   lexical_cast< float >( matrix[i][1] ),
-                                   lexical_cast< float >( matrix[i][2] )));
+            const Vector3f position( lexical_cast< float >( matrix[i][0] ),
+                                     lexical_cast< float >( matrix[i][1] ),
+                                     lexical_cast< float >( matrix[i][2] ));
+            _positions[ gid ] = position;
+            _bbox.merge( position );
+            ++i;
         }
 
         // Load requested data
-        LBCHECK( loadFrame( time, window ));
+        LBCHECK( loadFrame( time, duration ));
     }
 
-    bool loadFrame( const float start, const float window )
+    bool loadFrame( const float start, const float duration )
     {
         _output.clear();
 
-        const float end = start + window;
-        _spikes.waitUntil( end );
+        const bbp::Spikes& spikes = _spikes.getSpikes( start, start+duration );
 
-        const brion::Spikes& spikes = _spikes.getSpikes();
-        brion::GIDSet gids;
-        BOOST_FOREACH( const brion::Spike& spike, spikes )
-            if( start <= spike.first && end > spike.first )
-                gids.insert( spike.second );
+        BOOST_FOREACH( const bbp::Spike& spike, spikes )
+            _output.add( Event( _positions[ spike.second ], 10.f ));
 
-        LBINFO << gids.size() << " spikes in " << start << ", " << end
-               << std::endl;
-        const brion::NeuronMatrix& matrix =
-            _circuit.get( gids, brion::NEURON_POSITION_X |
-                                brion::NEURON_POSITION_Y |
-                                brion::NEURON_POSITION_Z );
-        size_t index = 0;
-        BOOST_FOREACH( uint32_t gid, gids )
-        {
-            const Vector3f pos( lexical_cast< float >( matrix[index][0] ),
-                                lexical_cast< float >( matrix[index][1] ),
-                                lexical_cast< float >( matrix[index][2] ));
-            _output.add( Event( pos, 20.f ));
-            ++index;
-            LBVERB << gid << " at " << pos << std::endl;
-        }
+        LBINFO << spikes.size() << " spikes in " << duration << "ms after "
+               << start << std::endl;
 
         // Add empty corner points to set size correctly
         _output.add( Event( _bbox.getMin(), 0.f ));
@@ -92,9 +101,12 @@ public:
 
 private:
     fivox::EventSource& _output;
-    brion::SpikeReport _spikes;
-    brion::Circuit _circuit;
+    bbp::Experiment_Specification _experiment;
+    bbp::SpikeReportReader _spikes;
     vmml::AABBf _bbox;
+
+    typedef boost::unordered_map< uint32_t, Vector3f > Positions;
+    Positions _positions;
 };
 }
 
@@ -102,10 +114,11 @@ namespace
 {
 };
 
-SpikeLoader::SpikeLoader( const bbp::Experiment_Specification& spec,
+SpikeLoader::SpikeLoader( const std::string& blueconfig,
                           const std::string& spikes, const float time,
-                          const float window )
-    : _impl( new detail::SpikeLoader( *this, spec, spikes, time, window ))
+                          const float duration )
+    : _impl( new detail::SpikeLoader( *this, blueconfig, spikes, time,
+                                      duration ))
 {}
 
 SpikeLoader::~SpikeLoader()
@@ -113,9 +126,9 @@ SpikeLoader::~SpikeLoader()
     delete _impl;
 }
 
-bool SpikeLoader::loadFrame( const float time, const float window )
+bool SpikeLoader::loadFrame( const float time, const float duration )
 {
-    return _impl->loadFrame( time, window );
+    return _impl->loadFrame( time, duration );
 }
 
 }

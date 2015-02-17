@@ -34,11 +34,11 @@ namespace detail{ class DataSource; }
  * Used for volume URIs in the forms:
  * - Compartment reports: fivoxCompartment://BlueConfig?time=float,target=string
  * - Soma reports: fivoxSoma://BlueConfig?time=float,target=string
- * - Spike reports: fivoxSpikes://BlueConfig?time=float,window=float,spikes=path
+ * - Spike reports: fivoxSpikes://BlueConfig?time=float,duration=float,spikes=path
  *
  * Parameters:
  * - time: initial timestep to load
- * - window: size of the time window to load spikes
+ * - duration: size of the time window to load spikes
  * - target: name of the BlueConfig target
  * - spikes: path to an alternate out.dat file
  */
