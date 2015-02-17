@@ -56,7 +56,7 @@ using boost::lexical_cast;
 
 namespace
 {
-const size_t _defaultTotalSize = 8192;
+const size_t _defaultTotalSize = 16384;
 const size_t _defaultBlockSize = 256;
 
 typedef itk::Image< uint8_t, 3 > Image;
