@@ -149,12 +149,13 @@ public:
         const float spacingFactor = 1 << levelFromBottom;
 
         Image::SpacingType spacing;
-        spacing[0] = baseSpacing[0] * spacingFactor;
-        spacing[1] = baseSpacing[1] * spacingFactor;
-        spacing[2] = baseSpacing[2] * spacingFactor;
+        spacing[0] = baseSpacing.find_max() * spacingFactor;
+        spacing[1] = spacing[0];
+        spacing[2] = spacing[0];
 
         const vmml::Vector3f& offset = bbox.getMin() +
-                                 node.getRelativePosition()*bbox.getDimension();
+                                       node.getRelativePosition() *
+                               vmml::Vector3f( bbox.getDimension().find_max( ));
         Image::PointType origin;
         origin[0] = offset[0];
         origin[1] = offset[1];

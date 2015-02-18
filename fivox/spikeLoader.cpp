@@ -51,6 +51,7 @@ public:
         , _experiment( blueconfig )
         , _spikes( spikeFile.empty() ? _experiment.spikes_source() :
                                        lunchbox::URI( spikeFile ))
+        , _magnitude( .5f )
     {
         // Get all neuron positions and compute bounding box to set correct size
         // for partial spikes
@@ -60,6 +61,7 @@ public:
                                     "/start.target" );
         brion::GIDSet gids;
         _loadTarget( gids, target, _experiment.circuit_target( ));
+        _magnitude = 100.f / std::log( gids.size( )); // heuristic
 
         const brion::NeuronMatrix& matrix =
             circuit.get( gids, brion::NEURON_POSITION_X |
@@ -88,10 +90,11 @@ public:
         const bbp::Spikes& spikes = _spikes.getSpikes( start, start+duration );
 
         BOOST_FOREACH( const bbp::Spike& spike, spikes )
-            _output.add( Event( _positions[ spike.second ], 10.f ));
+            _output.add( Event( _positions[ spike.second ], _magnitude ));
 
-        LBINFO << spikes.size() << " spikes in " << duration << "ms after "
-               << start << std::endl;
+        LBINFO << spikes.size() << " spikes of magnitude " << _magnitude
+               << " in " << duration << " ms after " << start << " in "
+               << _bbox << std::endl;
 
         // Add empty corner points to set size correctly
         _output.add( Event( _bbox.getMin(), 0.f ));
@@ -104,6 +107,7 @@ private:
     bbp::Experiment_Specification _experiment;
     bbp::SpikeReportReader _spikes;
     vmml::AABBf _bbox;
+    float _magnitude;
 
     typedef boost::unordered_map< uint32_t, Vector3f > Positions;
     Positions _positions;

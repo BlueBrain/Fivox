@@ -17,9 +17,9 @@ namespace fivox
 namespace
 {
 template< class T > inline T _scale( const float value )
-  { return value; }
+    { return value; }
 template<> inline unsigned char _scale( const float value )
-  { return value * 256.f; }
+    { return std::min( value * 256.f, 255.f ); }
 
 static const bool _useCutoff = true;
 static const bool _useRegion = true;
@@ -29,55 +29,54 @@ static const bool _useRegion = true;
 template< typename TImage > class EventFunctor
 {
 public:
-  typedef typename TImage::PixelType TPixel;
-  typedef typename TImage::PointType TPoint;
-  typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
+    typedef typename TImage::PixelType TPixel;
+    typedef typename TImage::PointType TPoint;
+    typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
 
-  EventFunctor() {}
-  ~EventFunctor() {}
+    EventFunctor() {}
+    ~EventFunctor() {}
 
-  bool operator!=(const EventFunctor &) const { return false; }
-  bool operator==(const EventFunctor & other) const
-    { return !( *this != other ); }
+    bool operator!=(const EventFunctor &) const { return false; }
+    bool operator==(const EventFunctor & other) const
+        { return !( *this != other ); }
 
 
-  inline TPixel operator()( const TPoint& point ) const
-  {
-    if( !_source )
-      return 0;
-
-    TAccumulator sum = 0;
-    static const float rho = 3.54f; //omh*m == 354 ohm*cm
-    static const float factor = rho /( 4.f * M_PI ) / 10.f;
-    static const float threshold = 30.f;
-    static const float threshold2 = threshold * threshold;
-
-    Vector3f base;
-    const size_t components = std::min( point.Size(), 3u );
-    for( size_t i = 0; i < components; ++i )
-      base[i] = point[i];
-
-    const AABBf region( base - Vector3f( threshold ),
-                        base + Vector3f( threshold ));
-    const Events& events = _useRegion ? _source->findEvents( region ) :
-                                        _source->getEvents();
-    BOOST_FOREACH( const Event& event, events )
+    inline TPixel operator()( const TPoint& point ) const
     {
-      const float distance2 = (base - event.position).squared_length();
-      if( _useCutoff && distance2 > threshold2 )
-        continue;
+        if( !_source )
+            return 0;
 
-      sum += _scale< TPixel >( event.value * factor / std::sqrt( distance2 ));
+        static const float threshold = 50.f;
+        static const float threshold2 = threshold * threshold;
+
+        Vector3f base;
+        const size_t components = std::min( point.Size(), 3u );
+        for( size_t i = 0; i < components; ++i )
+            base[i] = point[i];
+
+        const AABBf region( base - Vector3f( threshold ),
+                            base + Vector3f( threshold ));
+        const Events& events = _useRegion ? _source->findEvents( region ) :
+                                            _source->getEvents();
+        float sum = 0.f;
+
+        BOOST_FOREACH( const Event& event, events )
+        {
+            const float distance2 = (base - event.position).squared_length();
+            if( _useCutoff && distance2 > threshold2 )
+                continue;
+
+            sum += event.value / distance2;
+        }
+        return _scale< TPixel >( sum );
     }
-    return sum;
-  }
 
-  void setSource( EventSourcePtr source ) { _source = source; }
-  ConstEventSourcePtr getSource() const { return _source; }
-  EventSourcePtr getSource() { return _source; }
+    void setSource( EventSourcePtr source ) { _source = source; }
+    ConstEventSourcePtr getSource() const { return _source; }
+    EventSourcePtr getSource() { return _source; }
 
 private:
-  EventSourcePtr _source;
+    EventSourcePtr _source;
 
 };
 
