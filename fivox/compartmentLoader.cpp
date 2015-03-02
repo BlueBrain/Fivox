@@ -55,15 +55,19 @@ public:
       size_t j = 0;
       BOOST_FOREACH( const bbp::Section& section, sections )
       {
-        const bbp::Segments& segments = section.segments();
-        Vector3f position( 0.f );
+        const size_t nCompartments = _reader.getCompartmentCounts()[i][j];
+        const float compartmentLength = 1.f / float( nCompartments );
+        const float compartmentMiddle = compartmentLength * .5f;
 
-        BOOST_FOREACH( const bbp::Segment& segment, segments )
-          position += segment.begin().center() + segment.end().center();
-        position /= segments.size() * 2;
+        for( size_t k = 0; k < nCompartments; ++k )
+        {
+            const bbp::Cross_Section& midPoint = section.cross_section(
+                compartmentMiddle + k * compartmentLength );
 
-        output.add( Event( position, 0.f ));
-        _sections.push_back( SectionInfo( _reader.getCompartmentCounts()[i][j],
+            output.add( Event( midPoint.center(), 0.f ));
+        }
+
+        _sections.push_back( SectionInfo( nCompartments,
                                           _reader.getOffsets()[i][j] ));
         ++j;
       }
@@ -83,18 +87,17 @@ public:
     }
 
     const bbp::floatsPtr& voltages = frame.getData< bbp::floatsPtr >();
+    size_t index = 0;
     for( size_t i = 0; i < _sections.size(); ++i )
     {
       const SectionInfo& info = _sections[i];
       const uint64_t end = info.numCompartments + info.offset;
-      float voltage = 0.f;
-      for( uint64_t offset = info.offset; offset < end; ++offset )
-        voltage += (*voltages)[ offset ];
 
-      voltage += 67.f * info.numCompartments;
-      _output.update( i, voltage );
+      for( uint64_t offset = info.offset; offset < end; ++offset )
+          _output.update( index++, (*voltages)[ offset ] -
+                                   brion::RESTING_VOLTAGE );
     }
-    LBINFO << "Updated " << _sections.size() << " events" << std::endl;
+    LBINFO << "Updated " << index << " events at " << time << std::endl;
     return true;
   }
 

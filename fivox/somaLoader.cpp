@@ -1,6 +1,5 @@
-
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 
 #include "somaLoader.h"
@@ -50,7 +49,7 @@ public:
     const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
     size_t i = 0;
     BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
-      _output.update( i++, neuron.voltage() + 65.f );
+        _output.update( i++, neuron.voltage() - brion::RESTING_VOLTAGE );
 
     return true;
   }
