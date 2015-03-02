@@ -37,7 +37,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/regex.hpp>
 
-#ifdef LIVRE_USE_BBPTESTDATA
+#ifdef FIVOX_USE_BBPTESTDATA
 #  include <BBP/TestDatasets.h>
 #endif
 
@@ -80,7 +80,7 @@ public:
         const bool useSpikes = (uri.getScheme() == "fivoxSpikes");
         const bool useSoma = (uri.getScheme() == "fivoxSoma");
 
-#ifdef LIVRE_USE_BBPTESTDATA
+#ifdef FIVOX_USE_BBPTESTDATA
         if( config.empty() )
         {
             config = bbp::test::getBlueconfig();
