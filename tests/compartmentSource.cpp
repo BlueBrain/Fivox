@@ -1,6 +1,6 @@
 
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 
 #define BOOST_TEST_MODULE SomaSource
@@ -10,14 +10,14 @@
 #include <itkTimeProbe.h>
 #include <iomanip>
 
-#ifdef NDEBUG
-static const size_t maxSize = 512;
-#else
-static const size_t maxSize = 64;
-#endif
 
 BOOST_AUTO_TEST_CASE(CompartmentSource)
 {
+    char** argv = boost::unit_test::framework::master_test_suite().argv;
+    const bool unitTest = std::string( argv[0] ).find( "perf_" ) ==
+                          std::string::npos;
+    static const size_t maxSize = unitTest ? 8 : 512;
+
 #ifdef NDEBUG
     std::cout.setf( std::ios::right, std::ios::adjustfield );
     std::cout.precision( 5 );
@@ -52,4 +52,3 @@ BOOST_AUTO_TEST_CASE(CompartmentSource)
 #endif
     }
 }
-
