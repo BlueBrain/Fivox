@@ -1,0 +1,45 @@
+Run Default
+{
+        Date    19.2.15
+        Time    15:18:00
+          gitPath ssh://bbpgit.epfl.ch/sim/neurodamus/bbp
+          Version bea1e124b29a05b72a2438c4542cfe5cbb2dc1b7
+           Prefix /gpfs/bbp.cscs.ch/home/king/build
+   MorphologyPath /gpfs/bbp.cscs.ch/release/l2/data/morphologies/31.05.12
+       METypePath /gpfs/bbp.cscs.ch/release/l2/data/ccells/b24.07.12
+         MeshPath /gpfs/bbp.cscs.ch/release/l2/data/meshes
+      CircuitPath /gpfs/bbp.cscs.ch/release/l2/data/circuit/23.07.12/SomatosensoryCxS1-v4.lowerCellDensity.r151/O1/merged_circuit
+          nrnPath /gpfs/bbp.cscs.ch/release/l2/data/circuit/23.07.12/SomatosensoryCxS1-v4.lowerCellDensity.r151/O1/merged_circuit/ncsFunctionalAllRecipePathways
+        CurrentDir /gpfs/bbp.cscs.ch/home/newton/VSD
+        OutputRoot /gpfs/bbp.cscs.ch/project/proj45/Data
+        TargetFile /gpfs/bbp.cscs.ch/home/newton/VSD/user.target
+    CircuitTarget MiniColumn_0
+          RunMode LoadBalance
+         Duration 100
+               Dt 0.025
+}
+
+Report area
+{
+        Target AllCompartments
+          Type compartment
+      ReportOn area
+          Unit micron^2
+        Format Bin
+            Dt 0.1
+     StartTime 0
+       EndTime 0.1
+}
+
+Report soma
+{
+        Target MiniColumn_0
+          Type compartment
+      ReportOn v
+          Unit mV
+        Format Bin
+            Dt 0.1
+     StartTime 0
+       EndTime 0.5
+}
+

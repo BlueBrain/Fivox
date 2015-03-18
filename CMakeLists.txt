@@ -32,6 +32,7 @@ list(REMOVE_ITEM ITK_LIBRARIES optimized debug)
 add_subdirectory(fivox)
 add_subdirectory(apps)
 add_subdirectory(tests)
+add_subdirectory(configs)
 
 set(GIT_DOCUMENTATION_REPO BBPDocumentation)
 set(COMMON_ORGANIZATION_NAME BBP)

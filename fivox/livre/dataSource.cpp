@@ -21,10 +21,11 @@
 #include "dataSource.h"
 
 #include <fivox/compartmentLoader.h>
-#include <fivox/somaLoader.h>
-#include <fivox/spikeLoader.h>
 #include <fivox/eventFunctor.h>
 #include <fivox/imageSource.h>
+#include <fivox/somaLoader.h>
+#include <fivox/spikeLoader.h>
+#include <fivox/vsdLoader.h>
 
 #include <livre/core/Data/LODNode.h>
 #include <livre/core/Data/MemoryUnit.h>
@@ -79,17 +80,22 @@ public:
         std::string target = uri.getFragment();
         const bool useSpikes = (uri.getScheme() == "fivoxSpikes");
         const bool useSoma = (uri.getScheme() == "fivoxSoma");
+        const bool useVSD = (uri.getScheme() == "fivoxVSD");
 
 #ifdef FIVOX_USE_BBPTESTDATA
         if( config.empty() )
         {
-            config = bbp::test::getBlueconfig();
+            if( useVSD )
+                config = lunchbox::getExecutablePath() +
+                    "/../Fivox/share/Fivox/configs/BlueConfigVSD";
+            else
+                config = bbp::test::getBlueconfig();
             LBINFO << "Using test data " << config << std::endl;
         }
 
         if( !useSpikes && target.empty( ))
         {
-            target = "L5CSPC";
+            target = useVSD ? "MiniColumn_0" : "L5CSPC";
             LBINFO << "Using target " << target << std::endl;
         }
 #endif
@@ -116,6 +122,9 @@ public:
         else if( useSoma )
             loader = boost::make_shared< ::fivox::SomaLoader >( config, target,
                                                                 time );
+        else if( useVSD )
+            loader = boost::make_shared< ::fivox::VSDLoader >( config, target,
+                                                               time );
         else
             loader = boost::make_shared< ::fivox::CompartmentLoader >(
                                              config, target, time );

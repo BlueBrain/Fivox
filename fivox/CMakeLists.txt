@@ -15,6 +15,7 @@ set(FIVOX_PUBLIC_HEADERS
   itk.h
   somaLoader.h
   spikeLoader.h
+  vsdLoader.h
   types.h
 )
 
@@ -35,7 +36,8 @@ if(BBPSDK_FOUND)
   list(APPEND FIVOX_SOURCES
     compartmentLoader.cpp
     somaLoader.cpp
-    spikeLoader.cpp)
+    spikeLoader.cpp
+    vsdLoader.cpp)
   list(APPEND FIVOX_LINK_LIBRARIES ${BBPSDK_LIBRARIES})
 endif()
 
