@@ -19,7 +19,7 @@ namespace detail { class EventSource; }
  * point. Subclassing or aggregation provides the events using add() and
  * update(), and the functor accesses the data using getEvents().
  */
-class EventSource
+class EventSource : public boost::noncopyable
 {
 public:
   EventSource();
