@@ -7,6 +7,7 @@
 
 #include <fivox/types.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/noncopyable.hpp>
 
 namespace fivox
 {

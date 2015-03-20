@@ -55,8 +55,6 @@ public:
 private:
     detail::DataSource* const _impl;
 
-    void internalNodeToLODNode( const ::livre::InternalTreeNodeStructure&,
-                                ::livre::LODNode &lodNode ) const override;
 };
 
 }

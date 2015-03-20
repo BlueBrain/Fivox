@@ -216,7 +216,8 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
     _volumeInfo.voxels = vmml::Vector3ui( totalSize );
     _volumeInfo.maximumBlockSize = vmml::Vector3ui( blockSize );
 
-    setupRegularTree();
+    if( !fillRegularVolumeInfo( _volumeInfo ))
+       LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
     ::fivox::ConstEventSourcePtr loader =
           _impl->source->GetFunctor().getSource();
@@ -254,35 +255,6 @@ bool DataSource::handles( const ::livre::VolumeDataSourcePluginData& data )
     const std::string fivox = "fivox";
     const std::string& scheme = data.getURI().getScheme();
     return scheme.substr( 0, fivox.size( )) == fivox;
-}
-
-void DataSource::internalNodeToLODNode(
-    const ::livre::InternalTreeNodeStructure& internalNode,
-    ::livre::LODNode& lodNode ) const
-{
-    const uint32_t level = internalNode.refLevel;
-    const vmml::Vector3ui& bricksInRefLevel =
-        _volumeInfo.levelBlockDimensions[ level ];
-    const ::livre::Boxi localBlockPos( internalNode.pos, internalNode.pos+1u );
-
-    vmml::Vector3f lBoxCoordMin = localBlockPos.getMin();
-    vmml::Vector3f lBoxCoordMax = localBlockPos.getMax();
-
-    const uint32_t index = bricksInRefLevel.find_max_index();
-
-    lBoxCoordMin = lBoxCoordMin / bricksInRefLevel[index];
-    lBoxCoordMax = lBoxCoordMax / bricksInRefLevel[index];
-
-    lodNode = ::livre::LODNode( internalNode.lodNodeId,
-                                internalNode.refLevel,
-                                _volumeInfo.depth,
-                                _volumeInfo.maximumBlockSize -
-                                _volumeInfo.overlap * 2,
-                                internalNode.pos,
-                                ::livre::Boxf( lBoxCoordMin -
-                                               _volumeInfo.worldSize * 0.5f,
-                                               lBoxCoordMax -
-                                               _volumeInfo.worldSize * 0.5f ));
 }
 
 }
