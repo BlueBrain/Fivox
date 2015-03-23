@@ -2,4 +2,4 @@
 # All rights reserved. Do not distribute without further notice.
 
 common_install(FILES BlueConfigVSD DESTINATION share/${PROJECT_NAME}/configs
-  COMPONENT lib)
+  COMPONENT lib CMAKE_BINARY_DIR)

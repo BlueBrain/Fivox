@@ -33,7 +33,7 @@ int main( int argc, char* argv[] )
     float time = 0.f;
     std::string outputFile( "voltageSensitiveDye.mhd" );
     std::string config( lunchbox::getExecutablePath() +
-                        "/../Fivox/share/Fivox/configs/BlueConfigVSD" );
+                        "/../share/Fivox/configs/BlueConfigVSD" );
     std::string target( "MiniColumn_0" );
 
     //----- Argument parsing

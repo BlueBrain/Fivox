@@ -87,7 +87,7 @@ public:
         {
             if( useVSD )
                 config = lunchbox::getExecutablePath() +
-                    "/../Fivox/share/Fivox/configs/BlueConfigVSD";
+                    "/../share/Fivox/configs/BlueConfigVSD";
             else
                 config = bbp::test::getBlueconfig();
             LBINFO << "Using test data " << config << std::endl;
