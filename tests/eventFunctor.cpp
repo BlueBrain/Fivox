@@ -3,10 +3,12 @@
  *                     Stefan.Eilemann@epfl.ch
  */
 
-#define BOOST_TEST_MODULE StaticSource
+#define BOOST_TEST_MODULE EventFunctor
 
 #include "test.h"
+#include <fivox/eventSource.h>
 #include <fivox/imageSource.h>
+#include <fivox/eventFunctor.h>
 #include <itkTimeProbe.h>
 #include <iomanip>
 
@@ -18,50 +20,42 @@ static const size_t maxSize = 128;
 
 namespace
 {
-template< typename TImage > class StaticFunctor
+
+template< class Image >
+typename Image::PixelType meaningOfEverything(
+                         const fivox::EventSource&,
+                         const typename Image::PointType&)
 {
-public:
-    typedef typename TImage::PixelType TPixel;
-    typedef typename TImage::PointType TPoint;
 
-    StaticFunctor() {}
-    ~StaticFunctor() {}
-
-    bool operator!=(const StaticFunctor &) const { return false; }
-    bool operator==(const StaticFunctor & other) const
-        { return !( *this != other ); }
-
-    inline TPixel operator()( const TPoint& /*point*/ ) const
-    {
-        return value;
-    }
-
-    TPixel value;
-};
+     return 42.f;
+}
 
 template< typename T, size_t dim >
-inline void _testStaticKernel( const size_t size )
+inline void _testEventFunctor( const size_t size )
 {
     typedef itk::Image< T, dim > Image;
-    typedef StaticFunctor< Image > Functor;
+    typedef fivox::EventFunctor< Image > Functor;
     typedef fivox::ImageSource< Image, Functor > Filter;
 
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
 
-    filter->GetFunctor().value = typename Functor::TPixel( 4.2 );
+    Functor& meaningOfEverythingFunctor = filter->GetFunctor();
+    meaningOfEverythingFunctor.setSource(
+                fivox::EventSourcePtr(new fivox::EventSource()));
+    meaningOfEverythingFunctor.setEventFunction( &meaningOfEverything<Image> );
     filter->Update();
 
     typename Image::IndexType index;
     index.Fill( 0 );
 
     const typename Image::PixelType& pixel = output->GetPixel( index );
-    BOOST_CHECK_EQUAL( pixel, T( 4.2 ));
+    BOOST_CHECK_EQUAL( pixel, T(  42.f ));
 }
 }
 
-BOOST_AUTO_TEST_CASE(StaticSource)
+BOOST_AUTO_TEST_CASE(EventFunctor)
 {
 #ifdef NDEBUG
     std::cout.setf( std::ios::right, std::ios::adjustfield );
@@ -74,7 +68,7 @@ BOOST_AUTO_TEST_CASE(StaticSource)
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testStaticKernel< unsigned char, 3 >( i );
+            _testEventFunctor< unsigned char, 3 >( i );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
@@ -84,7 +78,7 @@ BOOST_AUTO_TEST_CASE(StaticSource)
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testStaticKernel< float, 3 >( i );
+            _testEventFunctor< float, 3 >( i );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)
