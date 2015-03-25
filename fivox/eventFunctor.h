@@ -1,6 +1,8 @@
+
 /* Copyright (c) 2014, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
  */
+
 #ifndef FIVOX_EVENTFUNCTOR_H
 #define FIVOX_EVENTFUNCTOR_H
 
@@ -8,54 +10,15 @@
 #include <fivox/eventSource.h> // member
 #include <fivox/event.h>       // used inline
 #include <fivox/itk.h>
+#include <fivox/eventFunctors/squaredDistanceFunctor.h> // Default functor
 
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
+#include <boost/bind.hpp>
 
 namespace fivox
 {
-namespace
-{
-template< class T > inline T _scale( const float value )
-    { return value; }
-template<> inline unsigned char _scale( const float value )
-    { return std::min( value * 256.f, 255.f ); }
-
-static const bool _useCutoff = true;
-static const bool _useRegion = true;
-}
-
-template< class TImage >
-typename TImage::PixelType cutoffFunction(
-                          const EventSource& source,
-                          const typename TImage::PointType& point )
-{
-    static const float threshold = 50.f;
-    static const float threshold2 = threshold * threshold;
-
-    Vector3f base;
-    const size_t components = std::min( point.Size(), 3u );
-    for( size_t i = 0; i < components; ++i )
-        base[i] = point[i];
-
-    const AABBf region( base - Vector3f( threshold ),
-                        base + Vector3f( threshold ));
-    const Events& events = _useRegion ? source.findEvents( region ) :
-                                        source.getEvents();
-    float sum = 0.f;
-
-    BOOST_FOREACH( const Event& event, events )
-    {
-        const float distance2 = (base - event.position).squared_length();
-        if( _useCutoff && distance2 > threshold2 )
-            continue;
-
-        sum += event.value / distance2;
-    }
-    return _scale< typename TImage::PixelType >( sum );
-}
-
 
 /** Functor sampling spatial events into the given pixel. */
 template< typename TImage > class EventFunctor
@@ -64,11 +27,17 @@ public:
     typedef typename TImage::PixelType TPixel;
     typedef typename TImage::PointType TPoint;
     typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
-    typedef typename boost::function< TPixel( const EventSource&,
-                                              const TPoint& )> EventFunction;
+    typedef boost::function< TPixel( const EventSource&,
+                                     const TPoint& )> EventFunction;
+    typedef SquaredDistanceFunctor< TImage > DefaultFunctor;
 
     EventFunctor()
-        : _eventFunction(&cutoffFunction<TImage>) {}
+        : _defaultFunctor( 50.0f )
+        , _eventFunction( boost::bind(
+                      &DefaultFunctor::fallOffFunction,
+                      &_defaultFunctor, _1, _2 ))
+    {}
+
     ~EventFunctor() {}
 
     bool operator!=(const EventFunctor& other) const { return !(*this == other); }
@@ -95,9 +64,9 @@ public:
 
 private:
 
+    DefaultFunctor _defaultFunctor;
     EventFunction _eventFunction;
     EventSourcePtr _source;
-
 };
 
 } // end namespace fivox

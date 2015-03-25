@@ -31,7 +31,7 @@ Report area
        EndTime 0.1
 }
 
-Report soma
+Report v_comp
 {
         Target MiniColumn_0
           Type compartment

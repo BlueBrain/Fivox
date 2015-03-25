@@ -7,11 +7,13 @@
 #include <fivox/imageSource.h>
 #include <fivox/version.h>
 #include <fivox/vsdLoader.h>
+#include <fivox/eventFunctors/attenuationFunctor.h>
 #include <itkImageFileWriter.h>
 #include <lunchbox/file.h>
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
+#include <boost/scoped_ptr.hpp>
 
 // voxelizes the given BlueConfig (which requires an "area" and "soma" report
 // into a volume.mhd/raw
@@ -20,6 +22,8 @@ namespace
 {
     typedef itk::Image< uint8_t, 3 > Volume;
     typedef fivox::EventFunctor< Volume > Functor;
+    typedef fivox::AttenuationFunctor< Volume > DyeFunctor;
+    typedef fivox::SquaredDistanceFunctor< Volume > DefaultFunctor;
     typedef fivox::ImageSource< Volume, Functor > Filter;
 }
 
@@ -31,17 +35,19 @@ int main( int argc, char* argv[] )
     //----- Default values
     size_t size = 256;
     float time = 0.f;
+    float cutOffDistance = 50.f;
     std::string outputFile( "voltageSensitiveDye.mhd" );
     std::string config( lunchbox::getExecutablePath() +
                         "/../share/Fivox/configs/BlueConfigVSD" );
     std::string target( "MiniColumn_0" );
+    std::string dyeCurveFile;
 
     //----- Argument parsing
     po::variables_map vm;
     po::options_description desc( "Supported options" );
     desc.add_options()
-        ( "help, h", "show help message." )
-        ( "version, v", "Show program name and version." )
+        ( "help,h", "show help message." )
+        ( "version,v", "Show program name and version." )
         ( "size,s", po::value< size_t >()->default_value( size ),
           "Size of the output volume" )
         ( "time,t", po::value< float >()->default_value( time ),
@@ -51,7 +57,13 @@ int main( int argc, char* argv[] )
         ( "blueconfig,b", po::value< std::string >()->default_value( config ),
           "Name of the Blueconfig file" )
         ( "target,c", po::value< std::string >()->default_value( target ),
-          "Name of the cell target" );
+          "Name of the cell target" )
+        ( "dyecurvefile,d", po::value< std::string >(),
+          "The dye attenuation curve file to apply" )
+        ( "cutoffdistance,f",
+          po::value< float >()->default_value( cutOffDistance ),
+          "The (micrometer) region of events considered per voxel" );
+
     po::store( po::parse_command_line( argc, argv, desc ), vm );
     po::notify( vm );
 
@@ -78,6 +90,10 @@ int main( int argc, char* argv[] )
         config = vm["blueconfig"].as< std::string >();
     if( vm.count( "target" ))
         target = vm["target"].as< std::string >();
+    if( vm.count( "dyecurvefile" ))
+        dyeCurveFile = vm["dyecurvefile"].as< std::string >();
+    if( vm.count( "cutoffdistance" ))
+        cutOffDistance = vm["cutoffdistance"].as< float >();
 
     //----- Construct ITK pipeline
     typename Filter::Pointer filter = Filter::New();
@@ -98,8 +114,34 @@ int main( int argc, char* argv[] )
     const float extent = bbox.getDimension().find_max();
     const float position = bbox.getMin().find_min();
 
+    const float thickness = bbox.getDimension()[1];
+    // Assuming that voxels are isotropic.
+    const float circuitSpacePerVoxel = extent / float( size );
+
+    boost::scoped_ptr< DyeFunctor > dyeFunctor;
+    boost::scoped_ptr< DefaultFunctor > defaultFunctor;
+
+    if( dyeCurveFile.empty())
+    {
+        defaultFunctor.reset( new DefaultFunctor( cutOffDistance ));
+
+        filter->GetFunctor().setEventFunction(
+                    boost::bind( &DefaultFunctor::fallOffFunction,
+                                 defaultFunctor.get(), _1, _2 ));
+    }
+    else
+    {
+        dyeFunctor.reset( new DyeFunctor( dyeCurveFile,
+                                          thickness,
+                                          cutOffDistance ));
+
+        filter->GetFunctor().setEventFunction(
+                    boost::bind( &DyeFunctor::attenuationFunction,
+                                 dyeFunctor.get(), _1, _2 ));
+    }
+
     typename Volume::SpacingType spacing;
-    spacing.Fill( extent / float( size ));
+    spacing.Fill( circuitSpacePerVoxel );
     output->SetSpacing( spacing );
 
     typename Volume::PointType origin;

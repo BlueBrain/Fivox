@@ -21,7 +21,7 @@ public:
         : _output( output )
         , _experiment( blueconfig )
         , _target( _experiment.cell_target( target ))
-        , _voltages( *_experiment.reports().find( "soma" ),
+        , _voltages( *_experiment.reports().find( "v_comp" ),
                      _experiment.cell_target( target ))
         , _areas( *_experiment.reports().find( "area" ),
                   _experiment.cell_target( "Mosaic" ))
