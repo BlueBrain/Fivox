@@ -10,21 +10,11 @@ if(BBPSDK_FOUND)
   list(APPEND TEST_LIBRARIES ${BBPSDK_LIBRARIES})
 endif()
 
-if(NOT BBPTESTDATA_FOUND OR NOT BBPSDK_FOUND)
+if(BBPTESTDATA_FOUND AND BBPSDK_FOUND)
+  set(UNIT_AND_PERF_TESTS compartmentSource.cpp somaSource.cpp)
+else()
   set(EXCLUDE_FROM_TESTS compartmentSource.cpp somaSource.cpp)
 endif()
 
 include(CommonCTest)
 install_files(share/Fivox/tests FILES ${TEST_FILES} COMPONENT examples)
-
-if(BBPTESTDATA_FOUND AND BBPSDK_FOUND)
-  # These can be compiled as perf and unit tests, re-add them as perf tests
-  foreach(TEST compartmentSource somaSource)
-    add_executable(perf_${TEST} ${TEST}.cpp)
-    target_link_libraries(perf_${TEST} ${TEST_LIBRARIES})
-    set_target_properties(perf_${TEST} PROPERTIES FOLDER "Tests"
-      OUTPUT_NAME perf_${TEST})
-    add_test(NAME perf_${TEST} COMMAND $<TARGET_FILE:perf_${TEST}>)
-    add_dependencies(${PROJECT_NAME}_run_perf_tests perf_${TEST})
-  endforeach()
-endif()
