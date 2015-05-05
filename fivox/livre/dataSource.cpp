@@ -216,7 +216,7 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
     _volumeInfo.voxels = vmml::Vector3ui( totalSize );
     _volumeInfo.maximumBlockSize = vmml::Vector3ui( blockSize );
 
-    if( !fillRegularVolumeInfo( _volumeInfo ))
+    if( !::livre::fillRegularVolumeInfo( _volumeInfo ))
        LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
     ::fivox::ConstEventSourcePtr loader =
