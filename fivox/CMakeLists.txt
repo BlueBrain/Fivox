@@ -6,10 +6,8 @@ source_group(\\ FILES CMakeLists.txt)
 
 set(FIVOX_PUBLIC_HEADERS
   ${COMMON_INCLUDES}
-  eventFunctors/attenuationFunctor.h
-  eventFunctors/squaredDistanceFunctor.h
-  utils/helperFunctions.h
-  utils/attenuationCurve.h
+  attenuationCurve.h
+  attenuationFunctor.h
   compartmentLoader.h
   event.h
   eventFunctor.h
@@ -19,8 +17,8 @@ set(FIVOX_PUBLIC_HEADERS
   itk.h
   somaLoader.h
   spikeLoader.h
-  vsdLoader.h
   types.h
+  vsdLoader.h
 )
 
 set(FIVOX_HEADERS)

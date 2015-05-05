@@ -29,22 +29,32 @@ typename Image::PixelType meaningOfEverything(
 
      return 42.f;
 }
+template< class TImage >
+class MeaningFunctor : public fivox::EventFunctor< TImage >
+{
+    typedef fivox::EventFunctor< TImage > Super;
+public:
+    MeaningFunctor() {}
+    virtual ~MeaningFunctor() {}
+
+    typename Super::TPixel operator()( const typename Super::TPoint&  )
+        const final
+    {
+        return 42.f;
+    }
+};
 
 template< typename T, size_t dim >
 inline void _testEventFunctor( const size_t size )
 {
     typedef itk::Image< T, dim > Image;
-    typedef fivox::EventFunctor< Image > Functor;
+    typedef MeaningFunctor< Image > Functor;
     typedef fivox::ImageSource< Image, Functor > Filter;
 
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
 
-    Functor& meaningOfEverythingFunctor = filter->GetFunctor();
-    meaningOfEverythingFunctor.setSource(
-                fivox::EventSourcePtr(new fivox::EventSource()));
-    meaningOfEverythingFunctor.setEventFunction( &meaningOfEverything<Image> );
     filter->Update();
 
     typename Image::IndexType index;

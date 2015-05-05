@@ -7,7 +7,7 @@
 #include <fivox/imageSource.h>
 #include <fivox/version.h>
 #include <fivox/vsdLoader.h>
-#include <fivox/eventFunctors/attenuationFunctor.h>
+#include <fivox/attenuationFunctor.h>
 #include <itkImageFileWriter.h>
 #include <lunchbox/file.h>
 #include <boost/lexical_cast.hpp>
@@ -21,10 +21,6 @@
 namespace
 {
     typedef itk::Image< uint8_t, 3 > Volume;
-    typedef fivox::EventFunctor< Volume > Functor;
-    typedef fivox::AttenuationFunctor< Volume > DyeFunctor;
-    typedef fivox::SquaredDistanceFunctor< Volume > DefaultFunctor;
-    typedef fivox::ImageSource< Volume, Functor > Filter;
 }
 
 using boost::lexical_cast;
@@ -96,8 +92,43 @@ int main( int argc, char* argv[] )
         cutOffDistance = vm["cutoffdistance"].as< float >();
 
     //----- Construct ITK pipeline
-    typename Filter::Pointer filter = Filter::New();
-    typename Volume::Pointer output = filter->GetOutput();
+    fivox::EventSourcePtr loader = boost::make_shared< fivox::VSDLoader >(
+                                       config, target, time );
+    const fivox::AABBf& bbox = loader->getBoundingBox();
+
+    // setup argument-dependent image source and its parameters
+    typename itk::ProcessObject::Pointer filter;
+    typename Volume::Pointer output;
+
+    if( dyeCurveFile.empty( ))
+    {
+        typedef fivox::EventFunctor< Volume > Functor;
+        typedef fivox::ImageSource< Volume, Functor > ImageSource;
+        typename ImageSource::Pointer source = ImageSource::New();
+        Functor& functor = source->GetFunctor();
+        functor.setCutOffDistance( cutOffDistance );
+        functor.setSource( loader );
+
+        output = source->GetOutput();
+        filter = source;
+    }
+    else
+    {
+        typedef fivox::AttenuationFunctor< Volume > Functor;
+        typedef fivox::ImageSource< Volume, Functor > ImageSource;
+        typename ImageSource::Pointer source = ImageSource::New();
+
+        Functor& functor = source->GetFunctor();
+        functor.setCutOffDistance( cutOffDistance );
+        functor.setSource( loader );
+
+        const float thickness = bbox.getDimension()[1];
+        functor.setCurve( fivox::AttenuationCurve( dyeCurveFile, thickness ));
+
+        output = source->GetOutput();
+        filter = source;
+    }
+
     typename Volume::SizeType vSize;
     typename Volume::RegionType region;
 
@@ -105,40 +136,13 @@ int main( int argc, char* argv[] )
     region.SetSize( vSize );
     output->SetRegions( region );
 
-    fivox::EventSourcePtr source = boost::make_shared< fivox::VSDLoader >(
-                                       config, target, time );
-    filter->GetFunctor().setSource( source );
 
     // set up size and origin for loaded circuit
-    const fivox::AABBf& bbox = source->getBoundingBox();
     const float extent = bbox.getDimension().find_max();
     const float position = bbox.getMin().find_min();
 
-    const float thickness = bbox.getDimension()[1];
     // Assuming that voxels are isotropic.
     const float circuitSpacePerVoxel = extent / float( size );
-
-    boost::scoped_ptr< DyeFunctor > dyeFunctor;
-    boost::scoped_ptr< DefaultFunctor > defaultFunctor;
-
-    if( dyeCurveFile.empty())
-    {
-        defaultFunctor.reset( new DefaultFunctor( cutOffDistance ));
-
-        filter->GetFunctor().setEventFunction(
-                    boost::bind( &DefaultFunctor::fallOffFunction,
-                                 defaultFunctor.get(), _1, _2 ));
-    }
-    else
-    {
-        dyeFunctor.reset( new DyeFunctor( dyeCurveFile,
-                                          thickness,
-                                          cutOffDistance ));
-
-        filter->GetFunctor().setEventFunction(
-                    boost::bind( &DyeFunctor::attenuationFunction,
-                                 dyeFunctor.get(), _1, _2 ));
-    }
 
     typename Volume::SpacingType spacing;
     spacing.Fill( circuitSpacePerVoxel );
@@ -150,7 +154,7 @@ int main( int argc, char* argv[] )
 
     typedef itk::ImageFileWriter< Volume > Writer;
     typename Writer::Pointer writer = Writer::New();
-    writer->SetInput( filter->GetOutput( ));
+    writer->SetInput( output );
     writer->SetFileName( outputFile );
 
     writer->Update(); // run pipeline to write volume

@@ -1,74 +1,85 @@
 
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 
 #ifndef FIVOX_EVENTFUNCTOR_H
 #define FIVOX_EVENTFUNCTOR_H
 
 #include <fivox/defines.h>
-#include <fivox/eventSource.h> // member
 #include <fivox/event.h>       // used inline
+#include <fivox/eventSource.h> // member
 #include <fivox/itk.h>
-#include <fivox/eventFunctors/squaredDistanceFunctor.h> // Default functor
 
 #include <boost/foreach.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
+#include <boost/type_traits/is_floating_point.hpp>
 
 namespace fivox
 {
 
-/** Functor sampling spatial events into the given pixel. */
+/** Samples spatial events into the given pixel using a squared falloff. */
 template< typename TImage > class EventFunctor
 {
 public:
     typedef typename TImage::PixelType TPixel;
     typedef typename TImage::PointType TPoint;
     typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
-    typedef boost::function< TPixel( const EventSource&,
-                                     const TPoint& )> EventFunction;
-    typedef SquaredDistanceFunctor< TImage > DefaultFunctor;
 
-    EventFunctor()
-        : _defaultFunctor( 50.0f )
-        , _eventFunction( boost::bind(
-                      &DefaultFunctor::fallOffFunction,
-                      &_defaultFunctor, _1, _2 ))
-    {}
+    EventFunctor() : _cutOffDistance( 50.0f ) {}
+    virtual ~EventFunctor() {}
 
-    ~EventFunctor() {}
-
-    bool operator!=(const EventFunctor& other) const { return !(*this == other); }
-    bool operator==(const EventFunctor& other) const
-        { return _eventFunction == other._eventFunction &&
-                _source.get() == other._source.get(); }
-
-    inline TPixel operator()( const TPoint& point ) const
-    {
-        if( !_source )
-            return 0;
-
-        return _eventFunction( *_source, point );
-    }
+    virtual TPixel operator()( const TPoint& point ) const;
 
     void setSource( EventSourcePtr source ) { _source = source; }
     ConstEventSourcePtr getSource() const { return _source; }
     EventSourcePtr getSource() { return _source; }
 
-    void setEventFunction( const EventFunction& eventFunction )
-    {
-        _eventFunction = eventFunction;
-    }
+    void setCutOffDistance( const float distance )
+        { _cutOffDistance = distance; }
 
-private:
-
-    DefaultFunctor _defaultFunctor;
-    EventFunction _eventFunction;
+protected:
+    float _cutOffDistance;
     EventSourcePtr _source;
+
+    TPixel _scale( const float value ) const
+    {
+        if( boost::is_floating_point< TPixel >::value )
+            return value;
+
+        return std::min( value, 1.0f ) * std::numeric_limits< TPixel >::max();
+    }
 };
 
-} // end namespace fivox
+template< class TImage > inline typename EventFunctor< TImage >::TPixel
+EventFunctor< TImage >::operator()( const TPoint& point ) const
+{
+    if( !_source )
+        return 0;
+
+    const float cutOffDistance2 = _cutOffDistance * _cutOffDistance;
+
+    Vector3f base;
+    const size_t components = std::min( point.Size(), 3u );
+    for( size_t i = 0; i < components; ++i )
+        base[i] = point[i];
+
+    const AABBf region( base - Vector3f( _cutOffDistance ),
+                        base + Vector3f( _cutOffDistance ));
+    const Events& events = _source->findEvents( region );
+
+    float sum = 0.f;
+    BOOST_FOREACH( const Event& event, events )
+    {
+        const float distance2 = (base - event.position).squared_length();
+        if( distance2 > cutOffDistance2 )
+            continue;
+
+        sum += event.value / cutOffDistance2;
+    }
+
+    return _scale( sum );
+}
+
+}
 
 #endif

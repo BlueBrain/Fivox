@@ -8,7 +8,7 @@
 
 namespace fivox
 {
-/** Image source filter using a functor on each pixel to generate the output */
+/** Image source using an EventFunctor on each pixel to generate the output */
 template< typename TImage, typename TFunctor >
 class ImageSource : public itk::ImageSource< TImage >
 {
@@ -53,8 +53,8 @@ protected:
   void PrintSelf(std::ostream & os, itk::Indent indent) const;
 
   /** ImageSource is implemented as a multithreaded filter. */
-  void ThreadedGenerateData(const ImageRegionType& outputRegionForThread,
-                            itk::ThreadIdType threadId);
+  void ThreadedGenerateData( const ImageRegionType& outputRegionForThread,
+                             itk::ThreadIdType threadId );
 
 private:
   ImageSource(const Self &); //purposely not implemented
