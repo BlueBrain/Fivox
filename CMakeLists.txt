@@ -1,5 +1,5 @@
-# Copyright (c) BBP/EPFL 2014
-#                        Stefan.Eilemann@epfl.ch
+# Copyright (c) BBP/EPFL 2014-2015
+#               Stefan.Eilemann@epfl.ch
 # All rights reserved. Do not distribute without further notice.
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
@@ -9,7 +9,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
 
 include(GitExternal)
 include(ITKSettings)
-include(SubProject)
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")

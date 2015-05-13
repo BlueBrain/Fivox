@@ -8,10 +8,17 @@ CMake/common/
 BBPSDK/
 Brion/
 Collage/
+Deflect/
+Equalizer/
+FlatBuffers/
+GLStats/
 ITK/
+Livre/
 Lunchbox/
 Pression/
 build/
 codash/
 dash/
+hwsd/
 vmmlib/
+zeq/

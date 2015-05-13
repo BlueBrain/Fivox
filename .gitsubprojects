@@ -1,6 +1,6 @@
 # -*- mode: cmake -*-
 git_subproject(ITK https://github.com/eile/ITK.git release)
-git_subproject(vmmlib https://github.com/Eyescale/vmmlib.git 279d9d9)
-git_subproject(Lunchbox https://github.com/Eyescale/Lunchbox.git b0e3e0a)
-git_subproject(BBPSDK ssh://bbpcode.epfl.ch/common/BBPSDK.git b40eb7a)
-git_subproject(Livre https://github.com/BlueBrain/Livre.git d6e3ef2)
+git_subproject(vmmlib https://github.com/Eyescale/vmmlib.git 5d64e63)
+git_subproject(Lunchbox https://github.com/Eyescale/Lunchbox.git 6bfee14)
+git_subproject(BBPSDK ssh://bbpcode.epfl.ch/common/BBPSDK.git dbba3f6)
+git_subproject(Livre https://github.com/BlueBrain/Livre.git 560da9e)
