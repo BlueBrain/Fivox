@@ -32,9 +32,9 @@ namespace detail{ class DataSource; }
  * Generate volume data sampling BBPSDK simulation reports.
  *
  * Used for volume URIs in the forms:
- * - Compartment reports: fivoxCompartment://BlueConfig?time=float,target=string
- * - Soma reports: fivoxSoma://BlueConfig?time=float,target=string
- * - Spike reports: fivoxSpikes://BlueConfig?time=float,duration=float,spikes=path
+ * - Compartment reports: fivox[Compartment]://BlueConfig?time=float#target
+ * - Soma reports: fivoxSoma://BlueConfig?time=float#target
+ * - Spike reports: fivoxSpikes://BlueConfig?time=float,duration=float,spikes=path#target
  *
  * Parameters:
  * - time: initial timestep to load

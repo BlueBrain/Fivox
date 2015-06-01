@@ -103,7 +103,6 @@ public:
         const float time = i == uri.queryEnd() ?
                                     0.f : lexical_cast< float >( i->second );
 
-        ImagePtr output = source->GetOutput();
         ::fivox::EventSourcePtr loader;
         if( useSpikes )
         {
