@@ -10,6 +10,7 @@
 #include <lunchbox/bitOperation.h>
 #include <lunchbox/stdExt.h>
 #include <boost/foreach.hpp>
+#include <boost/unordered_map.hpp>
 #ifdef final
 #  undef final
 #endif
