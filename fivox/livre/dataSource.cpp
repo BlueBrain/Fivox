@@ -78,9 +78,9 @@ public:
         const lunchbox::URI& uri = pluginData.getURI();
         std::string config = uri.getPath();
         std::string target = uri.getFragment();
-        const bool useSpikes = (uri.getScheme() == "fivoxSpikes");
-        const bool useSoma = (uri.getScheme() == "fivoxSoma");
-        const bool useVSD = (uri.getScheme() == "fivoxVSD");
+        const bool useSpikes = (uri.getScheme() == "fivoxspikes");
+        const bool useSoma = (uri.getScheme() == "fivoxsoma");
+        const bool useVSD = (uri.getScheme() == "fivoxvsd");
 
 #ifdef FIVOX_USE_BBPTESTDATA
         if( config.empty() )
