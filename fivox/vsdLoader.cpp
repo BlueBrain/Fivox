@@ -1,5 +1,6 @@
 /* Copyright (c) 2015, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
+ *                     Jafet.VillafrancaDiaz@epfl.ch
  */
 
 #include "vsdLoader.h"
@@ -10,14 +11,11 @@
 
 namespace fivox
 {
-
-namespace detail
-{
-class VSDLoader
+class VSDLoader::Impl
 {
 public:
-    VSDLoader( fivox::EventSource& output, const std::string& blueconfig,
-               const std::string& target, const float time )
+    Impl( fivox::EventSource& output, const std::string& blueconfig,
+          const std::string& target, const float dt )
         : _output( output )
         , _experiment( blueconfig )
         , _target( _experiment.cell_target( target ))
@@ -25,6 +23,8 @@ public:
                      _experiment.cell_target( target ))
         , _areas( *_experiment.reports().find( "area" ),
                   _experiment.cell_target( "Mosaic" ))
+        , _currentFrameId( 0xFFFFFFFFu )
+        , _dt( dt )
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _target, bbp::NEURONS | bbp::MORPHOLOGIES );
@@ -56,8 +56,6 @@ public:
             }
             ++i;
         }
-
-        LBCHECK( loadFrame( time ));
     }
 
     bool loadFrame( const float time )
@@ -65,7 +63,7 @@ public:
         bbp::CompartmentReportFrame voltages;
         if( !_voltages.loadFrame( time, voltages ))
         {
-            std::cerr << "Could not load frame at " << time << "ms" <<std::endl;
+            LBERROR << "Could not load frame at " << time << "ms" <<std::endl;
             return false;
         }
 
@@ -97,6 +95,16 @@ public:
         return true;
     }
 
+    void load( const uint32_t frame )
+    {
+        if( frame == _currentFrameId )
+            return;
+
+        _currentFrameId = frame;
+        const float time  = _voltages.getStartTime() + _dt * frame;
+        LBCHECK( loadFrame( time ));
+    }
+
 private:
     fivox::EventSource& _output;
     bbp::Experiment _experiment;
@@ -104,22 +112,22 @@ private:
     bbp::CompartmentReportReader _voltages;
     bbp::CompartmentReportReader _areas;
     bbp::CompartmentReportFrame _areasFrame;
+
+    uint32_t _currentFrameId;
+    const float _dt;
 };
-}
 
 VSDLoader::VSDLoader( const std::string& blueconfig, const std::string& target,
-                      const float time )
-    : _impl( new detail::VSDLoader( *this, blueconfig, target, time ))
+                      const float dt )
+    : _impl( new VSDLoader::Impl( *this, blueconfig, target, dt ))
 {}
 
 VSDLoader::~VSDLoader()
-{
-    delete _impl;
-}
+{}
 
-bool VSDLoader::loadFrame( const float time )
+void VSDLoader::load( const uint32_t frame )
 {
-    return _impl->loadFrame( time );
+    _impl->load( frame );
 }
 
 }

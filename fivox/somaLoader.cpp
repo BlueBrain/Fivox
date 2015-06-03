@@ -1,5 +1,6 @@
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Jafet.VillafrancaDiaz@epfl.ch
  */
 
 #include "somaLoader.h"
@@ -13,69 +14,77 @@
 
 namespace fivox
 {
-namespace detail
-{
-class SomaLoader
+class SomaLoader::Impl
 {
 public:
-  SomaLoader( fivox::EventSource& output, const std::string& blueconfig,
-              const std::string& target, const std::string& report,
-              const float time )
-      : _output( output )
-      , _experiment( blueconfig )
-      , _reader( *_experiment.reports().find( report.empty() ? "soma" : report),
-                 _experiment.cell_target( target ))
-  {
-    const bbp::Cell_Target& target_ = _experiment.cell_target( target );
-    bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-    microcircuit.load( target_, bbp::NEURONS );
-
-    const bbp::Neurons& neurons = microcircuit.neurons();
-    BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
-      output.add( Event( neuron.position(), 0.f ));
-
-    LBCHECK( loadFrame( time ));
-  }
-
-  bool loadFrame( const float time )
-  {
-    bbp::CompartmentReportFrame frame;
-    if( !_reader.loadFrame( time, frame ))
+    Impl( fivox::EventSource& output, const std::string& blueconfig,
+          const std::string& target, const std::string& report, const float dt )
+        : _output( output )
+        , _experiment( blueconfig )
+        , _reader( *_experiment.reports().find( report.empty() ? "soma"
+                                                               : report),
+                   _experiment.cell_target( target ))
+        , _currentFrameId( 0xFFFFFFFFu )
+        , _dt( dt )
     {
-      std::cerr << "Could not load frame at " << time << "ms" << std::endl;
-      return false;
+        const bbp::Cell_Target& target_ = _experiment.cell_target( target );
+        bbp::Microcircuit& microcircuit = _experiment.microcircuit();
+        microcircuit.load( target_, bbp::NEURONS );
+
+        const bbp::Neurons& neurons = microcircuit.neurons();
+        BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
+            output.add( Event( neuron.position(), 0.f ));
     }
 
-    _experiment.microcircuit().update( frame );
-    const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
-    size_t i = 0;
-    BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
-        _output.update( i++, neuron.voltage() - brion::RESTING_VOLTAGE );
+    bool loadFrame( const float time )
+    {
+        bbp::CompartmentReportFrame frame;
+        if( !_reader.loadFrame( time, frame ))
+        {
+            LBERROR << "Could not load frame at " << time << "ms" << std::endl;
+            return false;
+        }
 
-    return true;
-  }
+        _experiment.microcircuit().update( frame );
+        const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
+        size_t i = 0;
+        BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
+            _output.update( i++, neuron.voltage() - brion::RESTING_VOLTAGE );
+
+        return true;
+    }
+
+    void load( const uint32_t frame )
+    {
+        if( frame == _currentFrameId )
+            return;
+
+        _currentFrameId = frame;
+        const float time  = _reader.getStartTime() + _dt * frame;
+        LBCHECK( loadFrame( time ));
+    }
 
 private:
-  fivox::EventSource& _output;
-  bbp::Experiment _experiment;
-  bbp::CompartmentReportReader _reader;
+    fivox::EventSource& _output;
+    bbp::Experiment _experiment;
+    bbp::CompartmentReportReader _reader;
+
+    uint32_t _currentFrameId;
+    const float _dt;
 };
-}
 
 SomaLoader::SomaLoader( const std::string& blueconfig,
                         const std::string& target, const std::string& report,
-                        const float time )
-    : _impl( new detail::SomaLoader( *this, blueconfig, target, report, time ))
+                        const float dt )
+    : _impl( new SomaLoader::Impl( *this, blueconfig, target, report, dt ))
 {}
 
 SomaLoader::~SomaLoader()
-{
-  delete _impl;
-}
+{}
 
-bool SomaLoader::loadFrame( const float time )
+void SomaLoader::load( const uint32_t frame )
 {
-  return _impl->loadFrame( time );
+    _impl->load( frame );
 }
 
 }

@@ -74,7 +74,7 @@ EventFunctor< TImage >::operator()( const TPoint& point ) const
         if( distance2 > cutOffDistance2 )
             continue;
 
-        sum += event.value / cutOffDistance2;
+        sum += event.value / distance2;
     }
 
     return _scale( sum );

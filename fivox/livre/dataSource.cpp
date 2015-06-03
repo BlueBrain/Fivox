@@ -1,6 +1,6 @@
-
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Jafet.VillafrancaDiaz@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -68,12 +68,10 @@ typedef ::fivox::ImageSource< Image, Functor > Source;
 typedef Source::Pointer SourcePtr;
 }
 
-namespace detail
-{
-class DataSource
+class DataSourceImpl
 {
 public:
-    DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
+    DataSourceImpl( const ::livre::VolumeDataSourcePluginData& pluginData )
         : source( Source::New( ))
     {
         const lunchbox::URI& uri = pluginData.getURI();
@@ -100,9 +98,9 @@ public:
             LBINFO << "Using target " << target << std::endl;
         }
 #endif
-        lunchbox::URI::ConstKVIter i = uri.findQuery( "time" );
-        const float time = i == uri.queryEnd() ?
-                                    0.f : lexical_cast< float >( i->second );
+        lunchbox::URI::ConstKVIter i = uri.findQuery( "dt" );
+        const float dt = i == uri.queryEnd() ?
+                                      0.1f : lexical_cast< float >( i->second );
 
         i = uri.findQuery( "report" );
         const std::string report = i == uri.queryEnd() ? "" : i->second;
@@ -111,7 +109,7 @@ public:
         if( useSpikes )
         {
             i = uri.findQuery( "duration" );
-            const float duration = i == uri.queryEnd() ?
+            const float duration = ( i == uri.queryEnd( )) ?
                                       10.f : lexical_cast< float >( i->second );
 
             i = uri.findQuery( "spikes" );
@@ -120,18 +118,18 @@ public:
                 spikes = i->second;
 
             loader = boost::make_shared< ::fivox::SpikeLoader >( config, target,
-                                                                 spikes, time,
+                                                                 spikes, dt,
                                                                  duration );
         }
         else if( useSoma )
             loader = boost::make_shared< ::fivox::SomaLoader >( config, target,
-                                                                report, time );
+                                                                report, dt );
         else if( useVSD )
             loader = boost::make_shared< ::fivox::VSDLoader >( config, target,
-                                                               time );
+                                                               dt );
         else
             loader = boost::make_shared< ::fivox::CompartmentLoader >(
-                                             config, target, report, time );
+                                                   config, target, report, dt );
 
         source->GetFunctor().setSource( loader );
         source->GetFunctor().setCutOffDistance( _defaultCutoffDistance );
@@ -155,13 +153,16 @@ public:
         region.SetSize( vSize );
 
         // Real-world coordinate setup
-        ::fivox::ConstEventSourcePtr loader = source->GetFunctor().getSource();
+        ::fivox::EventSourcePtr loader = source->GetFunctor().getSource();
+        const uint32_t frame = node.getNodeId().getFrame();
+        loader->load( frame );
+
         const ::fivox::AABBf& bbox = loader->getBoundingBox();
 
-        const vmml::Vector3f& baseSpacing = ( bbox.getDimension() + _borders )
-                                            / info.voxels;
-        const int32_t levelFromBottom = info.rootNode.getDepth() - 1
-                                        - node.getRefLevel();
+        const Vector3f& baseSpacing = ( bbox.getDimension() + _borders )
+                                      / info.voxels;
+        const int32_t levelFromBottom = info.rootNode.getDepth() - 1 -
+                                        node.getRefLevel();
         const float spacingFactor = 1 << levelFromBottom;
 
         Image::SpacingType spacing;
@@ -169,10 +170,9 @@ public:
         spacing[1] = spacing[0];
         spacing[2] = spacing[0];
 
-        const vmml::Vector3f& offset = ( bbox.getMin() - _borders / 2.0f ) +
-                                       node.getRelativePosition() *
-                                       vmml::Vector3f( (bbox.getDimension()
-                                                        + _borders ));
+        const Vector3f& offset =
+            ( bbox.getMin() - _borders / 2.0f ) + node.getRelativePosition() *
+            Vector3f( bbox.getDimension() + _borders );
 
         Image::PointType origin;
         origin[0] = offset[0];
@@ -197,22 +197,21 @@ public:
         source->Update();
 
         ::livre::AllocMemoryUnitPtr memoryUnit( new ::livre::AllocMemoryUnit );
-        const size_t size = voxels[ 0 ] * voxels[ 1 ] * voxels[ 2 ] *
+        const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
         memoryUnit->allocAndSetData( image->GetBufferPointer(), size );
         return memoryUnit;
     }
 
     SourcePtr source;
-    vmml::Vector3f _borders;
+    Vector3f _borders;
 
 private:
     mutable lunchbox::Lock _lock;
 };
-}
 
 DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
-    : _impl( new detail::DataSource( pluginData ))
+    : _impl( new DataSourceImpl( pluginData ))
 {
     const lunchbox::URI& uri = pluginData.getURI();
     lunchbox::URI::ConstKVIter i = uri.findQuery( "voxelsPerUM" );
@@ -221,21 +220,21 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
     const float voxelsPerUM = ( i == uri.queryEnd( )) ? _defaultVoxelsPerUM :
                                   lexical_cast< float >( i->second );
 
-    const size_t maxBlockByteSize = ( j == uri.queryEnd( )) ? _defaultMaxBlockByteSize :
-                                  lexical_cast< size_t >( j->second );
+    const size_t maxBlockByteSize =
+        ( j == uri.queryEnd( )) ? _defaultMaxBlockByteSize
+                                : lexical_cast< size_t >( j->second );
 
     ::fivox::ConstEventSourcePtr loader =
           _impl->source->GetFunctor().getSource();
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
-    uint32_t depth=0;
-    const vmml::Vector3f totalTreeExactSize = ( bbox.getDimension() +
-                                                _defaultCutoffDistance * 2.0f ) *
-                                                voxelsPerUM;
+    uint32_t depth = 0;
+    const Vector3f totalTreeExactSize =
+        ( bbox.getDimension() + _defaultCutoffDistance * 2.0f ) * voxelsPerUM;
 
     Vector3f blockExactDim = totalTreeExactSize;
 
-    while (( ceil( blockExactDim.x()) * ceil( blockExactDim.y()) *
-              ceil( blockExactDim.z())) > maxBlockByteSize )
+    while (( ceil( blockExactDim.x( )) * ceil( blockExactDim.y( )) *
+             ceil( blockExactDim.z( ))) > maxBlockByteSize )
     {
         blockExactDim = blockExactDim / 2.0f;
         depth++;
@@ -243,8 +242,8 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
 
     const size_t treeQuotient = 1 << depth;
     const vmml::Vector3ui blockDim( std::ceil( blockExactDim.x( )),
-                              std::ceil( blockExactDim.y( )),
-                              std::ceil( blockExactDim.z( )));
+                                    std::ceil( blockExactDim.y( )),
+                                    std::ceil( blockExactDim.z( )));
 
     const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
     _impl->_borders = ( totalTreeSize / voxelsPerUM ) - bbox.getDimension();
@@ -287,15 +286,15 @@ void DataSource::internalNodeToLODNode(
 {
     const uint32_t refLevel = internalNode.getLevel();
     const vmml::Vector3ui& bricksInRefLevel =
-            _volumeInfo.rootNode.getBlockSize( refLevel );
+                                  _volumeInfo.rootNode.getBlockSize( refLevel );
     const vmml::AABB< int32_t > localBlockPos( internalNode.getPosition(),
-                                               internalNode.getPosition() + 1u );
+                                               internalNode.getPosition() + 1u);
 
     const uint32_t index = bricksInRefLevel.find_max_index( );
-    const vmml::Vector3f boxCoordMin = vmml::Vector3f( localBlockPos.getMin())
-                                       / bricksInRefLevel[index];
-    const vmml::Vector3f boxCoordMax = vmml::Vector3f( localBlockPos.getMax())
-                                       / bricksInRefLevel[index];
+    const Vector3f boxCoordMin = Vector3f( localBlockPos.getMin( ))
+                                 / bricksInRefLevel[index];
+    const Vector3f boxCoordMax = Vector3f( localBlockPos.getMax( ))
+                                 / bricksInRefLevel[index];
 
 #ifdef LIVRE_DEBUG_RENDERING
     LBINFO << " Internal Node to LOD Node" << std::endl
@@ -308,13 +307,12 @@ void DataSource::internalNodeToLODNode(
 #endif
 
     lodNode = ::livre::LODNode( internalNode,
-                               _volumeInfo.maximumBlockSize
-                                - _volumeInfo.overlap * 2,
-                                vmml::AABB< float >( boxCoordMin
-                                * _volumeInfo.worldSize
-                                -_volumeInfo.worldSize * 0.5f, boxCoordMax *
-                                _volumeInfo.worldSize
-                                -_volumeInfo.worldSize * 0.5f ) );
+                                _volumeInfo.maximumBlockSize -
+                                _volumeInfo.overlap * 2,
+                                AABBf( boxCoordMin * _volumeInfo.worldSize -
+                                       _volumeInfo.worldSize * 0.5f,
+                                       boxCoordMax * _volumeInfo.worldSize -
+                                       _volumeInfo.worldSize * 0.5f ));
 }
 
 bool DataSource::handles( const ::livre::VolumeDataSourcePluginData& data )

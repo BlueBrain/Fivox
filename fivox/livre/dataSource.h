@@ -1,5 +1,6 @@
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Jafet.VillafrancaDiaz@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -26,24 +27,32 @@ namespace fivox
 {
 namespace livre
 {
-namespace detail{ class DataSource; }
+class DataSourceImpl;
 
 /**
  * Generate volume data sampling BBPSDK simulation reports.
  *
  * Used for volume URIs in the forms:
- * - Compartment reports: fivox[Compartment]://BlueConfig?time=float,report=string#target
- * - Soma reports: fivoxSoma://BlueConfig?time=float,report=string#target
- * - Spike reports: fivoxSpikes://BlueConfig?time=float,duration=float,spikes=path#target
+ * - Compartment reports: fivox[compartment]://BlueConfig?dt=float,report=string#target
+ * - Soma reports: fivoxsoma://BlueConfig?dt=float,report=string#target
+ * - Spike reports: fivoxspikes://BlueConfig?dt=float,duration=float,spikes=path#target
+ * - Voltage-sensitive dye reports: fivoxvsd://BlueConfig?dt=float#target
  *
  * Parameters:
- * - time: initial timestep to load
- * - duration: size of the time window to load spikes
+ * - BlueConfig: BlueConfig file path
+ *               (default: 'configs/BlueConfigVSD' for VSD reports,
+ *                BBPTestData otherwise)
+ * - dt: duration in milliseconds of the timestep (default: 0.1)
+ * - duration: size of the time window to load spikes (default: 10)
  * - target: name of the BlueConfig target
+ *           (default: 'MiniColumn_0' for VSD reports, 'L5CSPC' otherwise)
  * - report: name of the compartment report
+ *           (default: 'voltage' for compartment reports, 'soma' for soma reports)
  * - spikes: path to an alternate out.dat/out.spikes file
- * - voxelsPerUM: number of voxels per micrometer.
+ *           (default: SpikesPath specified in the BlueConfig)
+ * - voxelsPerUM: number of voxels per micrometer (default: 1.0)
  * - maxBlockSize: maximum memory usage allowed for one block in bytes
+ *                 (default: 16777216 bytes -- 16MB)
  */
 class DataSource : public ::livre::VolumeDataSourcePlugin
 {
@@ -56,11 +65,10 @@ public:
     static bool handles( const ::livre::VolumeDataSourcePluginData& data );
 
 private:
-
     void internalNodeToLODNode( const ::livre::NodeId internalNode,
                                 ::livre::LODNode& lodNode ) const final;
 
-    detail::DataSource* const _impl;
+    DataSourceImpl* const _impl;
 
 };
 

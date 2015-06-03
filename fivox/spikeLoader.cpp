@@ -1,5 +1,6 @@
 /* Copyright (c) 2015, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
+ *                     Jafet.VillafrancaDiaz@epfl.ch
  */
 
 #include "spikeLoader.h"
@@ -19,8 +20,6 @@ using boost::lexical_cast;
 using brion::Strings;
 
 namespace fivox
-{
-namespace detail
 {
 
 void _loadTarget( brion::GIDSet& gids, const brion::Target& startTarget,
@@ -43,16 +42,19 @@ void _loadTarget( brion::GIDSet& gids, const brion::Target& startTarget,
     }
 }
 
-class SpikeLoader
+class SpikeLoader::Impl
 {
 public:
-    SpikeLoader( fivox::EventSource& output, const std::string& blueconfig,
-                 std::string target, const std::string& spikes,
-                 const float time, const float duration )
+    Impl( fivox::EventSource& output, const std::string& blueconfig,
+          std::string target, const std::string& spikes,
+          const float dt, const float duration )
         : _output( output )
         , _experiment( blueconfig )
         , _spikes( spikes.empty() ? _experiment.spikes_source()
                                   : lunchbox::URI( spikes ))
+        , _currentFrameId( 0xFFFFFFFFu )
+        , _dt( dt )
+        , _duration( duration )
         , _magnitude( .5f )
     {
         // Get all neuron positions and compute bounding box to set correct size
@@ -89,8 +91,9 @@ public:
             ++i;
         }
 
-        // Load requested data
-        LBCHECK( loadFrame( time, duration ));
+        // Add empty corner points to set size correctly
+        _output.add( Event( _bbox.getMin(), 0.f ));
+        _output.add( Event( _bbox.getMax(), 0.f ));
     }
 
     bool loadFrame( const float start, const float duration )
@@ -112,37 +115,45 @@ public:
         return true;
     }
 
+    void load( const uint32_t frame )
+    {
+        if( frame == _currentFrameId )
+            return;
+
+        _currentFrameId = frame;
+        const float time  = _spikes.getStartTime() + _dt * frame;
+        LBCHECK( loadFrame( time, _duration ));
+    }
+
 private:
     fivox::EventSource& _output;
     bbp::Experiment_Specification _experiment;
     bbp::SpikeReportReader _spikes;
+
+    uint32_t _currentFrameId;
+    const float _dt;
+    const float _duration;
+
     vmml::AABBf _bbox;
     float _magnitude;
 
     typedef boost::unordered_map< uint32_t, Vector3f > Positions;
     Positions _positions;
 };
-}
-
-namespace
-{
-};
 
 SpikeLoader::SpikeLoader( const std::string& blueconfig,
                           const std::string& target, const std::string& spikes,
-                          const float time, const float duration )
-    : _impl( new detail::SpikeLoader( *this, blueconfig, target, spikes, time,
-                                      duration ))
+                          const float dt, const float duration )
+    : _impl( new SpikeLoader::Impl( *this, blueconfig, target, spikes, dt,
+                                    duration ))
 {}
 
 SpikeLoader::~SpikeLoader()
-{
-    delete _impl;
-}
+{}
 
-bool SpikeLoader::loadFrame( const float time, const float duration )
+void SpikeLoader::load( const uint32_t frame )
 {
-    return _impl->loadFrame( time, duration );
+    _impl->load( frame );
 }
 
 }
