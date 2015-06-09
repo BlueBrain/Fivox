@@ -16,7 +16,7 @@ class SomaLoader : public EventSource
 {
 public:
   SomaLoader( const std::string& blueconfig, const std::string& target,
-              const float time = 0.f );
+              const std::string& report, const float time = 0.f );
   virtual ~SomaLoader();
 
   bool loadFrame( const float time );

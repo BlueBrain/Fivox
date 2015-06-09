@@ -26,7 +26,7 @@ inline void _testSDKKernel( const size_t size )
     _setSize< Image >( output, size );
 
     fivox::EventSourcePtr source = boost::make_shared< K >(
-                                  bbp::test::getBlueconfig(), targetName, 5.f );
+                       bbp::test::getBlueconfig(), targetName, "allCompartments", 5.f );
     filter->GetFunctor().setSource( source );
 
     // set up size and origin for loaded circuit

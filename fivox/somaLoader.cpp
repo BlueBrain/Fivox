@@ -19,10 +19,11 @@ class SomaLoader
 {
 public:
   SomaLoader( fivox::EventSource& output, const std::string& blueconfig,
-              const std::string& target, const float time )
+              const std::string& target, const std::string& report,
+              const float time )
       : _output( output )
       , _experiment( blueconfig )
-      , _reader( *_experiment.reports().find( "voltage" ),
+      , _reader( *_experiment.reports().find( report.empty() ? "soma" : report),
                  _experiment.cell_target( target ))
   {
     const bbp::Cell_Target& target_ = _experiment.cell_target( target );
@@ -62,8 +63,9 @@ private:
 }
 
 SomaLoader::SomaLoader( const std::string& blueconfig,
-                        const std::string& target, const float time )
-    : _impl( new detail::SomaLoader( *this, blueconfig, target, time ))
+                        const std::string& target, const std::string& report,
+                        const float time )
+    : _impl( new detail::SomaLoader( *this, blueconfig, target, report, time ))
 {}
 
 SomaLoader::~SomaLoader()

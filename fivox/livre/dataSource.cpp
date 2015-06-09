@@ -93,7 +93,7 @@ public:
             LBINFO << "Using test data " << config << std::endl;
         }
 
-        if( !useSpikes && target.empty( ))
+        if( target.empty( ))
         {
             target = useVSD ? "MiniColumn_0" : "L5CSPC";
             LBINFO << "Using target " << target << std::endl;
@@ -103,6 +103,9 @@ public:
         const float time = i == uri.queryEnd() ?
                                     0.f : lexical_cast< float >( i->second );
 
+        i = uri.findQuery( "report" );
+        const std::string report = i == uri.queryEnd() ? "" : i->second;
+
         ::fivox::EventSourcePtr loader;
         if( useSpikes )
         {
@@ -111,22 +114,23 @@ public:
                                       10.f : lexical_cast< float >( i->second );
 
             i = uri.findQuery( "spikes" );
+            std::string spikes;
             if( i != uri.queryEnd( ))
-                target = i->second;
+                spikes = i->second;
 
             loader = boost::make_shared< ::fivox::SpikeLoader >( config, target,
-                                                                 time,
+                                                                 spikes, time,
                                                                  duration );
         }
         else if( useSoma )
             loader = boost::make_shared< ::fivox::SomaLoader >( config, target,
-                                                                time );
+                                                                report, time );
         else if( useVSD )
             loader = boost::make_shared< ::fivox::VSDLoader >( config, target,
                                                                time );
         else
             loader = boost::make_shared< ::fivox::CompartmentLoader >(
-                                             config, target, time );
+                                             config, target, report, time );
 
         source->GetFunctor().setSource( loader );
 #ifdef LIVRE_DEBUG_RENDERING

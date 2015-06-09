@@ -32,10 +32,12 @@ class CompartmentLoader
 {
 public:
   CompartmentLoader( fivox::EventSource& output, const std::string& blueconfig,
-                     const std::string& target, const float time )
+                     const std::string& target, const std::string& report,
+                     const float time )
       : _output( output )
       , _experiment( blueconfig )
-      , _reader( *_experiment.reports().begin(),
+      , _reader( *_experiment.reports().find( report.empty() ? "voltage"
+                                                             : report ),
                  _experiment.cell_target( target ))
   {
     const bbp::Cell_Target& target_ = _experiment.cell_target( target );
@@ -111,8 +113,10 @@ private:
 
 CompartmentLoader::CompartmentLoader( const std::string& blueconfig,
                                       const std::string& target,
+                                      const std::string& report,
                                       const float time )
-    : _impl( new detail::CompartmentLoader( *this, blueconfig, target, time ))
+    : _impl( new detail::CompartmentLoader( *this, blueconfig, target, report,
+                                            time ))
 {}
 
 CompartmentLoader::~CompartmentLoader()

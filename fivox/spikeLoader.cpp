@@ -23,12 +23,12 @@ namespace fivox
 namespace detail
 {
 
-void _loadTarget( brion::GIDSet& gids, const brion::Target& target,
+void _loadTarget( brion::GIDSet& gids, const brion::Target& startTarget,
                   const brion::Target& userTarget,
                   const std::string& name )
 {
-    const Strings& values = target.get( name ).empty() ? userTarget.get( name )
-                                                       : target.get( name );
+    const Strings& values = startTarget.get( name ).empty()
+            ? userTarget.get( name ) : startTarget.get( name );
     BOOST_FOREACH( const std::string& value, values )
     {
         try
@@ -38,7 +38,7 @@ void _loadTarget( brion::GIDSet& gids, const brion::Target& target,
         catch( ... )
         {
             if( value != name )
-                _loadTarget( gids, target, userTarget, value );
+                _loadTarget( gids, startTarget, userTarget, value );
         }
     }
 }
@@ -46,28 +46,30 @@ void _loadTarget( brion::GIDSet& gids, const brion::Target& target,
 class SpikeLoader
 {
 public:
-    SpikeLoader( fivox::EventSource& output,
-                 const std::string& blueconfig,
-                 const std::string& spikeFile, const float time,
-                 const float duration )
+    SpikeLoader( fivox::EventSource& output, const std::string& blueconfig,
+                 std::string target, const std::string& spikes,
+                 const float time, const float duration )
         : _output( output )
         , _experiment( blueconfig )
-        , _spikes( spikeFile.empty() ? _experiment.spikes_source() :
-                                       lunchbox::URI( spikeFile ))
+        , _spikes( spikes.empty() ? _experiment.spikes_source()
+                                  : lunchbox::URI( spikes ))
         , _magnitude( .5f )
     {
         // Get all neuron positions and compute bounding box to set correct size
         // for partial spikes
         const brion::Circuit circuit( _experiment.circuit_source() +
                                       "/circuit.mvd2" );
-        const brion::Target target( _experiment.target_source() +
+        const brion::Target startTarget( _experiment.target_source() +
                                     "/start.target" );
         const brion::Target userTarget( _experiment.user_target_source( ));
+
+        if( target.empty( ))
+            target = _experiment.circuit_target();
         brion::GIDSet gids;
-        _loadTarget( gids, target, userTarget, _experiment.circuit_target( ));
+        _loadTarget( gids, startTarget, userTarget, target );
         if( gids.empty( ))
-            LBTHROW( std::runtime_error( "No GIDs found for circuit target '" +
-                         _experiment.circuit_target() + "' in " + blueconfig ));
+            LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
+                                         "' in " + blueconfig ));
 
         _magnitude = 100.f / std::log( gids.size( )); // heuristic
 
@@ -127,9 +129,9 @@ namespace
 };
 
 SpikeLoader::SpikeLoader( const std::string& blueconfig,
-                          const std::string& spikes, const float time,
-                          const float duration )
-    : _impl( new detail::SpikeLoader( *this, blueconfig, spikes, time,
+                          const std::string& target, const std::string& spikes,
+                          const float time, const float duration )
+    : _impl( new detail::SpikeLoader( *this, blueconfig, target, spikes, time,
                                       duration ))
 {}
 

@@ -15,8 +15,9 @@ namespace detail { class SpikeLoader; }
 class SpikeLoader : public EventSource
 {
 public:
-    SpikeLoader( const std::string& blueconfig, const std::string& spikes,
-                 const float time, const float duration );
+    SpikeLoader( const std::string& blueconfig, const std::string& target,
+                 const std::string& spikes, const float time,
+                 const float duration );
     virtual ~SpikeLoader();
 
     bool loadFrame( const float time, const float duration );

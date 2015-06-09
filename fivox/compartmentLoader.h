@@ -21,11 +21,13 @@ public:
    *
    * @param blueconfig The Blueconfig file for the simulation
    * @param target The target to load
+   * @param report The name of the report to use, 'voltage' if empty
    * @param time The initial frame (time step)
    * @throw H5::exception or std::exception on error
    */
   CompartmentLoader( const std::string& blueconfig,
-                     const std::string& target, const float time = 0.f );
+                     const std::string& target, const std::string& report,
+                     const float time = 0.f );
 
   virtual ~CompartmentLoader(); //!< Destruct this compartment event source
 
