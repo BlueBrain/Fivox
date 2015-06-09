@@ -24,9 +24,11 @@ namespace detail
 {
 
 void _loadTarget( brion::GIDSet& gids, const brion::Target& target,
+                  const brion::Target& userTarget,
                   const std::string& name )
 {
-    const Strings& values = target.get( name );
+    const Strings& values = target.get( name ).empty() ? userTarget.get( name )
+                                                       : target.get( name );
     BOOST_FOREACH( const std::string& value, values )
     {
         try
@@ -36,7 +38,7 @@ void _loadTarget( brion::GIDSet& gids, const brion::Target& target,
         catch( ... )
         {
             if( value != name )
-                _loadTarget( gids, target, value );
+                _loadTarget( gids, target, userTarget, value );
         }
     }
 }
@@ -60,8 +62,13 @@ public:
                                       "/circuit.mvd2" );
         const brion::Target target( _experiment.target_source() +
                                     "/start.target" );
+        const brion::Target userTarget( _experiment.user_target_source( ));
         brion::GIDSet gids;
-        _loadTarget( gids, target, _experiment.circuit_target( ));
+        _loadTarget( gids, target, userTarget, _experiment.circuit_target( ));
+        if( gids.empty( ))
+            LBTHROW( std::runtime_error( "No GIDs found for circuit target '" +
+                         _experiment.circuit_target() + "' in " + blueconfig ));
+
         _magnitude = 100.f / std::log( gids.size( )); // heuristic
 
         const brion::NeuronMatrix& matrix =

@@ -27,11 +27,11 @@ public:
   {
     const bbp::Cell_Target& target_ = _experiment.cell_target( target );
     bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-    microcircuit.load( target_, bbp::NEURONS | bbp::MORPHOLOGIES );
+    microcircuit.load( target_, bbp::NEURONS );
 
     const bbp::Neurons& neurons = microcircuit.neurons();
     BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
-      output.add( Event( neuron.soma().position(), 0.f ));
+      output.add( Event( neuron.position(), 0.f ));
 
     LBCHECK( loadFrame( time ));
   }
