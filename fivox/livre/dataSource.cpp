@@ -57,8 +57,9 @@ using boost::lexical_cast;
 
 namespace
 {
-const size_t _defaultTotalSize = 16384;
-const size_t _defaultBlockSize = 256;
+const size_t _defaultMaxBlockByteSize = LB_16MB;
+const float _defaultCutoffDistance = 50.0f;
+const float _defaultVoxelsPerUM = 1.0f;
 
 typedef itk::Image< uint8_t, 3 > Image;
 typedef Image::Pointer ImagePtr;
@@ -133,6 +134,7 @@ public:
                                              config, target, report, time );
 
         source->GetFunctor().setSource( loader );
+        source->GetFunctor().setCutOffDistance( _defaultCutoffDistance );
 #ifdef LIVRE_DEBUG_RENDERING
         std::cout << "Global space: " <<  loader->getBoundingBox() << std::endl;
 #endif
@@ -155,9 +157,11 @@ public:
         // Real-world coordinate setup
         ::fivox::ConstEventSourcePtr loader = source->GetFunctor().getSource();
         const ::fivox::AABBf& bbox = loader->getBoundingBox();
-        const vmml::Vector3f& baseSpacing = bbox.getDimension() / info.voxels;
-        const int32_t levelFromBottom = node.getMaxRefLevel() -
-                                        node.getRefLevel();
+
+        const vmml::Vector3f& baseSpacing = ( bbox.getDimension() + _borders )
+                                            / info.voxels;
+        const int32_t levelFromBottom = info.rootNode.getDepth() - 1
+                                        - node.getRefLevel();
         const float spacingFactor = 1 << levelFromBottom;
 
         Image::SpacingType spacing;
@@ -165,9 +169,11 @@ public:
         spacing[1] = spacing[0];
         spacing[2] = spacing[0];
 
-        const vmml::Vector3f& offset = bbox.getMin() +
+        const vmml::Vector3f& offset = ( bbox.getMin() - _borders / 2.0f ) +
                                        node.getRelativePosition() *
-                               vmml::Vector3f( bbox.getDimension().find_max( ));
+                                       vmml::Vector3f( (bbox.getDimension()
+                                                        + _borders ));
+
         Image::PointType origin;
         origin[0] = offset[0];
         origin[1] = offset[1];
@@ -198,6 +204,7 @@ public:
     }
 
     SourcePtr source;
+    vmml::Vector3f _borders;
 
 private:
     mutable lunchbox::Lock _lock;
@@ -208,23 +215,45 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
     : _impl( new detail::DataSource( pluginData ))
 {
     const lunchbox::URI& uri = pluginData.getURI();
-    lunchbox::URI::ConstKVIter i = uri.findQuery( "totalSize" );
-    lunchbox::URI::ConstKVIter j = uri.findQuery( "blockSize" );
+    lunchbox::URI::ConstKVIter i = uri.findQuery( "voxelsPerUM" );
+    lunchbox::URI::ConstKVIter j = uri.findQuery( "maxBlockSize" );
 
-    const size_t totalSize = (i == uri.queryEnd( )) ? _defaultTotalSize :
-                                             lexical_cast< float >( i->second );
-    const size_t blockSize = (j == uri.queryEnd( )) ? _defaultBlockSize :
-                                             lexical_cast< float >( j->second );
+    const float voxelsPerUM = ( i == uri.queryEnd( )) ? _defaultVoxelsPerUM :
+                                  lexical_cast< float >( i->second );
 
-    _volumeInfo.voxels = vmml::Vector3ui( totalSize );
-    _volumeInfo.maximumBlockSize = vmml::Vector3ui( blockSize );
-
-    if( !::livre::fillRegularVolumeInfo( _volumeInfo ))
-       LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
+    const size_t maxBlockByteSize = ( j == uri.queryEnd( )) ? _defaultMaxBlockByteSize :
+                                  lexical_cast< size_t >( j->second );
 
     ::fivox::ConstEventSourcePtr loader =
           _impl->source->GetFunctor().getSource();
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
+    uint32_t depth=0;
+    const vmml::Vector3f totalTreeExactSize = ( bbox.getDimension() +
+                                                _defaultCutoffDistance * 2.0f ) *
+                                                voxelsPerUM;
+
+    Vector3f blockExactDim = totalTreeExactSize;
+
+    while (( ceil( blockExactDim.x()) * ceil( blockExactDim.y()) *
+              ceil( blockExactDim.z())) > maxBlockByteSize )
+    {
+        blockExactDim = blockExactDim / 2.0f;
+        depth++;
+    }
+
+    const size_t treeQuotient = 1 << depth;
+    const vmml::Vector3ui blockDim( std::ceil( blockExactDim.x( )),
+                              std::ceil( blockExactDim.y( )),
+                              std::ceil( blockExactDim.z( )));
+
+    const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
+    _impl->_borders = ( totalTreeSize / voxelsPerUM ) - bbox.getDimension();
+
+    _volumeInfo.voxels = totalTreeSize;
+    _volumeInfo.maximumBlockSize = blockDim;
+
+    if( !::livre::fillRegularVolumeInfo( _volumeInfo ))
+       LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
     // SDK uses microns, volume information uses meters
     _volumeInfo.boundingBox = bbox / 1000000.f;
@@ -251,6 +280,41 @@ DataSource::~DataSource()
         LBWARN << "sample failed: " << e.getDetailMsg() << std::endl;
         return ::livre::MemoryUnitPtr();
     }
+}
+
+void DataSource::internalNodeToLODNode(
+    const ::livre::NodeId internalNode, ::livre::LODNode& lodNode ) const
+{
+    const uint32_t refLevel = internalNode.getLevel();
+    const vmml::Vector3ui& bricksInRefLevel =
+            _volumeInfo.rootNode.getBlockSize( refLevel );
+    const vmml::AABB< int32_t > localBlockPos( internalNode.getPosition(),
+                                               internalNode.getPosition() + 1u );
+
+    const uint32_t index = bricksInRefLevel.find_max_index( );
+    const vmml::Vector3f boxCoordMin = localBlockPos.getMin()
+                                       / bricksInRefLevel[index];
+    const vmml::Vector3f boxCoordMax = localBlockPos.getMax()
+                                       / bricksInRefLevel[index];
+
+#ifdef LIVRE_DEBUG_RENDERING
+    LBINFO << " Internal Node to LOD Node" << std::endl
+           << " Node Id " << internalNode
+           << " BricksInRefLevel " << bricksInRefLevel << std::endl
+           << " lBoxCoordMin " << boxCoordMin << std::endl
+           << " lBoxCoordMax " << boxCoordMax << std::endl
+           << " volume world size " << _volumeInfo.worldSize << std::endl
+           << std::endl;
+#endif
+
+    lodNode = ::livre::LODNode( internalNode,
+                               _volumeInfo.maximumBlockSize
+                                - _volumeInfo.overlap * 2,
+                                vmml::AABB< float >( boxCoordMin
+                                * _volumeInfo.worldSize
+                                -_volumeInfo.worldSize * 0.5f, boxCoordMax *
+                                _volumeInfo.worldSize
+                                -_volumeInfo.worldSize * 0.5f ) );
 }
 
 bool DataSource::handles( const ::livre::VolumeDataSourcePluginData& data )

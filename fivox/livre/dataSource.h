@@ -42,6 +42,8 @@ namespace detail{ class DataSource; }
  * - target: name of the BlueConfig target
  * - report: name of the compartment report
  * - spikes: path to an alternate out.dat/out.spikes file
+ * - voxelsPerUM: number of voxels per micrometer.
+ * - maxBlockSize: maximum memory usage allowed for one block in bytes
  */
 class DataSource : public ::livre::VolumeDataSourcePlugin
 {
@@ -54,6 +56,10 @@ public:
     static bool handles( const ::livre::VolumeDataSourcePluginData& data );
 
 private:
+
+    void internalNodeToLODNode( const ::livre::NodeId internalNode,
+                                ::livre::LODNode& lodNode ) const final;
+
     detail::DataSource* const _impl;
 
 };
