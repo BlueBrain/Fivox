@@ -5,7 +5,6 @@
 source_group(\\ FILES CMakeLists.txt)
 
 set(FIVOX_PUBLIC_HEADERS
-  ${COMMON_INCLUDES}
   attenuationCurve.h
   compartmentLoader.h
   event.h
@@ -23,7 +22,6 @@ set(FIVOX_PUBLIC_HEADERS
 set(FIVOX_HEADERS)
 
 set(FIVOX_SOURCES
-  ${COMMON_SOURCES}
   eventSource.cpp)
 
 set(FIVOX_LINK_LIBRARIES ${ITK_LIBRARIES} ${Boost_LIBRARIES})

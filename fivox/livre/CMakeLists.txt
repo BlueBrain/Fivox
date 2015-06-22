@@ -11,6 +11,6 @@ endif()
 set(LIVREFIVOXSOURCE_HEADERS dataSource.h)
 set(LIVREFIVOXSOURCE_SOURCES dataSource.cpp)
 set(LIVREFIVOXSOURCE_LINK_LIBRARIES ${LIVRECORE_LIBRARY} Fivox)
-set(PROJECT_INCLUDE_NAME fivox/livre)
+set(LIVREFIVOXSOURCE_INCLUDE_NAME fivox/livre)
 
 common_library(LivreFivoxSource)
