@@ -292,9 +292,9 @@ void DataSource::internalNodeToLODNode(
                                                internalNode.getPosition() + 1u );
 
     const uint32_t index = bricksInRefLevel.find_max_index( );
-    const vmml::Vector3f boxCoordMin = localBlockPos.getMin()
+    const vmml::Vector3f boxCoordMin = vmml::Vector3f( localBlockPos.getMin())
                                        / bricksInRefLevel[index];
-    const vmml::Vector3f boxCoordMax = localBlockPos.getMax()
+    const vmml::Vector3f boxCoordMax = vmml::Vector3f( localBlockPos.getMax())
                                        / bricksInRefLevel[index];
 
 #ifdef LIVRE_DEBUG_RENDERING
