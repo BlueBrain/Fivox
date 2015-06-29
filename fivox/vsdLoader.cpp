@@ -85,8 +85,12 @@ public:
                 uint64_t offset = _areas.getOffsets()[i][j];
 
                 for( size_t k = 0; k < nCompartments; ++k )
+                {
+                    const float normVoltage = neuron.voltage() -
+                                              brion::RESTING_VOLTAGE;
                     _output.update( index++,
-                                    neuron.voltage() * (*areas)[ offset++ ] );
+                                    normVoltage * (*areas)[ offset++ ] );
+                }
                 ++j;
                 LBVERB << section.id() << std::endl;
             }
