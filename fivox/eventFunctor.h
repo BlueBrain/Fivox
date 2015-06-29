@@ -11,7 +11,6 @@
 #include <fivox/eventSource.h> // member
 #include <fivox/itk.h>
 
-#include <boost/foreach.hpp>
 #include <boost/type_traits/is_floating_point.hpp>
 
 namespace fivox
@@ -68,9 +67,16 @@ EventFunctor< TImage >::operator()( const TPoint& point ) const
     const Events& events = _source->findEvents( region );
 
     float sum = 0.f;
-    BOOST_FOREACH( const Event& event, events )
+    for( const Event& event : events )
     {
-        const float distance2 = (base - event.position).squared_length();
+        // OPT: do 'manual' operator- and squared_length(), vtune says it's
+        // faster than using vmml vector functions
+        const Vector3f distance(base.array[0] - event.position.array[0],
+                                base.array[1] - event.position.array[1],
+                                base.array[2] - event.position.array[2]);
+        const float distance2( distance.array[0] * distance.array[0] +
+                               distance.array[1] * distance.array[1] +
+                               distance.array[2] * distance.array[2]);
         if( distance2 > cutOffDistance2 )
             continue;
 

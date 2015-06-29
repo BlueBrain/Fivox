@@ -32,7 +32,6 @@
 #include <livre/core/version.h>
 
 #include <BBP/BBP.h>
-#include <H5Cpp.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/make_shared.hpp>
@@ -271,12 +270,12 @@ DataSource::~DataSource()
     }
     catch( const std::exception& e )
     {
-        LBWARN << "sample failed: " << e.what() << std::endl;
+        LBERROR << "sample failed: " << e.what() << std::endl;
         return ::livre::MemoryUnitPtr();
     }
-    catch( const H5::Exception& e )
+    catch( ... )
     {
-        LBWARN << "sample failed: " << e.getDetailMsg() << std::endl;
+        LBERROR << "sample failed" << std::endl;
         return ::livre::MemoryUnitPtr();
     }
 }
@@ -296,15 +295,13 @@ void DataSource::internalNodeToLODNode(
     const Vector3f boxCoordMax = Vector3f( localBlockPos.getMax( ))
                                  / bricksInRefLevel[index];
 
-#ifdef LIVRE_DEBUG_RENDERING
-    LBINFO << " Internal Node to LOD Node" << std::endl
-           << " Node Id " << internalNode
-           << " BricksInRefLevel " << bricksInRefLevel << std::endl
-           << " lBoxCoordMin " << boxCoordMin << std::endl
-           << " lBoxCoordMax " << boxCoordMax << std::endl
-           << " volume world size " << _volumeInfo.worldSize << std::endl
-           << std::endl;
-#endif
+    LBDEBUG << "Internal Node to LOD Node" << std::endl
+            << "Node Id " << internalNode
+            << "BricksInRefLevel " << bricksInRefLevel << std::endl
+            << "lBoxCoordMin " << boxCoordMin << std::endl
+            << "lBoxCoordMax " << boxCoordMax << std::endl
+            << "volume world size " << _volumeInfo.worldSize << std::endl
+            << std::endl;
 
     lodNode = ::livre::LODNode( internalNode,
                                 _volumeInfo.maximumBlockSize -

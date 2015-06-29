@@ -6,12 +6,12 @@
 #include "eventSource.h"
 #include "event.h"
 
+#include <lunchbox/atomic.h>
 #include <lunchbox/log.h>
 
 #if USE_BOOST_GEOMETRY
 #  include <lunchbox/lock.h>
 #  include <lunchbox/scopedMutex.h>
-#  include <boost/foreach.hpp>
 #  include <boost/geometry.hpp>
 #  include <boost/geometry/geometries/box.hpp>
 #  include <boost/geometry/geometries/point.hpp>
@@ -47,19 +47,21 @@ public:
         if( !rtree.empty( ))
             return;
 
+        LBINFO << "Start building rtree..." << std::endl;
         Values values;
         values.reserve( events.size( ));
 
         size_t i = 0;
-        BOOST_FOREACH( const Event& event, events )
+        for( const Event& event : events )
         {
             const Point point( event.position[0], event.position[1],
-                    event.position[2] );
+                               event.position[2] );
             values.push_back( std::make_pair( point, i++ ));
         }
 
         RTree rt( values.begin(), values.end( ));
         rtree = boost::move( rt );
+        LBINFO << "Finished building rtree" << std::endl;
     }
 
 private:
@@ -82,18 +84,27 @@ const Events& EventSource::getEvents() const
 Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
 {
 #ifdef USE_BOOST_GEOMETRY
-    _impl->rebuildRTree();
+    if( _impl->rtree.empty( ))
+        _impl->rebuildRTree();
 
     const Vector3f& p1 = area.getMin();
     const Vector3f& p2 = area.getMax();
     const Box query( Point( p1[0], p1[1], p1[2] ), Point( p2[0], p2[1], p2[2] ));
 
+    static lunchbox::a_ssize_t maxHits( 0 );
     std::vector< Value > hits;
+    hits.reserve( maxHits );
     _impl->rtree.query( bgi::intersects( query ), std::back_inserter( hits ));
+    maxHits = std::max( size_t(maxHits), hits.size( ));
 
     Events events;
-    BOOST_FOREACH( const Value& value, hits )
-            events.push_back( _impl->events[ value.second ] );
+    events.reserve( hits.size( ));
+    for( const Value& value : hits )
+    {
+        const Event& val = _impl->events[ value.second ];
+        if( val.value )
+            events.push_back( val );
+    }
     return events;
 #else
     static bool first = true;
