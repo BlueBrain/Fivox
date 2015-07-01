@@ -70,6 +70,9 @@ public:
             LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
                                          "' in " + blueconfig ));
 
+        if( _dt < 0.f )
+            _dt = _experiment.timestep();
+
         _magnitude = 100.f / std::log( gids.size( )); // heuristic
 
         const brion::NeuronMatrix& matrix =
@@ -220,7 +223,7 @@ private:
     fivox::EventSource& _output;
     const bbp::Experiment_Specification _experiment;
     uint32_t _currentFrameId;
-    const float _dt;
+    float _dt;
     const float _duration;
     float _spikesStart;
     float _magnitude;
@@ -252,6 +255,11 @@ SpikeLoader::SpikeLoader( const std::string& blueconfig,
 
 SpikeLoader::~SpikeLoader()
 {}
+
+void SpikeLoader::load( const float time )
+{
+    _impl->load( time );
+}
 
 void SpikeLoader::load( const uint32_t frame )
 {

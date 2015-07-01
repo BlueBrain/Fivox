@@ -45,6 +45,9 @@ public:
         microcircuit.load( target_, bbp::NEURONS | bbp::MORPHOLOGIES );
         _reader.updateMapping( target_ );
 
+        if( _dt < 0.f )
+            _dt = _reader.getTimestep();
+
         size_t i=0;
         BOOST_FOREACH( const uint32_t gid, target_ )
         {
@@ -73,7 +76,7 @@ public:
         }
     }
 
-    bool loadFrame( const float time )
+    bool load( const float time )
     {
         bbp::CompartmentReportFrame frame;
         if( !_reader.loadFrame( time, frame ))
@@ -104,7 +107,7 @@ public:
 
         _currentFrameId = frame;
         const float time  = _reader.getStartTime() + _dt * frame;
-        LBCHECK( loadFrame( time ));
+        LBCHECK( load( time ));
     }
 
 private:
@@ -114,19 +117,24 @@ private:
     SectionInfos _sections;
 
     uint32_t _currentFrameId;
-    const float _dt;
+    float _dt;
 };
 
 CompartmentLoader::CompartmentLoader( const std::string& blueconfig,
                                       const std::string& target,
                                       const std::string& report,
-                                      const float time )
-    : _impl( new CompartmentLoader::Impl( *this, blueconfig, target, report,
-                                          time ))
+                                      const float dt )
+    : _impl( new CompartmentLoader::Impl( *this, blueconfig, target,
+                                          report, dt ))
 {}
 
 CompartmentLoader::~CompartmentLoader()
 {}
+
+void CompartmentLoader::load( const float time )
+{
+    _impl->load( time );
+}
 
 void CompartmentLoader::load( const uint32_t frame )
 {

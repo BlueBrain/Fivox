@@ -42,7 +42,7 @@ class DataSourceImpl;
  * - BlueConfig: BlueConfig file path
  *               (default: 'configs/BlueConfigVSD' for VSD reports,
  *                BBPTestData otherwise)
- * - dt: duration in milliseconds of the timestep (default: 0.1)
+ * - dt: duration in milliseconds of the timestep (default: the dt of the report)
  * - duration: size of the time window to load spikes (default: 10)
  * - target: name of the BlueConfig target
  *           (default: 'MiniColumn_0' for VSD reports, 'L5CSPC' otherwise)

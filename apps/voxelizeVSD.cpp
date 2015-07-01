@@ -93,10 +93,10 @@ int main( int argc, char* argv[] )
 
     //----- Construct ITK pipeline
     fivox::EventSourcePtr loader = boost::make_shared< fivox::VSDLoader >(
-                                       config, target, time );
+                                       config, target, -1.f );
     const fivox::AABBf& bbox = loader->getBoundingBox();
 
-    // setup argument-dependent image source and its parameters
+    // Setup argument-dependent image source and its parameters
     typename itk::ProcessObject::Pointer filter;
     typename Volume::Pointer output;
 
@@ -136,8 +136,10 @@ int main( int argc, char* argv[] )
     region.SetSize( vSize );
     output->SetRegions( region );
 
+    // Load data for the given timestep
+    loader->load( time );
 
-    // set up size and origin for loaded circuit
+    // Set up size and origin for loaded circuit
     const float extent = bbox.getDimension().find_max();
     const float position = bbox.getMin().find_min();
 
@@ -157,5 +159,5 @@ int main( int argc, char* argv[] )
     writer->SetInput( output );
     writer->SetFileName( outputFile );
 
-    writer->Update(); // run pipeline to write volume
+    writer->Update(); // Run pipeline to write volume
 }

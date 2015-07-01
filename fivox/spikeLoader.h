@@ -22,7 +22,8 @@ public:
     * @param target The target to load
     * @param spikes URI to access spikes data from. If not specified, it takes
     * the one in the BlueConfig file (SpikesPath)
-    * @param dt The duration of the time step
+    * @param dt The duration of the timestep. If -1, it takes the
+    * one in the BlueConfig (simulation Dt) as the default
     * @param duration The duration of the time window to be sampled at each
     * frame
     * @throw H5::exception or std::exception on error
@@ -32,7 +33,13 @@ public:
     virtual ~SpikeLoader();
 
     /**
-    * Load a new frame, based on the duration defined for each time step (dt)
+    * Load the data at the given timestamp
+    * @param time the timestamp of interest
+    */
+    void load( float time );
+
+    /**
+    * Load a new frame, based on the duration defined for each timestep (dt)
     * @param frame The frame number to be loaded
     */
     void load( uint32_t frame );

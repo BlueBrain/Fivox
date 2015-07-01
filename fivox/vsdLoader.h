@@ -12,9 +12,9 @@ namespace fivox
 /**
  * Loads report data for voltage sensitive dye sampling.
  *
- * Expects an 'area' full compartment report with a single time step containing
+ * Expects an 'area' full compartment report with a single timestep containing
  * the surface areas of each compartment, and a 'voltages' soma report
- * containing the soma voltages for the given time step.
+ * containing the soma voltages for the given timestep.
  */
 class VSDLoader : public EventSource
 {
@@ -24,7 +24,8 @@ public:
     *
     * @param blueconfig The Blueconfig file for the simulation
     * @param target The target to load
-    * @param dt The duration of the time step
+    * @param dt The duration of the timestep. If -1, it takes the
+    * one from the report as the default
     * @throw H5::exception or std::exception on error
     */
     VSDLoader( const std::string& blueconfig, const std::string& target,
@@ -33,7 +34,13 @@ public:
     virtual ~VSDLoader(); //!< Destruct this vsd event source
 
     /**
-    * Load a new frame, based on the duration defined for each time step (dt)
+    * Load the data at the given timestamp
+    * @param time the timestamp of interest
+    */
+    void load( float time );
+
+    /**
+    * Load a new frame, based on the duration defined for each timestep (dt)
     * @param frame The frame number to be loaded
     */
     void load( uint32_t frame );

@@ -33,6 +33,9 @@ public:
         if( !_areas.loadFrame( 0.f, _areasFrame ))
             throw std::runtime_error( "Can't load 'area' vsd report" );
 
+        if( _dt < 0.f )
+            _dt = _voltages.getTimestep();
+
         size_t i=0;
         BOOST_FOREACH( const uint32_t gid, _target )
         {
@@ -58,7 +61,7 @@ public:
         }
     }
 
-    bool loadFrame( const float time )
+    bool load( const float time )
     {
         bbp::CompartmentReportFrame voltages;
         if( !_voltages.loadFrame( time, voltages ))
@@ -106,7 +109,7 @@ public:
 
         _currentFrameId = frame;
         const float time  = _voltages.getStartTime() + _dt * frame;
-        LBCHECK( loadFrame( time ));
+        LBCHECK( load( time ));
     }
 
 private:
@@ -118,7 +121,7 @@ private:
     bbp::CompartmentReportFrame _areasFrame;
 
     uint32_t _currentFrameId;
-    const float _dt;
+    float _dt;
 };
 
 VSDLoader::VSDLoader( const std::string& blueconfig, const std::string& target,
@@ -128,6 +131,11 @@ VSDLoader::VSDLoader( const std::string& blueconfig, const std::string& target,
 
 VSDLoader::~VSDLoader()
 {}
+
+void VSDLoader::load( const float time )
+{
+    _impl->load( time );
+}
 
 void VSDLoader::load( const uint32_t frame )
 {

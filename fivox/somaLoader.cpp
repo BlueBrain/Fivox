@@ -36,7 +36,7 @@ public:
             output.add( Event( neuron.position(), 0.f ));
     }
 
-    bool loadFrame( const float time )
+    bool load( const float time )
     {
         bbp::CompartmentReportFrame frame;
         if( !_reader.loadFrame( time, frame ))
@@ -44,6 +44,9 @@ public:
             LBERROR << "Could not load frame at " << time << "ms" << std::endl;
             return false;
         }
+
+        if( _dt < 0.f )
+            _dt = _reader.getTimestep();
 
         _experiment.microcircuit().update( frame );
         const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
@@ -61,7 +64,7 @@ public:
 
         _currentFrameId = frame;
         const float time  = _reader.getStartTime() + _dt * frame;
-        LBCHECK( loadFrame( time ));
+        LBCHECK( load( time ));
     }
 
 private:
@@ -70,7 +73,7 @@ private:
     bbp::CompartmentReportReader _reader;
 
     uint32_t _currentFrameId;
-    const float _dt;
+    float _dt;
 };
 
 SomaLoader::SomaLoader( const std::string& blueconfig,
@@ -81,6 +84,11 @@ SomaLoader::SomaLoader( const std::string& blueconfig,
 
 SomaLoader::~SomaLoader()
 {}
+
+void SomaLoader::load( const float time )
+{
+    _impl->load( time );
+}
 
 void SomaLoader::load( const uint32_t frame )
 {

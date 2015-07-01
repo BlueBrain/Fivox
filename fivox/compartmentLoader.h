@@ -20,7 +20,8 @@ public:
     * @param blueconfig The Blueconfig file for the simulation
     * @param target The target to load
     * @param report The name of the report to use, 'voltage' if empty
-    * @param time The initial frame (time step)
+    * @param dt The duration of the timestep. If -1, it takes the
+    * one from the report as the default
     * @throw H5::exception or std::exception on error
     */
     CompartmentLoader( const std::string& blueconfig,
@@ -30,7 +31,13 @@ public:
     virtual ~CompartmentLoader(); //!< Destruct this compartment event source
 
     /**
-    * Load a new frame, based on the duration defined for each time step (dt)
+    * Load the data at the given timestamp
+    * @param time the timestamp of interest
+    */
+    void load( float time );
+
+    /**
+    * Load a new frame, based on the duration defined for each timestep (dt)
     * @param frame The frame number to be loaded
     */
     void load( uint32_t frame );

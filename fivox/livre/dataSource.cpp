@@ -98,8 +98,9 @@ public:
         }
 #endif
         lunchbox::URI::ConstKVIter i = uri.findQuery( "dt" );
+        // If a dt is not specified, the report dt will be used later
         const float dt = i == uri.queryEnd() ?
-                                      0.1f : lexical_cast< float >( i->second );
+                                      -1.f : lexical_cast< float >( i->second );
 
         i = uri.findQuery( "report" );
         const std::string report = i == uri.queryEnd() ? "" : i->second;
