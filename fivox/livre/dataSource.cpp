@@ -90,12 +90,6 @@ public:
                 config = bbp::test::getBlueconfig();
             LBINFO << "Using test data " << config << std::endl;
         }
-
-        if( target.empty( ))
-        {
-            target = useVSD ? "MiniColumn_0" : "L5CSPC";
-            LBINFO << "Using target " << target << std::endl;
-        }
 #endif
         lunchbox::URI::ConstKVIter i = uri.findQuery( "dt" );
         // If a dt is not specified, the report dt will be used later

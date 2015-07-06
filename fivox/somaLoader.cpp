@@ -21,15 +21,15 @@ public:
           const std::string& target, const std::string& report, const float dt )
         : _output( output )
         , _experiment( blueconfig )
-        , _reader( *_experiment.reports().find( report.empty() ? "soma"
-                                                               : report),
-                   _experiment.cell_target( target ))
+        , _reader( *_experiment.reports().find(
+                       report.empty() ? "soma" : report ),
+                   _experiment.cell_target(
+                       target.empty() ? _experiment.circuit_target() : target ))
         , _currentFrameId( 0xFFFFFFFFu )
         , _dt( dt )
     {
-        const bbp::Cell_Target& target_ = _experiment.cell_target( target );
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-        microcircuit.load( target_, bbp::NEURONS );
+        microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
 
         const bbp::Neurons& neurons = microcircuit.neurons();
         BOOST_FOREACH( const bbp::Neuron& neuron, neurons )

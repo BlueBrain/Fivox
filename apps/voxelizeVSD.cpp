@@ -35,7 +35,7 @@ int main( int argc, char* argv[] )
     std::string outputFile( "voltageSensitiveDye.mhd" );
     std::string config( lunchbox::getExecutablePath() +
                         "/../share/Fivox/configs/BlueConfigVSD" );
-    std::string target( "MiniColumn_0" );
+    std::string target;
     std::string dyeCurveFile;
 
     //----- Argument parsing
@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
           "Name of the output volume file" )
         ( "blueconfig,b", po::value< std::string >()->default_value( config ),
           "Name of the Blueconfig file" )
-        ( "target,c", po::value< std::string >()->default_value( target ),
+        ( "target,c", po::value< std::string >(),
           "Name of the cell target" )
         ( "dyecurvefile,d", po::value< std::string >(),
           "The dye attenuation curve file to apply" )

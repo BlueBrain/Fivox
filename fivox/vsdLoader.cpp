@@ -18,9 +18,9 @@ public:
           const std::string& target, const float dt )
         : _output( output )
         , _experiment( blueconfig )
-        , _target( _experiment.cell_target( target ))
-        , _voltages( *_experiment.reports().find( "v_comp" ),
-                     _experiment.cell_target( target ))
+        , _target( _experiment.cell_target(
+                       target.empty() ? _experiment.circuit_target() : target ))
+        , _voltages( *_experiment.reports().find( "v_comp" ), _target )
         , _areas( *_experiment.reports().find( "area" ),
                   _experiment.cell_target( "Mosaic" ))
         , _currentFrameId( 0xFFFFFFFFu )
