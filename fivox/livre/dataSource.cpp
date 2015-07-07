@@ -80,6 +80,7 @@ public:
         const bool useSoma = (uri.getScheme() == "fivoxsoma");
         const bool useVSD = (uri.getScheme() == "fivoxvsd");
 
+        bool useTestData = false;
 #ifdef FIVOX_USE_BBPTESTDATA
         if( config.empty() )
         {
@@ -87,8 +88,9 @@ public:
                 config = lunchbox::getExecutablePath() +
                     "/../share/Fivox/configs/BlueConfigVSD";
             else
-                config = bbp::test::getBlueconfig();
+                config = BBP_TEST_BLUECONFIG;
             LBINFO << "Using test data " << config << std::endl;
+            useTestData = true;
         }
 #endif
         lunchbox::URI::ConstKVIter i = uri.findQuery( "dt" );
@@ -97,7 +99,7 @@ public:
                                       -1.f : lexical_cast< float >( i->second );
 
         i = uri.findQuery( "report" );
-        const std::string report = i == uri.queryEnd() ? "" : i->second;
+        std::string report = i == uri.queryEnd() ? "" : i->second;
 
         ::fivox::EventSourcePtr loader;
         if( useSpikes )
@@ -111,19 +113,39 @@ public:
             if( i != uri.queryEnd( ))
                 spikes = i->second;
 
+            if( useTestData && target.empty( ))
+                target = "Column";
             loader = boost::make_shared< ::fivox::SpikeLoader >( config, target,
                                                                  spikes, dt,
                                                                  duration );
         }
         else if( useSoma )
+        {
+            if( useTestData )
+            {
+                if( target.empty( ))
+                    target = "Layer1";
+                if( report.empty( ))
+                    report = "voltage";
+            }
             loader = boost::make_shared< ::fivox::SomaLoader >( config, target,
                                                                 report, dt );
+        }
         else if( useVSD )
             loader = boost::make_shared< ::fivox::VSDLoader >( config, target,
                                                                dt );
         else
+        {
+            if( useTestData )
+            {
+                if( target.empty( ))
+                    target = "Layer1";
+                if( report.empty( ))
+                    report = "allvoltage";
+            }
             loader = boost::make_shared< ::fivox::CompartmentLoader >(
                                                    config, target, report, dt );
+        }
 
         source->GetFunctor().setSource( loader );
         source->GetFunctor().setCutOffDistance( _defaultCutoffDistance );

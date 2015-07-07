@@ -21,8 +21,7 @@ public:
         , _target( _experiment.cell_target(
                        target.empty() ? _experiment.circuit_target() : target ))
         , _voltages( *_experiment.reports().find( "v_comp" ), _target )
-        , _areas( *_experiment.reports().find( "area" ),
-                  _experiment.cell_target( "Mosaic" ))
+        , _areas( *_experiment.reports().find( "area" ), _target )
         , _currentFrameId( 0xFFFFFFFFu )
         , _dt( dt )
     {

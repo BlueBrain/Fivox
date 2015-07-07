@@ -11,9 +11,9 @@ Run Default
       CircuitPath /gpfs/bbp.cscs.ch/release/l2/data/circuit/23.07.12/SomatosensoryCxS1-v4.lowerCellDensity.r151/O1/merged_circuit
           nrnPath /gpfs/bbp.cscs.ch/release/l2/data/circuit/23.07.12/SomatosensoryCxS1-v4.lowerCellDensity.r151/O1/merged_circuit/ncsFunctionalAllRecipePathways
         CurrentDir /gpfs/bbp.cscs.ch/home/newton/VSD
-        OutputRoot /gpfs/bbp.cscs.ch/project/proj45/Data
+        OutputRoot /gpfs/bbp.cscs.ch/project/proj45/vsd/Data
         TargetFile /gpfs/bbp.cscs.ch/home/newton/VSD/user.target
-    CircuitTarget MiniColumn_0
+    CircuitTarget mc2_Column
           RunMode LoadBalance
          Duration 100
                Dt 0.025
@@ -40,6 +40,5 @@ Report v_comp
         Format Bin
             Dt 0.1
      StartTime 0
-       EndTime 0.5
+       EndTime 100
 }
-
