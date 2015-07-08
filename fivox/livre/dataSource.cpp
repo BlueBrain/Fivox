@@ -313,11 +313,11 @@ void DataSource::internalNodeToLODNode(
                                  / bricksInRefLevel[index];
 
     LBDEBUG << "Internal Node to LOD Node" << std::endl
-            << "Node Id " << internalNode
-            << "BricksInRefLevel " << bricksInRefLevel << std::endl
-            << "lBoxCoordMin " << boxCoordMin << std::endl
-            << "lBoxCoordMax " << boxCoordMax << std::endl
-            << "volume world size " << _volumeInfo.worldSize << std::endl
+            << "  node id " << internalNode << std::endl
+            << "  bricks in reflevel " << bricksInRefLevel << std::endl
+            << "  min bbox " << boxCoordMin << std::endl
+            << "  max bbox " << boxCoordMax << std::endl
+            << "  volume world size " << _volumeInfo.worldSize << std::endl
             << std::endl;
 
     lodNode = ::livre::LODNode( internalNode,
