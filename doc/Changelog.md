@@ -1,10 +1,12 @@
-Changelog {#changlog}
-============
+Changelog {#changelog}
+=========
 
 # Release 0.3 (git-master/current) (10-Jul-2015)
 
 * [14181](https://bbpcode.epfl.ch/code/#/c/14181/)
   New dye curve parameter for VSD reports in the Livre data source
+* [14203](https://bbpcode.epfl.ch/code/#/c/14203/)
+  Add missing method in SpikeLoader to load data for a specific timestamp
 * [14181](https://bbpcode.epfl.ch/code/#/c/14181/)
   Fix computation of event sampling values for squared distances below 1
 

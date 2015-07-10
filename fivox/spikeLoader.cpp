@@ -137,12 +137,11 @@ public:
         return true;
     }
 
-    void loadFrame( const uint32_t frame )
+    void load( const float start )
     {
         lunchbox::setZero( _spikesPerNeuron.data(),
                            _spikesPerNeuron.size() * sizeof(size_t));
 
-        const float start = _spikesStart + _dt * frame;
         const float end = start + _duration;
         const size_t numSpikes = _spikesFile ? _loadSpikesFast( start, end )
                                              : _loadSpikesSlow( start, end );
@@ -160,7 +159,8 @@ public:
             return;
 
         _currentFrameId = frame;
-        loadFrame( frame );
+        const float time  = _spikesStart + _dt * frame;
+        load( time );
     }
 
 private:
