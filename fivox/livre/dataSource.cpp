@@ -312,13 +312,13 @@ void DataSource::internalNodeToLODNode(
     const Vector3f boxCoordMax = Vector3f( localBlockPos.getMax( ))
                                  / bricksInRefLevel[index];
 
-    LBDEBUG << "Internal Node to LOD Node" << std::endl
-            << "  node id " << internalNode << std::endl
-            << "  bricks in reflevel " << bricksInRefLevel << std::endl
-            << "  min bbox " << boxCoordMin << std::endl
-            << "  max bbox " << boxCoordMax << std::endl
-            << "  volume world size " << _volumeInfo.worldSize << std::endl
-            << std::endl;
+    LBVERB << "Internal Node to LOD Node" << std::endl
+           << "  node id " << internalNode << std::endl
+           << "  bricks in reflevel " << bricksInRefLevel << std::endl
+           << "  min bbox " << boxCoordMin << std::endl
+           << "  max bbox " << boxCoordMax << std::endl
+           << "  volume world size " << _volumeInfo.worldSize << std::endl
+           << std::endl;
 
     lodNode = ::livre::LODNode( internalNode,
                                 _volumeInfo.maximumBlockSize -

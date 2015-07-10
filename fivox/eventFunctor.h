@@ -71,16 +71,14 @@ EventFunctor< TImage >::operator()( const TPoint& point ) const
     {
         // OPT: do 'manual' operator- and squared_length(), vtune says it's
         // faster than using vmml vector functions
-        const Vector3f distance(base.array[0] - event.position.array[0],
-                                base.array[1] - event.position.array[1],
-                                base.array[2] - event.position.array[2]);
+        const Vector3f distance( base.array[0] - event.position.array[0],
+                                 base.array[1] - event.position.array[1],
+                                 base.array[2] - event.position.array[2] );
         const float distance2( distance.array[0] * distance.array[0] +
                                distance.array[1] * distance.array[1] +
-                               distance.array[2] * distance.array[2]);
-        if( distance2 > cutOffDistance2 )
-            continue;
-
-        sum += event.value / distance2;
+                               distance.array[2] * distance.array[2] );
+        if( distance2 < cutOffDistance2 )
+            sum += event.value / distance2;
     }
 
     return _scale( sum );
