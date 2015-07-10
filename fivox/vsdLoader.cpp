@@ -7,7 +7,6 @@
 #include "event.h"
 
 #include <BBP/BBP.h>
-#include <boost/foreach.hpp>
 
 namespace fivox
 {
@@ -35,13 +34,13 @@ public:
         if( _dt < 0.f )
             _dt = _voltages.getTimestep();
 
-        size_t i=0;
-        BOOST_FOREACH( const uint32_t gid, _target )
+        size_t i = 0;
+        for( const uint32_t gid : _target )
         {
             const bbp::Neuron& neuron = microcircuit.neuron( gid );
             const bbp::Sections& sections = neuron.dendrites();
             size_t j = 0;
-            BOOST_FOREACH( const bbp::Section& section, sections )
+            for( const bbp::Section& section : sections )
             {
                 const size_t nCompartments =_areas.getCompartmentCounts()[i][j];
                 const float compartmentLength = 1.f / float( nCompartments );
@@ -75,13 +74,14 @@ public:
 
         size_t i=0;
         size_t index = 0;
-        BOOST_FOREACH( const uint32_t gid, _target )
+        const float yMax = _output.getBoundingBox().getMax()[1];
+        for( const uint32_t gid : _target )
         {
             const bbp::Neuron& neuron = microcircuit.neuron( gid );
             const bbp::Sections& sections = neuron.dendrites();
 
             size_t j = 0;
-            BOOST_FOREACH( const bbp::Section& section, sections )
+            for( const bbp::Section& section : sections )
             {
                 const size_t nCompartments =_areas.getCompartmentCounts()[i][j];
                 uint64_t offset = _areas.getOffsets()[i][j];
@@ -90,8 +90,12 @@ public:
                 {
                     const float normVoltage = neuron.voltage() -
                                               brion::RESTING_VOLTAGE;
-                    _output.update( index++,
-                                    normVoltage * (*areas)[ offset++ ] );
+
+                    const Event& event = _output.getEvents()[index];
+                    const float depth = yMax - event.position[1];
+                    const float eventValue = normVoltage * (*areas)[offset++] *
+                                                 _curve.getAttenuation( depth );
+                    _output.update( index++, eventValue );
                 }
                 ++j;
                 LBVERB << section.id() << std::endl;
@@ -111,6 +115,8 @@ public:
         LBCHECK( load( time ));
     }
 
+    void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
+
 private:
     fivox::EventSource& _output;
     bbp::Experiment _experiment;
@@ -118,6 +124,7 @@ private:
     bbp::CompartmentReportReader _voltages;
     bbp::CompartmentReportReader _areas;
     bbp::CompartmentReportFrame _areasFrame;
+    AttenuationCurve _curve;
 
     uint32_t _currentFrameId;
     float _dt;
@@ -139,6 +146,11 @@ void VSDLoader::load( const float time )
 void VSDLoader::load( const uint32_t frame )
 {
     _impl->load( frame );
+}
+
+void VSDLoader::setCurve( const AttenuationCurve& curve )
+{
+    _impl->setCurve( curve );
 }
 
 }

@@ -7,7 +7,6 @@ source_group(\\ FILES CMakeLists.txt)
 set(FIVOX_PUBLIC_HEADERS
   ${COMMON_INCLUDES}
   attenuationCurve.h
-  attenuationFunctor.h
   compartmentLoader.h
   event.h
   eventFunctor.h

@@ -11,9 +11,9 @@ include(GitExternal)
 include(ITKSettings)
 
 set(VERSION_MAJOR "0")
-set(VERSION_MINOR "2")
+set(VERSION_MINOR "3")
 set(VERSION_PATCH "0")
-set(VERSION_ABI 2)
+set(VERSION_ABI 3)
 
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
 set(FIVOX_DEPENDENT_LIBRARIES ITK)

@@ -5,6 +5,7 @@
 #ifndef FIVOX_EVENTSOURCE_H
 #define FIVOX_EVENTSOURCE_H
 
+#include <fivox/attenuationCurve.h>
 #include <fivox/types.h>
 
 #include <lunchbox/compiler.h>
@@ -59,6 +60,12 @@ public:
     * @param frame The frame number to be loaded.
     */
     virtual void load( uint32_t frame LB_UNUSED ) {}
+
+    /**
+    * Set the attenuation curve that will be applied to the computed events
+    * @param curve The attenuation curve to apply
+    */
+    virtual void setCurve( const AttenuationCurve& curve LB_UNUSED ) {}
 
 private:
     class Impl;

@@ -55,11 +55,12 @@ public:
      * Get the attenuation for the given depth.
      *
      * If no curve file was loaded, returns 1.0f for any attenuation depth so it
-     * does not modify the value of event.  If depth is larger than the
-     * thickness it returns the first element of the curve ( generally 0.f )
+     * does not modify the value of event. If depth is larger than the
+     * thickness it returns the first element of the curve (generally 0.f)
      *
-     * @param depth Absolute depth ( Y axis ) of the point.
-     * @return the interpolated attenuation value according to depth.
+     * @param depth Absolute depth (Y axis) of the point.
+     * @return the interpolated attenuation value according to depth; 1 if there
+     * is no attenuation curve or it is empty.
      */
     float getAttenuation( const float depth ) const
     {

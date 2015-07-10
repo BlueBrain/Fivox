@@ -132,8 +132,16 @@ public:
                                                                 report, dt );
         }
         else if( useVSD )
+        {
             loader = boost::make_shared< ::fivox::VSDLoader >( config, target,
                                                                dt );
+            i = uri.findQuery( "attenuation" );
+            const std::string dyeCurveFile = i == uri.queryEnd() ? ""
+                                                                 : i->second;
+            const float thickness = loader->getBoundingBox().getDimension()[1];
+            loader->setCurve( fivox::AttenuationCurve( dyeCurveFile,
+                                                       thickness ));
+        }
         else
         {
             if( useTestData )

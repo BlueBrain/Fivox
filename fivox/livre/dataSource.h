@@ -29,20 +29,24 @@ namespace livre
 {
 class DataSourceImpl;
 
-//! [Usage]
 /*
+//! [Usage]
 Generate volume data sampling BBPSDK simulation reports.
 
 URIs must be in the forms:
-- Compartment reports: fivox[compartment]://BlueConfig?dt=float,report=string#target
-- Soma reports: fivoxsoma://BlueConfig?dt=float,report=string#target
-- Spike reports: fivoxspikes://BlueConfig?dt=float,duration=float,spikes=path#target
-- Voltage-sensitive dye reports: fivoxvsd://BlueConfig?dt=float#target
+- Compartment reports:
+    fivox[compartment]://BlueConfig?dt=float,report=string#target
+- Soma reports:
+    fivoxsoma://BlueConfig?dt=float,report=string#target
+- Spike reports:
+    fivoxspikes://BlueConfig?dt=float,duration=float,spikes=path#target
+- Voltage-sensitive dye reports:
+    fivoxvsd://BlueConfig?dt=float,dyecurve=string#target
 
 Parameters:
 - BlueConfig: BlueConfig file path
-               (default: 'configs/BlueConfigVSD' for VSD reports,
-               BBPTestData otherwise)
+              (default: 'configs/BlueConfigVSD' for VSD reports,
+              BBPTestData otherwise)
 - dt: duration in milliseconds of the timestep (default: dt of the report)
 - duration: size of the time window to load spikes (default: 10)
 - target: name of the BlueConfig target (default: the circuit target)
@@ -50,11 +54,13 @@ Parameters:
           reports, 'soma' for soma reports)
 - spikes: path to an alternate out.dat/out.spikes file
           (default: SpikesPath specified in the BlueConfig)
+- dyecurve: path to the dye curve file to apply, e.g. attenuation
+            (only on VSD reports)
 - voxelsPerUM: number of voxels per micrometer (default: 1.0)
 - maxBlockSize: maximum memory usage allowed for one block in bytes
                 (default: 16777216 bytes -- 16MB)
-*/
 //! [Usage]
+*/
 class DataSource : public ::livre::VolumeDataSourcePlugin
 {
 public:

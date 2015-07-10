@@ -7,8 +7,8 @@
 #define FIVOX_EVENTFUNCTOR_H
 
 #include <fivox/defines.h>
-#include <fivox/event.h>       // used inline
-#include <fivox/eventSource.h> // member
+#include <fivox/event.h>            // used inline
+#include <fivox/eventSource.h>      // member
 #include <fivox/itk.h>
 
 #include <boost/type_traits/is_floating_point.hpp>
@@ -36,10 +36,7 @@ public:
     void setCutOffDistance( const float distance )
         { _cutOffDistance = distance; }
 
-protected:
-    float _cutOffDistance;
-    EventSourcePtr _source;
-
+private:
     TPixel _scale( const float value ) const
     {
         if( boost::is_floating_point< TPixel >::value )
@@ -47,6 +44,9 @@ protected:
 
         return std::min( value, 1.0f ) * std::numeric_limits< TPixel >::max();
     }
+
+    EventSourcePtr _source;
+    float _cutOffDistance;
 };
 
 template< class TImage > inline typename EventFunctor< TImage >::TPixel
@@ -78,7 +78,7 @@ EventFunctor< TImage >::operator()( const TPoint& point ) const
                                distance.array[1] * distance.array[1] +
                                distance.array[2] * distance.array[2] );
         if( distance2 < cutOffDistance2 )
-            sum += event.value / distance2;
+            sum += event.value / ( 1.0f + distance2 );
     }
 
     return _scale( sum );

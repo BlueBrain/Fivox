@@ -6,6 +6,7 @@
 #define FIVOX_VSDLOADER_H
 
 #include <fivox/eventSource.h> // base class
+#include <fivox/attenuationCurve.h>
 
 namespace fivox
 {
@@ -44,6 +45,12 @@ public:
     * @param frame The frame number to be loaded
     */
     void load( uint32_t frame );
+
+    /**
+    * Set the attenuation curve that will be applied to the computed events
+    * @param curve The attenuation curve to apply
+    */
+    void setCurve( const AttenuationCurve& curve );
 
 private:
     class Impl;

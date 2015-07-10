@@ -7,7 +7,6 @@
 #include <fivox/imageSource.h>
 #include <fivox/version.h>
 #include <fivox/vsdLoader.h>
-#include <fivox/attenuationFunctor.h>
 #include <itkImageFileWriter.h>
 #include <lunchbox/file.h>
 #include <boost/lexical_cast.hpp>
@@ -28,7 +27,7 @@ namespace po = boost::program_options;
 
 int main( int argc, char* argv[] )
 {
-    //----- Default values
+    // Default values
     size_t size = 256;
     float time = 0.f;
     float cutOffDistance = 50.f;
@@ -38,7 +37,7 @@ int main( int argc, char* argv[] )
     std::string target;
     std::string dyeCurveFile;
 
-    //----- Argument parsing
+    // Argument parsing
     po::variables_map vm;
     po::options_description desc( "Supported options" );
     desc.add_options()
@@ -55,7 +54,7 @@ int main( int argc, char* argv[] )
         ( "target,c", po::value< std::string >(),
           "Name of the cell target" )
         ( "dyecurvefile,d", po::value< std::string >(),
-          "The dye attenuation curve file to apply" )
+          "The dye curve file to apply, e.g. attenuation " )
         ( "cutoffdistance,f",
           po::value< float >()->default_value( cutOffDistance ),
           "The (micrometer) region of events considered per voxel" );
@@ -91,43 +90,30 @@ int main( int argc, char* argv[] )
     if( vm.count( "cutoffdistance" ))
         cutOffDistance = vm["cutoffdistance"].as< float >();
 
-    //----- Construct ITK pipeline
+    // Construct ITK pipeline
     fivox::EventSourcePtr loader = boost::make_shared< fivox::VSDLoader >(
                                        config, target, -1.f );
     const fivox::AABBf& bbox = loader->getBoundingBox();
+
+    if( !dyeCurveFile.empty( ))
+    {
+        const float thickness = bbox.getDimension()[1];
+        loader->setCurve( fivox::AttenuationCurve( dyeCurveFile, thickness ));
+    }
 
     // Setup argument-dependent image source and its parameters
     typename itk::ProcessObject::Pointer filter;
     typename Volume::Pointer output;
 
-    if( dyeCurveFile.empty( ))
-    {
-        typedef fivox::EventFunctor< Volume > Functor;
-        typedef fivox::ImageSource< Volume, Functor > ImageSource;
-        typename ImageSource::Pointer source = ImageSource::New();
-        Functor& functor = source->GetFunctor();
-        functor.setCutOffDistance( cutOffDistance );
-        functor.setSource( loader );
+    typedef fivox::EventFunctor< Volume > Functor;
+    typedef fivox::ImageSource< Volume, Functor > ImageSource;
+    typename ImageSource::Pointer source = ImageSource::New();
+    Functor& functor = source->GetFunctor();
+    functor.setCutOffDistance( cutOffDistance );
+    functor.setSource( loader );
 
-        output = source->GetOutput();
-        filter = source;
-    }
-    else
-    {
-        typedef fivox::AttenuationFunctor< Volume > Functor;
-        typedef fivox::ImageSource< Volume, Functor > ImageSource;
-        typename ImageSource::Pointer source = ImageSource::New();
-
-        Functor& functor = source->GetFunctor();
-        functor.setCutOffDistance( cutOffDistance );
-        functor.setSource( loader );
-
-        const float thickness = bbox.getDimension()[1];
-        functor.setCurve( fivox::AttenuationCurve( dyeCurveFile, thickness ));
-
-        output = source->GetOutput();
-        filter = source;
-    }
+    output = source->GetOutput();
+    filter = source;
 
     typename Volume::SizeType vSize;
     typename Volume::RegionType region;
