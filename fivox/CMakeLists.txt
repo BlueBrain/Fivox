@@ -17,13 +17,15 @@ set(FIVOX_PUBLIC_HEADERS
   spikeLoader.h
   synapseLoader.h
   types.h
+  uriHandler.h
   vsdLoader.h
 )
 
 set(FIVOX_HEADERS)
 
 set(FIVOX_SOURCES
-  eventSource.cpp)
+  eventSource.cpp
+  uriHandler.cpp)
 
 set(FIVOX_LINK_LIBRARIES ${ITK_LIBRARIES} ${Boost_LIBRARIES})
 

@@ -10,7 +10,7 @@
 #include <fivox/event.h>            // used inline
 #include <fivox/eventSource.h>      // member
 #include <fivox/itk.h>
-
+#include <lunchbox/log.h>
 #include <boost/type_traits/is_floating_point.hpp>
 
 namespace fivox
@@ -41,7 +41,13 @@ private:
     {
         if( boost::is_floating_point< TPixel >::value )
             return value;
-
+        static float clamped = 1.f;
+        if( value > clamped )
+        {
+            clamped = value;
+            LBINFO << "Clamping sampled value " << value << " to 1"
+                   << std::endl;
+        }
         return std::min( value, 1.0f ) * std::numeric_limits< TPixel >::max();
     }
 

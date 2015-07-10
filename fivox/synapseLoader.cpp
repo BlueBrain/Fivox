@@ -19,14 +19,14 @@ namespace fivox
 class SynapseLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const std::string& blueconfig,
-          std::string target )
+    Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( blueconfig )
+        , _experiment( params.getConfig( ))
     {
+        const std::string& target = params.getTarget(
+                                        _experiment.circuit_target( ));
+
         LBINFO << "Loading target " << target << "..." << std::endl;
-        if( target.empty( ))
-            target = _experiment.circuit_target();
         const brion::Targets targets{
             brion::Target( _experiment.target_source() + "/start.target" ),
             brion::Target( _experiment.user_target_source( )) };
@@ -34,9 +34,7 @@ public:
 
         if( gids.empty( ))
             LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
-                                         "' in " + blueconfig ));
-
-        const float magnitude = 1.f / std::log( gids.size( )); // heuristic
+                                         "' in " + params.getConfig( )));
 
         LBINFO << "Loading synapses for " << gids.size() << " cells..."
                << std::endl;
@@ -47,12 +45,19 @@ public:
         for( const uint32_t gid : gids )
         {
             const brion::SynapseMatrix& data =
-                synapses.read( gid, brion::SYNAPSE_POSITION );
+                synapses.read( gid, brion::SYNAPSE_PRESYNAPTIC_SURFACE_X |
+                                    brion::SYNAPSE_PRESYNAPTIC_SURFACE_Y |
+                                    brion::SYNAPSE_PRESYNAPTIC_SURFACE_Z );
             for( size_t i = 0; i < data.shape()[0]; ++i )
-                _output.add( Event( Vector3f( data[i][1], data[i][2],
-                                              data[i][3] ), magnitude ));
+                _output.add( Event( Vector3f( data[i][0], data[i][1],
+                                              data[i][2] ), 0.f ));
             ++progress;
         }
+
+        const Events& events = _output.getEvents();
+        const float magnitude = 10000.f / events.size(); // heuristic
+        for( size_t i = 0; i < events.size(); ++i )
+            _output.update( i, magnitude );
     }
 
 private:
@@ -60,11 +65,9 @@ private:
     const bbp::Experiment_Specification _experiment;
 };
 
-SynapseLoader::SynapseLoader( const std::string& blueconfig,
-                              const std::string& target )
-    : _impl( new Impl( *this, blueconfig, target ))
-{
-}
+SynapseLoader::SynapseLoader( const URIHandler& params )
+    : _impl( new Impl( *this, params ))
+{}
 
 SynapseLoader::~SynapseLoader()
 {}

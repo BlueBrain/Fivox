@@ -30,16 +30,14 @@ typedef std::vector< SectionInfo > SectionInfos;
 class CompartmentLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const std::string& blueconfig,
-          const std::string& target, const std::string& report, const float dt )
+    Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( blueconfig )
-        , _reader( *_experiment.reports().find(
-                       report.empty() ? "voltage" : report ),
+        , _experiment( params.getConfig( ))
+        , _reader( *_experiment.reports().find( params.getReport( )),
                    _experiment.cell_target(
-                       target.empty() ? _experiment.circuit_target() : target ))
+                       params.getTarget( _experiment.circuit_target( ))))
         , _currentFrameId( 0xFFFFFFFFu )
-        , _dt( dt )
+        , _dt( params.getDt( ))
     {
         const bbp::Cell_Target& target_ = _reader.getCellTarget();
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
@@ -121,12 +119,8 @@ private:
     float _dt;
 };
 
-CompartmentLoader::CompartmentLoader( const std::string& blueconfig,
-                                      const std::string& target,
-                                      const std::string& report,
-                                      const float dt )
-    : _impl( new CompartmentLoader::Impl( *this, blueconfig, target,
-                                          report, dt ))
+CompartmentLoader::CompartmentLoader( const URIHandler& params )
+    : _impl( new CompartmentLoader::Impl( *this, params ))
 {}
 
 CompartmentLoader::~CompartmentLoader()

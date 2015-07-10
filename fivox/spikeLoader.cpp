@@ -21,23 +21,20 @@ namespace fivox
 class SpikeLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const std::string& blueconfig,
-          std::string target, const std::string& spikes, const float dt,
-          const float duration )
+    Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( blueconfig )
+        , _experiment( params.getConfig( ))
         , _currentFrameId( 0xFFFFFFFFu )
-        , _dt( dt )
-        , _duration( duration )
+        , _dt( params.getDt( ))
+        , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
         , _magnitude( .5f )
     {
         LBINFO << "Loading circuit..." << std::endl;
         const brion::Circuit circuit( _experiment.circuit_source() +
                                       "/circuit.mvd2" );
-
-        if( target.empty( ))
-            target = _experiment.circuit_target();
+        const std::string& target = params.getTarget(
+                                        _experiment.circuit_target( ));
 
         LBINFO << "Loading target " << target << "..." << std::endl;
         const brion::Targets targets{
@@ -47,7 +44,7 @@ public:
 
         if( gids.empty( ))
             LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
-                                         "' in " + blueconfig ));
+                                         "' in " + params.getConfig( )));
         if( _dt < 0.f )
             _dt = _experiment.timestep();
 
@@ -72,7 +69,7 @@ public:
         }
         _spikesPerNeuron.resize( gids.size( ));
 
-        _loadSpikes( spikes );
+        _loadSpikes( params.getSpikes( ));
 
         LBINFO << "Finished loading, use magnitude of " << _magnitude
                << " for " << gids.size() << " neurons" << std::endl;
@@ -226,12 +223,9 @@ private:
     std::unique_ptr< bbp::SpikeReportReader > _spikesReader;
 };
 
-SpikeLoader::SpikeLoader( const std::string& blueconfig,
-                          const std::string& target, const std::string& spikes,
-                          const float dt, const float duration )
-    : _impl( new Impl( *this, blueconfig, target, spikes, dt, duration ))
-{
-}
+SpikeLoader::SpikeLoader( const URIHandler& params )
+    : _impl( new Impl( *this, params ))
+{}
 
 SpikeLoader::~SpikeLoader()
 {}

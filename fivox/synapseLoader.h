@@ -6,6 +6,7 @@
 #define FIVOX_SYNAPSELOADER_H
 
 #include <fivox/eventSource.h> // base class
+#include <fivox/uriHandler.h>
 #include <BBP/Types.h>
 
 namespace fivox
@@ -17,11 +18,11 @@ public:
     /**
     * Construct a new synapse event source.
     *
-    * @param blueconfig The Blueconfig file for the simulation
-    * @param target The target to load
+    * @param params the URIHandler object containing the parameters
+    * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    SynapseLoader( const std::string& blueconfig, const std::string& target );
+    explicit SynapseLoader( const URIHandler& params );
     virtual ~SynapseLoader();
 
 private:

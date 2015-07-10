@@ -17,8 +17,9 @@ BOOST_AUTO_TEST_CASE( SomaSource )
     const bool unitTest = std::string( argv[0] ).find( "perf_" ) ==
                           std::string::npos;
     static const size_t maxSize = unitTest ? 8 : 512;
-    fivox::EventSourcePtr source = boost::make_shared< fivox::SomaLoader >(
-                 bbp::test::getBlueconfig(), "Layer1", "voltage", 5.f );
+    const fivox::URIHandler params( "fivoxsoma://" );
+    fivox::EventSourcePtr source =
+        std::make_shared< fivox::SomaLoader >( params );
     source->load( 0.f );
 
 #ifdef NDEBUG
@@ -32,7 +33,7 @@ BOOST_AUTO_TEST_CASE( SomaSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< unsigned char >( i, source, 1 );
+            _testSDKKernel< unsigned char >( i, source, 10 );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
@@ -42,7 +43,7 @@ BOOST_AUTO_TEST_CASE( SomaSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i, source, 0.00620137248f );
+            _testSDKKernel< float >( i, source, 0.0401705392f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)

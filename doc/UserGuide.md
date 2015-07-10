@@ -2,7 +2,7 @@ User Guide {#Userguide}
 ============
 
 Fivox is a volume generation tool but it can be coupled with [Livre]
-(https://bbp.epfl.ch/documentation/code/Livre-0.2/index.html) for real time
+(https://github.com/BlueBrain/Livre#readme) for real time
 rendering.
 
 # Installation {#Installation}
@@ -43,4 +43,4 @@ make -jn
 
 # Usage {#Usage}
 
-@snippet fivox/livre/dataSource.h Usage
+@snippet apps/voxelize.cpp Usage

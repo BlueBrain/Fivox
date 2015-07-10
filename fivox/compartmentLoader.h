@@ -7,6 +7,7 @@
 #define FIVOX_COMPARTMENTLOADER_H
 
 #include <fivox/eventSource.h> // base class
+#include <fivox/uriHandler.h>
 
 namespace fivox
 {
@@ -17,17 +18,11 @@ public:
     /**
     * Construct a new compartment event source.
     *
-    * @param blueconfig The Blueconfig file for the simulation
-    * @param target The target to load
-    * @param report The name of the report to use, 'voltage' if empty
-    * @param dt The duration of the timestep. If -1, it takes the
-    * one from the report as the default
+    * @param params the URIHandler object containing the parameters
+    * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    CompartmentLoader( const std::string& blueconfig,
-                       const std::string& target, const std::string& report,
-                       float dt );
-
+    explicit CompartmentLoader( const URIHandler& params );
     virtual ~CompartmentLoader(); //!< Destruct this compartment event source
 
     /**

@@ -13,16 +13,15 @@ namespace fivox
 class VSDLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const std::string& blueconfig,
-          const std::string& target, const float dt )
+    Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( blueconfig )
+        , _experiment( params.getConfig( ))
         , _target( _experiment.cell_target(
-                       target.empty() ? _experiment.circuit_target() : target ))
+                       params.getTarget( _experiment.circuit_target( ))))
         , _voltages( *_experiment.reports().find( "v_comp" ), _target )
         , _areas( *_experiment.reports().find( "area" ), _target )
         , _currentFrameId( 0xFFFFFFFFu )
-        , _dt( dt )
+        , _dt( params.getDt( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _target, bbp::NEURONS | bbp::MORPHOLOGIES );
@@ -57,6 +56,9 @@ public:
             }
             ++i;
         }
+
+        const float thickness = _output.getBoundingBox().getDimension()[1];
+        setCurve( fivox::AttenuationCurve( params.getDyeCurve(), thickness ));
     }
 
     bool load( const float time )
@@ -130,9 +132,8 @@ private:
     float _dt;
 };
 
-VSDLoader::VSDLoader( const std::string& blueconfig, const std::string& target,
-                      const float dt )
-    : _impl( new VSDLoader::Impl( *this, blueconfig, target, dt ))
+VSDLoader::VSDLoader( const URIHandler& params )
+    : _impl( new VSDLoader::Impl( *this, params ))
 {}
 
 VSDLoader::~VSDLoader()

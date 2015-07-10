@@ -5,8 +5,9 @@
 #ifndef FIVOX_VSDLOADER_H
 #define FIVOX_VSDLOADER_H
 
-#include <fivox/eventSource.h> // base class
 #include <fivox/attenuationCurve.h>
+#include <fivox/eventSource.h> // base class
+#include <fivox/uriHandler.h>
 
 namespace fivox
 {
@@ -23,15 +24,11 @@ public:
     /**
     * Construct a new vsd event source.
     *
-    * @param blueconfig The Blueconfig file for the simulation
-    * @param target The target to load
-    * @param dt The duration of the timestep. If -1, it takes the
-    * one from the report as the default
+    * @param params the URIHandler object containing the parameters
+    * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    VSDLoader( const std::string& blueconfig, const std::string& target,
-               float dt );
-
+    explicit VSDLoader( const URIHandler& params );
     virtual ~VSDLoader(); //!< Destruct this vsd event source
 
     /**

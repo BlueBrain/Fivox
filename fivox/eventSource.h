@@ -7,10 +7,7 @@
 
 #include <fivox/attenuationCurve.h>
 #include <fivox/types.h>
-
 #include <lunchbox/compiler.h>
-
-#include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
 namespace fivox
@@ -25,7 +22,6 @@ namespace fivox
 class EventSource : public boost::noncopyable
 {
 public:
-    EventSource();
     virtual ~EventSource();
 
     /** @return the list of events. */
@@ -62,18 +58,26 @@ public:
     virtual void load( uint32_t frame LB_UNUSED ) {}
 
     /**
+    * Given a timestamp, update the event source with new events to be
+    * sampled.
+    * @param time The time stamp (ms) to be loaded.
+    */
+    virtual void load( float time LB_UNUSED ) {}
+
+    /**
     * Set the attenuation curve that will be applied to the computed events
     * @param curve The attenuation curve to apply
     */
     virtual void setCurve( const AttenuationCurve& curve LB_UNUSED ) {}
+
+protected:
+    EventSource();
 
 private:
     class Impl;
     std::unique_ptr< Impl > _impl;
 };
 
-typedef boost::shared_ptr< EventSource > EventSourcePtr;
-typedef boost::shared_ptr< const EventSource > ConstEventSourcePtr;
 } // end namespace fivox
 
 #endif

@@ -7,6 +7,8 @@
 #define FIVOX_SPIKELOADER_H
 
 #include <fivox/eventSource.h> // base class
+#include <fivox/uriHandler.h>
+
 #include <BBP/Types.h>
 
 namespace fivox
@@ -18,18 +20,11 @@ public:
     /**
     * Construct a new spike event source.
     *
-    * @param blueconfig The Blueconfig file for the simulation
-    * @param target The target to load
-    * @param spikes URI to access spikes data from. If not specified, it takes
-    * the one in the BlueConfig file (SpikesPath)
-    * @param dt The duration of the timestep. If -1, it takes the
-    * one in the BlueConfig (simulation Dt) as the default
-    * @param duration The duration of the time window to be sampled at each
-    * frame
+    * @param params the URIHandler object containing the parameters
+    * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    SpikeLoader( const std::string& blueconfig, const std::string& target,
-                 const std::string& spikes, float dt, float duration );
+    explicit SpikeLoader( const URIHandler& params );
     virtual ~SpikeLoader();
 
     /**

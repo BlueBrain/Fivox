@@ -1,13 +1,12 @@
 
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 
 #include "test.h"
 #include <fivox/eventFunctor.h>
 #include <fivox/imageSource.h>
 #include <itkImageFileWriter.h>
-#include <boost/make_shared.hpp>
 
 namespace
 {

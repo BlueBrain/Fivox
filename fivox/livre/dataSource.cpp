@@ -20,13 +20,10 @@
 
 #include "dataSource.h"
 
-#include <fivox/compartmentLoader.h>
 #include <fivox/eventFunctor.h>
 #include <fivox/imageSource.h>
-#include <fivox/somaLoader.h>
-#include <fivox/spikeLoader.h>
 #include <fivox/synapseLoader.h>
-#include <fivox/vsdLoader.h>
+#include <fivox/uriHandler.h>
 
 #include <livre/core/Data/LODNode.h>
 #include <livre/core/Data/MemoryUnit.h>
@@ -35,8 +32,6 @@
 #include <BBP/BBP.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/regex.hpp>
 
 #ifdef FIVOX_USE_BBPTESTDATA
 #  include <BBP/TestDatasets.h>
@@ -57,9 +52,7 @@ using boost::lexical_cast;
 
 namespace
 {
-const size_t _defaultMaxBlockByteSize = LB_16MB;
 const float _defaultCutoffDistance = 50.0f;
-const float _defaultVoxelsPerUM = 1.0f;
 
 typedef itk::Image< uint8_t, 3 > Image;
 typedef Image::Pointer ImagePtr;
@@ -68,102 +61,14 @@ typedef ::fivox::ImageSource< Image, Functor > Source;
 typedef Source::Pointer SourcePtr;
 }
 
-class DataSourceImpl
+class DataSource::Impl
 {
 public:
-    DataSourceImpl( const ::livre::VolumeDataSourcePluginData& pluginData )
+    explicit Impl( const ::livre::VolumeDataSourcePluginData& pluginData )
         : source( Source::New( ))
+        , params( std::to_string( pluginData.getURI( )))
     {
-        const lunchbox::URI& uri = pluginData.getURI();
-        std::string config = uri.getPath();
-        std::string target = uri.getFragment();
-        const bool useSpikes = (uri.getScheme() == "fivoxspikes");
-        const bool useSynapses = (uri.getScheme() == "fivoxsynapses");
-        const bool useSoma = (uri.getScheme() == "fivoxsoma");
-        const bool useVSD = (uri.getScheme() == "fivoxvsd");
-
-        bool useTestData = false;
-#ifdef FIVOX_USE_BBPTESTDATA
-        if( config.empty() )
-        {
-            if( useVSD )
-                config = lunchbox::getExecutablePath() +
-                    "/../share/Fivox/configs/BlueConfigVSD";
-            else
-                config = BBP_TEST_BLUECONFIG;
-            LBINFO << "Using test data " << config << std::endl;
-            useTestData = true;
-        }
-#endif
-        lunchbox::URI::ConstKVIter i = uri.findQuery( "dt" );
-        // If a dt is not specified, the report dt will be used later
-        const float dt = i == uri.queryEnd() ?
-                                      -1.f : lexical_cast< float >( i->second );
-
-        i = uri.findQuery( "report" );
-        std::string report = i == uri.queryEnd() ? "" : i->second;
-
-        ::fivox::EventSourcePtr loader;
-        if( useSpikes )
-        {
-            i = uri.findQuery( "duration" );
-            const float duration = ( i == uri.queryEnd( )) ?
-                                      10.f : lexical_cast< float >( i->second );
-
-            i = uri.findQuery( "spikes" );
-            std::string spikes;
-            if( i != uri.queryEnd( ))
-                spikes = i->second;
-
-            if( useTestData && target.empty( ))
-                target = "Column";
-            loader = boost::make_shared< ::fivox::SpikeLoader >( config, target,
-                                                                 spikes, dt,
-                                                                 duration );
-        }
-        else if( useSynapses )
-        {
-            if( useTestData && target.empty( ))
-                target = "Column";
-            loader = boost::make_shared< ::fivox::SynapseLoader >( config,
-                                                                   target );
-        }
-        else if( useSoma )
-        {
-            if( useTestData )
-            {
-                if( target.empty( ))
-                    target = "Layer1";
-                if( report.empty( ))
-                    report = "voltage";
-            }
-            loader = boost::make_shared< ::fivox::SomaLoader >( config, target,
-                                                                report, dt );
-        }
-        else if( useVSD )
-        {
-            loader = boost::make_shared< ::fivox::VSDLoader >( config, target,
-                                                               dt );
-            i = uri.findQuery( "attenuation" );
-            const std::string dyeCurveFile = i == uri.queryEnd() ? ""
-                                                                 : i->second;
-            const float thickness = loader->getBoundingBox().getDimension()[1];
-            loader->setCurve( fivox::AttenuationCurve( dyeCurveFile,
-                                                       thickness ));
-        }
-        else
-        {
-            if( useTestData )
-            {
-                if( target.empty( ))
-                    target = "Layer1";
-                if( report.empty( ))
-                    report = "allvoltage";
-            }
-            loader = boost::make_shared< ::fivox::CompartmentLoader >(
-                                                   config, target, report, dt );
-        }
-
+        ::fivox::EventSourcePtr loader = params.newLoader();
         source->GetFunctor().setSource( loader );
         source->GetFunctor().setCutOffDistance( _defaultCutoffDistance );
 #ifdef LIVRE_DEBUG_RENDERING
@@ -237,6 +142,7 @@ public:
     }
 
     SourcePtr source;
+    URIHandler params;
     Vector3f _borders;
 
 private:
@@ -244,25 +150,17 @@ private:
 };
 
 DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
-    : _impl( new DataSourceImpl( pluginData ))
+    : _impl( new DataSource::Impl( pluginData ))
 {
-    const lunchbox::URI& uri = pluginData.getURI();
-    lunchbox::URI::ConstKVIter i = uri.findQuery( "voxelsPerUM" );
-    lunchbox::URI::ConstKVIter j = uri.findQuery( "maxBlockSize" );
-
-    const float voxelsPerUM = ( i == uri.queryEnd( )) ? _defaultVoxelsPerUM :
-                                  lexical_cast< float >( i->second );
-
-    const size_t maxBlockByteSize =
-        ( j == uri.queryEnd( )) ? _defaultMaxBlockByteSize
-                                : lexical_cast< size_t >( j->second );
+    const float resolution = _impl->params.getResolution();
+    const size_t maxBlockByteSize = _impl->params.getMaxBlockSize( );
 
     ::fivox::ConstEventSourcePtr loader =
           _impl->source->GetFunctor().getSource();
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
     const Vector3f totalTreeExactSize =
-        ( bbox.getDimension() + _defaultCutoffDistance * 2.0f ) * voxelsPerUM;
+        ( bbox.getDimension() + _defaultCutoffDistance * 2.0f ) * resolution;
 
     Vector3f blockExactDim = totalTreeExactSize;
 
@@ -279,22 +177,20 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
                                     std::ceil( blockExactDim.z( )));
 
     const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
-    _impl->_borders = ( totalTreeSize / voxelsPerUM ) - bbox.getDimension();
+    _impl->_borders = ( totalTreeSize / resolution ) - bbox.getDimension();
 
     _volumeInfo.voxels = totalTreeSize;
     _volumeInfo.maximumBlockSize = blockDim;
 
     if( !::livre::fillRegularVolumeInfo( _volumeInfo ))
-       LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
+        LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
     // SDK uses microns, volume information uses meters
     _volumeInfo.boundingBox = bbox / 1000000.f;
 }
 
 DataSource::~DataSource()
-{
-    delete _impl;
-}
+{}
 
 ::livre::MemoryUnitPtr DataSource::getData( const ::livre::LODNode& node )
 {

@@ -1,21 +1,39 @@
-// -*- c-basic-offset: 2 -*-
-
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 #ifndef FIVOX_TYPES_H
 #define FIVOX_TYPES_H
 
 #include <vmmlib/aabb.hpp>
 #include <vmmlib/vector.hpp>
+#include <memory>
 #include <vector>
 
+/** Field Voxelization Library */
 namespace fivox
 {
+class EventSource;
 struct Event;
+
+typedef std::shared_ptr< EventSource > EventSourcePtr;
+typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
+
 typedef std::vector< Event > Events;
-typedef vmml::vector< 3, float > Vector3f;
-typedef vmml::AABB< float > AABBf;
-} // end namespace fivox
+
+using vmml::Vector3f;
+using vmml::AABBf;
+
+/** Supported data sources */
+enum VolumeType
+{
+    UNKNOWN,      //!< Unknown URI scheme
+    COMPARTMENTS, //!< BBP compartment simulation reports
+    SOMAS,        //!< BBP soma simulation reports
+    SPIKES,       //!< BBP spike simulation reports
+    SYNAPSES,     //!< BBP synapse positions
+    VSD,          //!< BBP voltage sensitive dye simulation reports
+};
+
+}
 
 #endif

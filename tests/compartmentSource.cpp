@@ -8,9 +8,9 @@
 #include "sdk.h"
 #include <fivox/compartmentLoader.h>
 #include <BBP/TestDatasets.h>
+
 #include <itkTimeProbe.h>
 #include <iomanip>
-
 
 BOOST_AUTO_TEST_CASE( CompartmentSource )
 {
@@ -18,9 +18,9 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
     const bool unitTest = std::string( argv[0] ).find( "perf_" ) ==
                           std::string::npos;
     static const size_t maxSize = unitTest ? 8 : 512;
+    const fivox::URIHandler params( "fivox://" );
     fivox::EventSourcePtr source =
-        boost::make_shared< fivox::CompartmentLoader >(
-            bbp::test::getBlueconfig(), "L5CSPC", "allCompartments", 5.f );
+        std::make_shared< fivox::CompartmentLoader >( params );
     source->load( 0.f );
 
 #ifdef NDEBUG
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< unsigned char >( i, source, 111 );
+            _testSDKKernel< unsigned char >( i, source, 7 );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i, source, 0.439138055f );
+            _testSDKKernel< float >( i, source, 0.0301621668f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)

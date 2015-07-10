@@ -5,6 +5,11 @@ Changelog {#changelog}
 
 * [14496](https://bbpcode.epfl.ch/code/#/c/14496/)
   New synapse loader to visualize synapse densities
+* [14204](https://bbpcode.epfl.ch/code/#/c/14204/)
+  Add generic voxelize tool and URIHandler
+* [14204](https://bbpcode.epfl.ch/code/#/c/14204/)
+  Fix bug in loaders: the event source loaded always a specific frame,
+  even when a time stamp was specified.
 * [14181](https://bbpcode.epfl.ch/code/#/c/14181/)
   New dye curve parameter for VSD reports in the Livre data source
 * [14203](https://bbpcode.epfl.ch/code/#/c/14203/)

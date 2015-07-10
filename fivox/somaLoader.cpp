@@ -17,16 +17,14 @@ namespace fivox
 class SomaLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const std::string& blueconfig,
-          const std::string& target, const std::string& report, const float dt )
+    Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( blueconfig )
-        , _reader( *_experiment.reports().find(
-                       report.empty() ? "soma" : report ),
+        , _experiment( params.getConfig( ))
+        , _reader( *_experiment.reports().find( params.getReport( )),
                    _experiment.cell_target(
-                       target.empty() ? _experiment.circuit_target() : target ))
+                       params.getTarget( _experiment.circuit_target( ))))
         , _currentFrameId( 0xFFFFFFFFu )
-        , _dt( dt )
+        , _dt( params.getDt( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
@@ -76,10 +74,8 @@ private:
     float _dt;
 };
 
-SomaLoader::SomaLoader( const std::string& blueconfig,
-                        const std::string& target, const std::string& report,
-                        const float dt )
-    : _impl( new SomaLoader::Impl( *this, blueconfig, target, report, dt ))
+SomaLoader::SomaLoader( const URIHandler& params )
+    : _impl( new SomaLoader::Impl( *this, params ))
 {}
 
 SomaLoader::~SomaLoader()

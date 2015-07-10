@@ -6,6 +6,7 @@
 #define FIVOX_SOMALOADER_H
 
 #include <fivox/eventSource.h> // base class
+#include <fivox/uriHandler.h>
 
 namespace fivox
 {
@@ -16,15 +17,11 @@ public:
     /**
     * Construct a new soma event source.
     *
-    * @param blueconfig The Blueconfig file for the simulation
-    * @param target The target to load
-    * @param report The name of the report to use, 'soma' if empty
-    * @param dt The duration of the timestep. If -1, it takes the
-    * one from the report as the default
+    * @param params the URIHandler object containing the parameters
+    * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    SomaLoader( const std::string& blueconfig, const std::string& target,
-                const std::string& report, float dt );
+    explicit SomaLoader( const URIHandler& params );
     virtual ~SomaLoader();
 
     /**
