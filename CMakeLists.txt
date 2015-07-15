@@ -16,7 +16,6 @@ set(VERSION_PATCH "0")
 set(VERSION_ABI 3)
 
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
-set(FIVOX_DEPENDENT_LIBRARIES ITK)
 
 include(Common)
 
@@ -28,6 +27,8 @@ common_package(ITK REQUIRED)
 common_package(Livre)
 common_package(vmmlib REQUIRED)
 common_package_post()
+
+set(FIVOX_DEPENDENT_LIBRARIES ITK vmmlib BBPSDK)
 
 include(${ITK_USE_FILE})
 
