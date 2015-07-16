@@ -18,13 +18,13 @@ using boost::lexical_cast;
 
 namespace fivox
 {
-
-void _loadTarget( brion::GIDSet& gids, const brion::Target& startTarget,
-                  const brion::Target& userTarget,
-                  const std::string& name )
+brion::GIDSet _loadTarget( const brion::Target& startTarget,
+                           const brion::Target& userTarget,
+                           const std::string& name )
 {
-    const brion::Strings& values = startTarget.get( name ).empty()
-            ? userTarget.get( name ) : startTarget.get( name );
+    brion::GIDSet gids;
+    const brion::Strings& values = startTarget.get( name ).empty() ?
+                               userTarget.get( name ) : startTarget.get( name );
     for( const std::string& value : values )
     {
         try
@@ -34,9 +34,10 @@ void _loadTarget( brion::GIDSet& gids, const brion::Target& startTarget,
         catch( ... )
         {
             if( value != name )
-                _loadTarget( gids, startTarget, userTarget, value );
+                return _loadTarget( startTarget, userTarget, value );
         }
     }
+    return gids;
 }
 
 class SpikeLoader::Impl
@@ -64,8 +65,8 @@ public:
 
         if( target.empty( ))
             target = _experiment.circuit_target();
-        brion::GIDSet gids;
-        _loadTarget( gids, startTarget, userTarget, target );
+        const brion::GIDSet& gids = _loadTarget( startTarget, userTarget,
+                                                 target );
         if( gids.empty( ))
             LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
                                          "' in " + blueconfig ));
