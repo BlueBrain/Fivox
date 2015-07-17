@@ -18,28 +18,6 @@ using boost::lexical_cast;
 
 namespace fivox
 {
-brion::GIDSet _loadTarget( const brion::Target& startTarget,
-                           const brion::Target& userTarget,
-                           const std::string& name )
-{
-    brion::GIDSet gids;
-    const brion::Strings& values = startTarget.get( name ).empty() ?
-                               userTarget.get( name ) : startTarget.get( name );
-    for( const std::string& value : values )
-    {
-        try
-        {
-            gids.insert( lexical_cast< uint32_t >( value.substr( 1 )));
-        }
-        catch( ... )
-        {
-            if( value != name )
-                return _loadTarget( startTarget, userTarget, value );
-        }
-    }
-    return gids;
-}
-
 class SpikeLoader::Impl
 {
 public:
@@ -58,24 +36,25 @@ public:
         const brion::Circuit circuit( _experiment.circuit_source() +
                                       "/circuit.mvd2" );
 
-        LBINFO << "Loading targets..." << std::endl;
-        const brion::Target startTarget( _experiment.target_source() +
-                                    "/start.target" );
-        const brion::Target userTarget( _experiment.user_target_source( ));
-
         if( target.empty( ))
             target = _experiment.circuit_target();
-        const brion::GIDSet& gids = _loadTarget( startTarget, userTarget,
-                                                 target );
+
+        LBINFO << "Loading target " << target << "..." << std::endl;
+        const brion::Targets targets{
+            brion::Target( _experiment.target_source() + "/start.target" ),
+            brion::Target( _experiment.user_target_source( )) };
+        const brion::GIDSet& gids = brion::Target::parse( targets, target );
+
         if( gids.empty( ))
             LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
                                          "' in " + blueconfig ));
-
         if( _dt < 0.f )
             _dt = _experiment.timestep();
 
         _magnitude = 100.f / std::log( gids.size( )); // heuristic
 
+        LBINFO << "Loading spikes for " << gids.size() << " cells..."
+               << std::endl;
         const brion::NeuronMatrix& matrix =
             circuit.get( gids, brion::NEURON_POSITION_X |
                                brion::NEURON_POSITION_Y |

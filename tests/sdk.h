@@ -6,16 +6,15 @@
 #include "test.h"
 #include <fivox/eventFunctor.h>
 #include <fivox/imageSource.h>
-#include <BBP/TestDatasets.h>
 #include <itkImageFileWriter.h>
 #include <boost/make_shared.hpp>
 
 namespace
 {
-static const std::string targetName( "L5CSPC" );
 
-template< typename T, typename K >
-inline void _testSDKKernel( const size_t size )
+template< typename T >
+inline void _testSDKKernel( const size_t size, fivox::EventSourcePtr source,
+                            const float expectedValue )
 {
     typedef itk::Image< T, 3 > Image;
     typedef fivox::EventFunctor< Image > Functor;
@@ -24,15 +23,12 @@ inline void _testSDKKernel( const size_t size )
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
-
-    fivox::EventSourcePtr source = boost::make_shared< K >(
-                       bbp::test::getBlueconfig(), targetName, "allCompartments", 5.f );
     filter->GetFunctor().setSource( source );
 
     // set up size and origin for loaded circuit
     const fivox::AABBf& bbox = source->getBoundingBox();
+    const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getDimension().find_max();
-    const float position = bbox.getMin().find_min();
     BOOST_CHECK_GT( extent,  0.f );
 
     typename Image::SpacingType spacing;
@@ -40,15 +36,17 @@ inline void _testSDKKernel( const size_t size )
     output->SetSpacing( spacing );
 
     typename Image::PointType origin;
-    origin.Fill( position );
+    origin[0] = position[0];
+    origin[1] = position[1];
+    origin[2] = position[2];
     output->SetOrigin( origin );
 
 #ifdef NDEBUG
     filter->Update();
 #else
     std::ostringstream os;
-    os << targetName << '_' << size << '_' << typeid( K ).name() << '_'
-       << typeid( T ).name() << ".mhd";
+    os << size << '_' << typeid( *source ).name() << '_' << typeid( T ).name()
+       << ".mhd";
 
     typedef itk::ImageFileWriter< Image > Writer;
     typename Writer::Pointer writer = Writer::New();
@@ -57,5 +55,11 @@ inline void _testSDKKernel( const size_t size )
 
     writer->Update();
 #endif
+    if( size == 8 )
+    {
+        const typename Image::IndexType index = {{ 2, 2, 3 }};
+        const float value = float( output->GetPixel( index ));
+        BOOST_CHECK_CLOSE( value, expectedValue, 1/*%*/ );
+    }
 }
 }

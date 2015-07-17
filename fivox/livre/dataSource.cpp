@@ -25,6 +25,7 @@
 #include <fivox/imageSource.h>
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
+#include <fivox/synapseLoader.h>
 #include <fivox/vsdLoader.h>
 
 #include <livre/core/Data/LODNode.h>
@@ -77,6 +78,7 @@ public:
         std::string config = uri.getPath();
         std::string target = uri.getFragment();
         const bool useSpikes = (uri.getScheme() == "fivoxspikes");
+        const bool useSynapses = (uri.getScheme() == "fivoxsynapses");
         const bool useSoma = (uri.getScheme() == "fivoxsoma");
         const bool useVSD = (uri.getScheme() == "fivoxvsd");
 
@@ -118,6 +120,13 @@ public:
             loader = boost::make_shared< ::fivox::SpikeLoader >( config, target,
                                                                  spikes, dt,
                                                                  duration );
+        }
+        else if( useSynapses )
+        {
+            if( useTestData && target.empty( ))
+                target = "Column";
+            loader = boost::make_shared< ::fivox::SynapseLoader >( config,
+                                                                   target );
         }
         else if( useSoma )
         {

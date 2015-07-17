@@ -10,10 +10,11 @@ if(BBPSDK_FOUND)
   list(APPEND TEST_LIBRARIES ${BBPSDK_LIBRARIES})
 endif()
 
+set(TESTDATA_TESTS compartmentSource.cpp somaSource.cpp synapseSource.cpp)
 if(BBPTESTDATA_FOUND AND BBPSDK_FOUND)
-  set(UNIT_AND_PERF_TESTS compartmentSource.cpp somaSource.cpp)
+  set(UNIT_AND_PERF_TESTS ${TESTDATA_TESTS})
 else()
-  set(EXCLUDE_FROM_TESTS compartmentSource.cpp somaSource.cpp)
+  set(EXCLUDE_FROM_TESTS ${TESTDATA_TESTS})
 endif()
 
 include(CommonCTest)

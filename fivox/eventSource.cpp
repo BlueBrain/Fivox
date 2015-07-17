@@ -47,7 +47,8 @@ public:
         if( !rtree.empty( ))
             return;
 
-        LBINFO << "Start building rtree..." << std::endl;
+        LBINFO << "Start building rtree for " << events.size() << " events"
+               << std::endl;
         Values values;
         values.reserve( events.size( ));
 

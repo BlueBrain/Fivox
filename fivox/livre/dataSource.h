@@ -40,6 +40,8 @@ URIs must be in the forms:
     fivoxsoma://BlueConfig?dt=float,report=string#target
 - Spike reports:
     fivoxspikes://BlueConfig?dt=float,duration=float,spikes=path#target
+- Synapse densities:
+    fivoxsynapses://BlueConfig#target
 - Voltage-sensitive dye reports:
     fivoxvsd://BlueConfig?dt=float,dyecurve=string#target
 
