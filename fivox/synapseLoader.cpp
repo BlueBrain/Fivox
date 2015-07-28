@@ -55,7 +55,7 @@ public:
         }
 
         const Events& events = _output.getEvents();
-        const float magnitude = 10000.f / events.size(); // heuristic
+        const float magnitude = 15000.f / events.size(); // heuristic
         for( size_t i = 0; i < events.size(); ++i )
             _output.update( i, magnitude );
     }

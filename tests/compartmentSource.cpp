@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< unsigned char >( i, source, 7 );
+            _testSDKKernel< unsigned char >( i, source, 9 );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i, source, 0.0301621668f );
+            _testSDKKernel< float >( i, source, 0.0357450321f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)

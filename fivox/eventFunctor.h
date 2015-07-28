@@ -61,8 +61,6 @@ EventFunctor< TImage >::operator()( const TPoint& point ) const
     if( !_source )
         return 0;
 
-    const float cutOffDistance2 = _cutOffDistance * _cutOffDistance;
-
     Vector3f base;
     const size_t components = std::min( point.Size(), 3u );
     for( size_t i = 0; i < components; ++i )
@@ -83,8 +81,11 @@ EventFunctor< TImage >::operator()( const TPoint& point ) const
         const float distance2( distance.array[0] * distance.array[0] +
                                distance.array[1] * distance.array[1] +
                                distance.array[2] * distance.array[2] );
-        if( distance2 < cutOffDistance2 )
-            sum += event.value / ( 1.0f + distance2 );
+        if( distance2 > 1. )
+            sum += event.value / distance2;
+        else
+            sum += event.value;
+
     }
 
     return _scale( sum );

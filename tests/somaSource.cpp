@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( SomaSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i, source, 0.0401705392f );
+            _testSDKKernel< float >( i, source, 0.0410851277f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)

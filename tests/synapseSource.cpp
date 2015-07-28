@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE( SynapseSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< unsigned char >( i, source, 7.f );
+            _testSDKKernel< unsigned char >( i, source, 24.f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( SynapseSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i, source, 0.0296019018f );
+            _testSDKKernel< float >( i, source, 0.0963853374f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)
