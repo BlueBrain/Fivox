@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE( SomaSource )
     const fivox::URIHandler params( "fivoxsoma://" );
     fivox::EventSourcePtr source =
         std::make_shared< fivox::SomaLoader >( params );
-    source->load( 0.f );
+    source->load( 100.f );
 
 #ifdef NDEBUG
     std::cout.setf( std::ios::right, std::ios::adjustfield );
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE( SomaSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< unsigned char >( i, source, 10 );
+            _testSDKKernel< unsigned char >( i, source, 0.052734375f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( SomaSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i, source, 0.0410851277f );
+            _testSDKKernel< float >( i, source, 4.5961013768192061e-06f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)

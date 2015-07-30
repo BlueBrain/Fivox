@@ -1,6 +1,6 @@
 
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 
 #define BOOST_TEST_MODULE EventFunctor
@@ -20,15 +20,6 @@ static const size_t maxSize = 128;
 
 namespace
 {
-
-template< class Image >
-typename Image::PixelType meaningOfEverything(
-                         const fivox::EventSource&,
-                         const typename Image::PointType&)
-{
-
-     return 42.f;
-}
 template< class TImage >
 class MeaningFunctor : public fivox::EventFunctor< TImage >
 {
@@ -37,8 +28,8 @@ public:
     MeaningFunctor() {}
     virtual ~MeaningFunctor() {}
 
-    typename Super::TPixel operator()( const typename Super::TPoint&  )
-        const final
+    typename Super::TPixel operator()( const typename Super::TPoint&,
+                                       const typename Super::TSpacing& ) const
     {
         return 42.f;
     }
@@ -49,16 +40,17 @@ inline void _testEventFunctor( const size_t size )
 {
     typedef itk::Image< T, dim > Image;
     typedef MeaningFunctor< Image > Functor;
-    typedef fivox::ImageSource< Image, Functor > Filter;
+    typedef fivox::ImageSource< Image > Filter;
 
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
 
+    filter->setFunctor( std::make_shared<Functor>( ));
     filter->Update();
 
     typename Image::IndexType index;
-    index.Fill( 0 );
+    index.Fill( size/2 );
 
     const typename Image::PixelType& pixel = output->GetPixel( index );
     BOOST_CHECK_EQUAL( pixel, T(  42.f ));

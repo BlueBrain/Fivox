@@ -77,6 +77,8 @@ public:
 
     bool load( const float time )
     {
+        static const float magnitude = 0.1f; // heuristic
+
         bbp::CompartmentReportFrame frame;
         if( !_reader.loadFrame( time, frame ))
         {
@@ -92,10 +94,11 @@ public:
             const uint64_t end = info.numCompartments + info.offset;
 
             for( uint64_t offset = info.offset; offset < end; ++offset )
-                _output.update( index++, (*voltages)[ offset ] -
-                                brion::RESTING_VOLTAGE );
+                _output.update( index++, magnitude * (( *voltages )[ offset ] -
+                                                      brion::RESTING_VOLTAGE ));
         }
-        LBINFO << "Updated " << index << " events at " << time << std::endl;
+        LBINFO << "Updated " << index << " events at " << time << "ms"
+               << std::endl;
         return true;
     }
 

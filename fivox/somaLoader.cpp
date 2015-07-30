@@ -36,6 +36,7 @@ public:
 
     bool load( const float time )
     {
+        static const float magnitude = .1f; // heuristic
         bbp::CompartmentReportFrame frame;
         if( !_reader.loadFrame( time, frame ))
         {
@@ -50,8 +51,8 @@ public:
         const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
         size_t i = 0;
         BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
-            _output.update( i++, neuron.voltage() - brion::RESTING_VOLTAGE );
-
+            _output.update( i++, magnitude * ( neuron.voltage() -
+                                               brion::RESTING_VOLTAGE ));
         return true;
     }
 

@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
     const fivox::URIHandler params( "fivox://" );
     fivox::EventSourcePtr source =
         std::make_shared< fivox::CompartmentLoader >( params );
-    source->load( 0.f );
+    source->load( 100.f );
 
 #ifdef NDEBUG
     std::cout.setf( std::ios::right, std::ios::adjustfield );
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< unsigned char >( i, source, 9 );
+            _testSDKKernel< unsigned char >( i, source, 0.171875f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( CompartmentSource )
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testSDKKernel< float >( i, source, 0.0357450321f );
+            _testSDKKernel< float >( i, source, 1.7014864038600308e-05f );
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)

@@ -26,11 +26,11 @@
 
 namespace fivox
 {
-/**
-Processes an URI and provides all the parameters specified in it.
-@snippet apps/voxelize.cpp Usage
-*/
 
+/**
+ * Process an URI to provide all the parameters specified in it.
+ * @snippet apps/voxelize.cpp Usage
+ */
 class URIHandler
 {
 public:
@@ -97,7 +97,7 @@ public:
     /**
      * Get the specified resolution (voxels per micrometer).
      *
-     * @return the specified resolution. If invalid or empty, return 1
+     * @return the specified resolution. If invalid or empty, return 10.
      */
     float getResolution() const;
 
@@ -118,6 +118,10 @@ public:
 
     /** @return a new loader for the given parameters. */
     EventSourcePtr newLoader() const;
+
+    /** @return a new functor for the given parameters and pixel data type. */
+    template< class T >
+    std::shared_ptr< EventFunctor< itk::Image< T, 3 >>> newFunctor() const;
 
 private:
     class Impl;

@@ -7,22 +7,23 @@
 #include <fivox/eventFunctor.h>
 #include <fivox/imageSource.h>
 #include <itkImageFileWriter.h>
+#include <itkStatisticsImageFilter.h>
 
 namespace
 {
 
 template< typename T >
 inline void _testSDKKernel( const size_t size, fivox::EventSourcePtr source,
-                            const float expectedValue )
+                            const float expectedValue LB_UNUSED )
 {
     typedef itk::Image< T, 3 > Image;
-    typedef fivox::EventFunctor< Image > Functor;
-    typedef fivox::ImageSource< Image, Functor > Filter;
+    typedef fivox::ImageSource< Image > Filter;
+    typedef typename Filter::Functor Functor;
 
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
-    filter->GetFunctor().setSource( source );
+    filter->getFunctor()->setSource( source );
 
     // set up size and origin for loaded circuit
     const fivox::AABBf& bbox = source->getBoundingBox();
@@ -53,12 +54,16 @@ inline void _testSDKKernel( const size_t size, fivox::EventSourcePtr source,
     writer->SetFileName( os.str( ));
 
     writer->Update();
-#endif
     if( size == 8 )
     {
-        const typename Image::IndexType index = {{ 2, 2, 3 }};
-        const float value = float( output->GetPixel( index ));
-        BOOST_CHECK_CLOSE( value, expectedValue, 1/*%*/ );
+        typedef itk::StatisticsImageFilter< Image > StatisticsFilterType;
+        typename StatisticsFilterType::Pointer stat =
+            StatisticsFilterType::New();
+        stat->SetInput( output );
+        stat->Update();
+
+        BOOST_CHECK_CLOSE( stat->GetMean(), expectedValue, 1/*%*/ );
     }
+#endif
 }
 }
