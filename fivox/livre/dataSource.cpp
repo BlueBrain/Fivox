@@ -25,8 +25,8 @@
 #include <fivox/synapseLoader.h>
 #include <fivox/uriHandler.h>
 
-#include <livre/core/Data/LODNode.h>
-#include <livre/core/Data/MemoryUnit.h>
+#include <livre/core/data/LODNode.h>
+#include <livre/core/data/MemoryUnit.h>
 #include <livre/core/version.h>
 
 #include <BBP/BBP.h>
@@ -37,7 +37,7 @@
 #  include <BBP/TestDatasets.h>
 #endif
 
-extern "C" int LunchboxPluginGetVersion() { return LIVRE_VERSION_ABI; }
+extern "C" int LunchboxPluginGetVersion() { return LIVRECORE_VERSION_ABI; }
 extern "C" bool LunchboxPluginRegister()
 {
     lunchbox::PluginRegisterer< fivox::livre::DataSource > registerer;
