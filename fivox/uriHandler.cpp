@@ -21,6 +21,8 @@
 #include "uriHandler.h"
 
 #include <fivox/compartmentLoader.h>
+#include <fivox/densityFunctor.h>
+#include <fivox/fieldFunctor.h>
 #include <fivox/imageSource.h>
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
@@ -33,6 +35,7 @@
 #include <lunchbox/log.h>
 #include <lunchbox/uri.h>
 #include <boost/lexical_cast.hpp>
+#include <fivox/itk.h>
 
 namespace fivox
 {
@@ -41,7 +44,7 @@ namespace
 using boost::lexical_cast;
 const float _dt = 10.0f;
 const size_t _maxBlockSize = LB_16MB;
-const float _voxelsPerUM = 1.0f;
+const float _voxelsPerUM = 10.0f;
 }
 
 class URIHandler::Impl
@@ -122,6 +125,8 @@ public:
             return VSD;
         if( scheme == "fivox" || scheme == "fivoxcompartments" )
             return COMPARTMENTS;
+
+        LBERROR << "Unknown URI scheme: " << scheme << std::endl;
         return UNKNOWN;
     }
 
@@ -219,12 +224,36 @@ EventSourcePtr URIHandler::newLoader() const
     switch( getType( ))
     {
     case SOMAS:        return std::make_shared< SomaLoader >( *this );
+    case COMPARTMENTS: return std::make_shared< CompartmentLoader >( *this );
+    case VSD:          return std::make_shared< VSDLoader >( *this );
     case SPIKES:       return std::make_shared< SpikeLoader >( *this );
     case SYNAPSES:     return std::make_shared< SynapseLoader >( *this );
-    case VSD:          return std::make_shared< VSDLoader >( *this );
-    case COMPARTMENTS: return std::make_shared< CompartmentLoader >( *this );
     default:           return nullptr;
     }
 }
 
+template< class T > std::shared_ptr< EventFunctor< itk::Image< T, 3 >>>
+URIHandler::newFunctor() const
+{
+    switch( getType( ))
+    {
+    case SOMAS:
+    case COMPARTMENTS:
+    case VSD:
+        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>();
+
+    case SPIKES:
+    case SYNAPSES:
+        return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
+
+    default: return nullptr;
+    }
 }
+
+}
+
+// template instantiations
+template std::shared_ptr< fivox::EventFunctor< itk::Image< uint8_t, 3 >>>
+fivox::URIHandler::newFunctor() const;
+template std::shared_ptr< fivox::EventFunctor< itk::Image< float, 3 >>>
+fivox::URIHandler::newFunctor() const;

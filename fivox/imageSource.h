@@ -1,66 +1,73 @@
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 #ifndef FIVOX_IMAGESOURCE_H
 #define FIVOX_IMAGESOURCE_H
 
 #include <fivox/itk.h>
+#include <fivox/types.h>
 
 namespace fivox
 {
 /** Image source using an EventFunctor on each pixel to generate the output */
-template< typename TImage, typename TFunctor >
+template< typename TImage >
 class ImageSource : public itk::ImageSource< TImage >
 {
 public:
-  /** Standard class typedefs. */
-  typedef ImageSource                              Self;
-  typedef itk::ImageSource< TImage >               Superclass;
-  typedef itk::SmartPointer< Self >                Pointer;
-  typedef itk::SmartPointer< const Self >          ConstPointer;
+    /** Standard class typedefs. */
+    typedef ImageSource                              Self;
+    typedef itk::ImageSource< TImage >               Superclass;
+    typedef itk::SmartPointer< Self >                Pointer;
+    typedef itk::SmartPointer< const Self >          ConstPointer;
+    typedef EventFunctor< TImage >                   Functor;
+    typedef std::shared_ptr< Functor >               FunctorPtr;
 
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self);
+    /** Method for creation through the object factory. */
+    itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageSource, itk::ImageSource);
+    /** Run-time type information (and related methods). */
+    itkTypeMacro(ImageSource, itk::ImageSource);
 
-  /** Typedef to describe the output image region types. */
-  typedef TImage                          ImageType;
-  typedef typename ImageType::RegionType  ImageRegionType;
+    /** Typedef to describe the output image region types. */
+    typedef TImage                          ImageType;
+    typedef typename ImageType::RegionType  ImageRegionType;
 
-  typedef typename ImageType::Pointer      ImagePointer;
-  typedef typename ImageType::ConstPointer ImageConstPointer;
+    typedef typename ImageType::Pointer      ImagePointer;
+    typedef typename ImageType::ConstPointer ImageConstPointer;
 
-  /** Typedef to describe the type of pixel. */
-  typedef typename ImageType::PixelType ImagePixelType;
+    /** Typedef to describe the type of pixel. */
+    typedef typename ImageType::PixelType ImagePixelType;
 
-  /** Typedef to describe the output and input image index and size types. */
-  typedef typename ImageType::IndexType ImageIndexType;
-  typedef typename ImageType::SizeType  ImageSizeType;
+    /** Typedef to describe the output and input image index and size types. */
+    typedef typename ImageType::IndexType ImageIndexType;
+    typedef typename ImageType::SizeType  ImageSizeType;
 
-  /** ImageDimension enumeration */
-  itkStaticConstMacro(ImageDimension, unsigned int, ImageType::ImageDimension);
+    /** ImageDimension enumeration */
+    itkStaticConstMacro( ImageDimension, unsigned int,
+                         ImageType::ImageDimension );
 
-  /** @return the functor executed for each pixel during update. */
-  itkGetMacro(Functor, TFunctor&);
-  itkGetConstMacro(Functor, const TFunctor&);
+    /** @return the functor executed for each pixel during update. */
+    FunctorPtr getFunctor();
+
+    /** Set a new functor. */
+    void setFunctor( FunctorPtr functor );
 
 protected:
-  ImageSource();
-  ~ImageSource() {}
+    ImageSource();
+    ~ImageSource() {}
 
-  void PrintSelf(std::ostream & os, itk::Indent indent) const;
+    void PrintSelf(std::ostream & os, itk::Indent indent) const;
 
-  /** ImageSource is implemented as a multithreaded filter. */
-  void ThreadedGenerateData( const ImageRegionType& outputRegionForThread,
-                             itk::ThreadIdType threadId );
+    /** ImageSource is implemented as a multithreaded filter. */
+    void ThreadedGenerateData( const ImageRegionType& outputRegionForThread,
+                               itk::ThreadIdType threadId );
 
 private:
-  ImageSource(const Self &); //purposely not implemented
-  void operator=(const Self &);   //purposely not implemented
+    ImageSource(const Self &); //purposely not implemented
+    void operator=(const Self &);   //purposely not implemented
 
-  TFunctor m_Functor;
+    FunctorPtr _functor;
 };
 } // end namespace fivox
 

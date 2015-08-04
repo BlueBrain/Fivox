@@ -1,4 +1,4 @@
-# Copyright (c) BBP/EPFL 2014
+# Copyright (c) BBP/EPFL 2014-2015
 #                        Stefan.Eilemann@epfl.ch
 # All rights reserved. Do not distribute without further notice.
 
@@ -7,9 +7,11 @@ source_group(\\ FILES CMakeLists.txt)
 set(FIVOX_PUBLIC_HEADERS
   attenuationCurve.h
   compartmentLoader.h
+  densityFunctor.h
   event.h
   eventFunctor.h
   eventSource.h
+  fieldFunctor.h
   imageSource.h
   imageSource.hxx
   itk.h

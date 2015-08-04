@@ -1,69 +1,78 @@
-// -*- c-basic-offset: 2 -*-
 
-/* Copyright (c) 2014, EPFL/Blue Brain Project
- *                     Stefan.Eilemann@epfl.ch
+/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+ *                          Stefan.Eilemann@epfl.ch
  */
 #ifndef FIVOX_IMAGESOURCE_HXX
 #define FIVOX_IMAGESOURCE_HXX
 
-
 #include "imageSource.h"
 
+#include <fivox/densityFunctor.h>
 #include <itkProgressReporter.h>
 #include <itkImageLinearIteratorWithIndex.h>
 
 namespace fivox
 {
-template< typename TImage, typename TFunctor >
-ImageSource< TImage, TFunctor >::ImageSource()
+template< typename TImage > ImageSource< TImage >::ImageSource()
+    : _functor( new DensityFunctor< TImage > )
 {
-  // set up default size
-  static const size_t size = 128;
-  typename TImage::SizeType vSize;
-  vSize.Fill( size );
-  typename TImage::RegionType region;
-  region.SetSize( vSize );
+    // set up default size
+    static const size_t size = 256;
+    typename TImage::SizeType vSize;
+    vSize.Fill( size );
+    typename TImage::RegionType region;
+    region.SetSize( vSize );
 
-  typename TImage::Pointer output = Superclass::GetOutput();
-  output->SetRequestedRegion( region );
+    typename TImage::Pointer output = Superclass::GetOutput();
+    output->SetRequestedRegion( region );
 }
 
-template< typename TImage, typename TFunctor >
-void ImageSource< TImage, TFunctor >::PrintSelf(std::ostream & os,
-                                                itk::Indent indent) const
+template< typename TImage >
+typename ImageSource< TImage >::FunctorPtr ImageSource< TImage >::getFunctor()
 {
-  Superclass::PrintSelf(os, indent);
+    return _functor;
 }
 
-template< typename TImage, typename TFunctor >
-void ImageSource< TImage, TFunctor >::ThreadedGenerateData(
-  const ImageRegionType& outputRegionForThread, itk::ThreadIdType threadId)
+template< typename TImage >
+void ImageSource< TImage >::setFunctor( FunctorPtr functor )
 {
-  itkDebugMacro(<< "Actually executing");
+    _functor = functor;
+}
 
-  ImagePointer image = Superclass::GetOutput();
-  typedef itk::ImageLinearIteratorWithIndex< TImage > ImageIterator;
-  ImageIterator i( image, outputRegionForThread );
-  i.SetDirection(0);
-  i.GoToBegin();
+template< typename TImage >
+void ImageSource< TImage >::PrintSelf(std::ostream & os, itk::Indent indent )
+    const
+{
+    Superclass::PrintSelf( os, indent );
+}
 
-  itk::ProgressReporter progress( this, threadId,
-                                  outputRegionForThread.GetNumberOfPixels( ));
-  while( !i.IsAtEnd( ))
-  {
-    const ImageIndexType& index = i.GetIndex();
+template< typename TImage >
+void ImageSource< TImage >::ThreadedGenerateData(
+    const ImageRegionType& outputRegionForThread, itk::ThreadIdType threadId )
+{
+    ImagePointer image = Superclass::GetOutput();
+    typedef itk::ImageLinearIteratorWithIndex< TImage > ImageIterator;
+    ImageIterator i( image, outputRegionForThread );
+    i.SetDirection(0);
+    i.GoToBegin();
 
-    typedef typename TImage::PointType PointType;
-    PointType point;
-    image->TransformIndexToPhysicalPoint( index, point );
+    itk::ProgressReporter progress( this, threadId,
+                                    outputRegionForThread.GetNumberOfPixels( ));
+    while( !i.IsAtEnd( ))
+    {
+        const ImageIndexType& index = i.GetIndex();
 
-    i.Set( m_Functor( point ));
+        const typename TImage::SpacingType spacing = image->GetSpacing();
+        typename TImage::PointType point;
+        image->TransformIndexToPhysicalPoint( index, point );
 
-    ++i;
-    if( i.IsAtEndOfLine( ))
-      i.NextLine();
-    progress.CompletedPixel();
-  }
+        i.Set( (*_functor)( point, spacing ) );
+
+        ++i;
+        if( i.IsAtEndOfLine( ))
+            i.NextLine();
+        progress.CompletedPixel();
+    }
 }
 } // end namespace fivox
 

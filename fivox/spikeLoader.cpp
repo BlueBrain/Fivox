@@ -28,7 +28,7 @@ public:
         , _dt( params.getDt( ))
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
-        , _magnitude( .5f )
+        , _magnitude( 100000.f / _duration )
     {
         LBINFO << "Loading circuit..." << std::endl;
         const brion::Circuit circuit( _experiment.circuit_source() +
@@ -48,8 +48,6 @@ public:
         if( _dt < 0.f )
             _dt = _experiment.timestep();
 
-        _magnitude = 100.f / std::log( gids.size( )); // heuristic
-
         LBINFO << "Loading spikes for " << gids.size() << " cells..."
                << std::endl;
         const brion::NeuronMatrix& matrix =
@@ -68,7 +66,6 @@ public:
             _gidIndex[gid] = i++;
         }
         _spikesPerNeuron.resize( gids.size( ));
-
         _loadSpikes( params.getSpikes( ));
 
         LBINFO << "Finished loading, use magnitude of " << _magnitude
@@ -203,7 +200,7 @@ private:
     float _dt;
     const float _duration;
     float _spikesStart;
-    float _magnitude;
+    const float _magnitude;
 
     // maps GID to its index in the target
     // OPT: no (unordered)map because of constant lookup but 'wastes' memory

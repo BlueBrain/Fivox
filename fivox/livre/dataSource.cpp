@@ -52,25 +52,24 @@ using boost::lexical_cast;
 
 namespace
 {
-const float _defaultCutoffDistance = 50.0f;
-
-typedef itk::Image< uint8_t, 3 > Image;
-typedef Image::Pointer ImagePtr;
-typedef ::fivox::EventFunctor< Image > Functor;
-typedef ::fivox::ImageSource< Image, Functor > Source;
-typedef Source::Pointer SourcePtr;
+typedef itk::Image< uint8_t, 3 > Volume;
+typedef Volume::Pointer VolumePtr;
+typedef ::fivox::ImageSource< Volume > ImageSource;
+typedef ImageSource::Pointer ImageSourcePtr;
+typedef typename ImageSource::FunctorPtr FunctorPtr;
 }
 
 class DataSource::Impl
 {
 public:
     explicit Impl( const ::livre::VolumeDataSourcePluginData& pluginData )
-        : source( Source::New( ))
+        : source( ImageSource::New( ))
         , params( std::to_string( pluginData.getURI( )))
     {
         ::fivox::EventSourcePtr loader = params.newLoader();
-        source->GetFunctor().setSource( loader );
-        source->GetFunctor().setCutOffDistance( _defaultCutoffDistance );
+        FunctorPtr functor = params.newFunctor< uint8_t >();
+        functor->setSource( loader );
+        source->setFunctor( functor );
 #ifdef LIVRE_DEBUG_RENDERING
         std::cout << "Global space: " <<  loader->getBoundingBox() << std::endl;
 #endif
@@ -80,30 +79,29 @@ public:
                                    const ::livre::VolumeInformation& info )
         const
     {
+        ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
+        const uint32_t frame = node.getNodeId().getFrame();
+        loader->load( frame );
+
         // Alloc voxels
         const vmml::Vector3i& voxels = info.maximumBlockSize;
-        Image::SizeType vSize;
+        Volume::SizeType vSize;
         vSize[0] = voxels[0];
         vSize[1] = voxels[1];
         vSize[2] = voxels[2];
 
-        Image::RegionType region;
+        Volume::RegionType region;
         region.SetSize( vSize );
 
         // Real-world coordinate setup
-        ::fivox::EventSourcePtr loader = source->GetFunctor().getSource();
-        const uint32_t frame = node.getNodeId().getFrame();
-        loader->load( frame );
-
         const ::fivox::AABBf& bbox = loader->getBoundingBox();
-
         const Vector3f& baseSpacing = ( bbox.getDimension() + _borders )
                                       / info.voxels;
         const int32_t levelFromBottom = info.rootNode.getDepth() - 1 -
                                         node.getRefLevel();
         const float spacingFactor = 1 << levelFromBottom;
 
-        Image::SpacingType spacing;
+        Volume::SpacingType spacing;
         spacing[0] = baseSpacing.find_max() * spacingFactor;
         spacing[1] = spacing[0];
         spacing[2] = spacing[0];
@@ -112,17 +110,17 @@ public:
             ( bbox.getMin() - _borders / 2.0f ) + node.getRelativePosition() *
             Vector3f( bbox.getDimension() + _borders );
 
-        Image::PointType origin;
+        Volume::PointType origin;
         origin[0] = offset[0];
         origin[1] = offset[1];
         origin[2] = offset[2];
 
         // called from multiple render threads, only have one update running
         lunchbox::ScopedWrite mutex( _lock );
-        ImagePtr image = source->GetOutput();
-        image->SetRegions( region );
-        image->SetSpacing( spacing );
-        image->SetOrigin( origin );
+        VolumePtr output = source->GetOutput();
+        output->SetRegions( region );
+        output->SetSpacing( spacing );
+        output->SetOrigin( origin );
 
 #ifdef LIVRE_DEBUG_RENDERING
         std::cout << "Sample " << node.getRefLevel() << ' '
@@ -137,11 +135,11 @@ public:
         ::livre::AllocMemoryUnitPtr memoryUnit( new ::livre::AllocMemoryUnit );
         const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
-        memoryUnit->allocAndSetData( image->GetBufferPointer(), size );
+        memoryUnit->allocAndSetData( output->GetBufferPointer(), size );
         return memoryUnit;
     }
 
-    SourcePtr source;
+    ImageSourcePtr source;
     URIHandler params;
     Vector3f _borders;
 
@@ -155,12 +153,12 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
     const float resolution = _impl->params.getResolution();
     const size_t maxBlockByteSize = _impl->params.getMaxBlockSize( );
 
-    ::fivox::ConstEventSourcePtr loader =
-          _impl->source->GetFunctor().getSource();
+    FunctorPtr functor = _impl->source->getFunctor();
+    ::fivox::ConstEventSourcePtr loader = functor->getSource();
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
     const Vector3f totalTreeExactSize =
-        ( bbox.getDimension() + _defaultCutoffDistance * 2.0f ) * resolution;
+        ( bbox.getDimension() + functor->getKernelSize() * 2.0f ) * resolution;
 
     Vector3f blockExactDim = totalTreeExactSize;
 

@@ -41,6 +41,7 @@ public:
         boost::progress_display progress( gids.size( ));
         const brion::Synapse synapses( _experiment.synapse_source() +
                                        "/nrn_positions.h5" );
+        static const float magnitude = 10.f;
 
         for( const uint32_t gid : gids )
         {
@@ -50,14 +51,9 @@ public:
                                     brion::SYNAPSE_PRESYNAPTIC_SURFACE_Z );
             for( size_t i = 0; i < data.shape()[0]; ++i )
                 _output.add( Event( Vector3f( data[i][0], data[i][1],
-                                              data[i][2] ), 0.f ));
+                                              data[i][2] ), magnitude ));
             ++progress;
         }
-
-        const Events& events = _output.getEvents();
-        const float magnitude = 15000.f / events.size(); // heuristic
-        for( size_t i = 0; i < events.size(); ++i )
-            _output.update( i, magnitude );
     }
 
 private:

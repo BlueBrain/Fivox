@@ -14,6 +14,7 @@ namespace fivox
 {
 class EventSource;
 struct Event;
+template< class TImage > class EventFunctor;
 
 typedef std::shared_ptr< EventSource > EventSourcePtr;
 typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
@@ -34,6 +35,12 @@ enum VolumeType
     VSD,          //!< BBP voltage sensitive dye simulation reports
 };
 
+}
+
+// ITK forward decls
+namespace itk
+{
+template< typename, unsigned > class Image;
 }
 
 #endif

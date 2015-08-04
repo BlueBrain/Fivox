@@ -1,6 +1,7 @@
 
 /* Copyright (c) 2015, EPFL/Blue Brain Project
  *                     Jafet.VillafrancaDiaz@epfl.ch
+ *                     Stefan.Eilemann@epfl.ch
  */
 
 #include <fivox/fivox.h>
@@ -20,9 +21,13 @@
 
 namespace
 {
-    typedef itk::Image< uint8_t, 3 > Volume;
-    typedef fivox::EventFunctor< Volume > Functor;
-    typedef fivox::ImageSource< Volume, Functor > ImageSource;
+typedef itk::Image< uint8_t, 3 > Volume;
+typedef Volume::Pointer VolumePtr;
+typedef std::shared_ptr< fivox::EventFunctor< Volume >> FunctorPtr;
+typedef fivox::FieldFunctor< Volume > FieldFunctor;
+typedef std::shared_ptr< FieldFunctor > FieldFunctorPtr;
+typedef fivox::ImageSource< Volume > ImageSource;
+typedef ImageSource::Pointer ImageSourcePtr;
 }
 
 using boost::lexical_cast;
@@ -116,29 +121,29 @@ int main( int argc, char* argv[] )
 
     ::fivox::URIHandler params( uri );
 
-    typedef fivox::EventFunctor< Volume > Functor;
-    typedef fivox::ImageSource< Volume, Functor > ImageSource;
-    typename ImageSource::Pointer source = ImageSource::New();
-
+    ImageSourcePtr source = ImageSource::New();
     ::fivox::EventSourcePtr loader = params.newLoader();
-    const fivox::AABBf& bbox = loader->getBoundingBox();
-
-    Functor& functor = source->GetFunctor();
-    functor.setCutOffDistance( cutOffDistance );
-    functor.setSource( loader );
-
-    typename Volume::SizeType vSize;
-    typename Volume::RegionType region;
-    typename Volume::Pointer output = source->GetOutput();
-
-    vSize.Fill( size );
-    region.SetSize( vSize );
-    output->SetRegions( region );
-
-    // Load data for the given timestep
     loader->load( time );
 
+    FunctorPtr functor = params.newFunctor< uint8_t >();
+    FieldFunctorPtr fieldFunctor(
+        dynamic_cast< FieldFunctor* >( functor.get( )));
+    if( fieldFunctor )
+        fieldFunctor->setCutOffDistance( cutOffDistance );
+    functor->setSource( loader );
+    source->setFunctor( functor );
+
+    Volume::SizeType vSize;
+    vSize.Fill( size );
+
+    Volume::RegionType region;
+    region.SetSize( vSize );
+
+    VolumePtr output = source->GetOutput();
+    output->SetRegions( region );
+
     // Set up size and origin for loaded circuit
+    const fivox::AABBf& bbox = loader->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getDimension().find_max();
 
