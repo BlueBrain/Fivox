@@ -63,17 +63,9 @@ class DataSource::Impl
 {
 public:
     explicit Impl( const ::livre::VolumeDataSourcePluginData& pluginData )
-        : source( ImageSource::New( ))
-        , params( std::to_string( pluginData.getURI( )))
-    {
-        ::fivox::EventSourcePtr loader = params.newLoader();
-        FunctorPtr functor = params.newFunctor< uint8_t >();
-        functor->setSource( loader );
-        source->setFunctor( functor );
-#ifdef LIVRE_DEBUG_RENDERING
-        std::cout << "Global space: " <<  loader->getBoundingBox() << std::endl;
-#endif
-    }
+        : params( std::to_string( pluginData.getURI( )))
+        , source( params.newImageSource< uint8_t >( ))
+    {}
 
     ::livre::MemoryUnitPtr sample( const ::livre::LODNode& node,
                                    const ::livre::VolumeInformation& info )
@@ -139,8 +131,8 @@ public:
         return memoryUnit;
     }
 
+    const URIHandler params;
     ImageSourcePtr source;
-    URIHandler params;
     Vector3f _borders;
 
 private:
@@ -157,22 +149,21 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
     ::fivox::ConstEventSourcePtr loader = functor->getSource();
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
-    const Vector3f totalTreeExactSize =
+    const Vector3f fullResolution =
         ( bbox.getDimension() + functor->getKernelSize() * 2.0f ) * resolution;
+    Vector3f blockResolution = fullResolution;
 
-    Vector3f blockExactDim = totalTreeExactSize;
-
-    while (( ceil( blockExactDim.x( )) * ceil( blockExactDim.y( )) *
-             ceil( blockExactDim.z( ))) > maxBlockByteSize )
+    while (( ceil( blockResolution.x( )) * ceil( blockResolution.y( )) *
+             ceil( blockResolution.z( ))) > maxBlockByteSize )
     {
-        blockExactDim = blockExactDim / 2.0f;
-        depth++;
+        blockResolution = blockResolution / 2.0f;
+        ++depth;
     }
 
     const size_t treeQuotient = 1 << depth;
-    const vmml::Vector3ui blockDim( std::ceil( blockExactDim.x( )),
-                                    std::ceil( blockExactDim.y( )),
-                                    std::ceil( blockExactDim.z( )));
+    const vmml::Vector3ui blockDim( std::ceil( blockResolution.x( )),
+                                    std::ceil( blockResolution.y( )),
+                                    std::ceil( blockResolution.z( )));
 
     const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
     _impl->_borders = ( totalTreeSize / resolution ) - bbox.getDimension();

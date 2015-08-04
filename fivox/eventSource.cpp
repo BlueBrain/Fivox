@@ -90,7 +90,8 @@ Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
 
     const Vector3f& p1 = area.getMin();
     const Vector3f& p2 = area.getMax();
-    const Box query( Point( p1[0], p1[1], p1[2] ), Point( p2[0], p2[1], p2[2] ));
+    const Box query( Point( p1[0], p1[1], p1[2] ),
+                     Point( p2[0], p2[1], p2[2] ));
 
     static lunchbox::a_ssize_t maxHits( 0 );
     std::vector< Value > hits;

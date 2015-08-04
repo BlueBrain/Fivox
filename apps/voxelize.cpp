@@ -121,17 +121,15 @@ int main( int argc, char* argv[] )
 
     ::fivox::URIHandler params( uri );
 
-    ImageSourcePtr source = ImageSource::New();
-    ::fivox::EventSourcePtr loader = params.newLoader();
-    loader->load( time );
-
-    FunctorPtr functor = params.newFunctor< uint8_t >();
+    ImageSourcePtr source = params.newImageSource< uint8_t >();
+    FunctorPtr functor = source->getFunctor();
     FieldFunctorPtr fieldFunctor(
         dynamic_cast< FieldFunctor* >( functor.get( )));
     if( fieldFunctor )
         fieldFunctor->setCutOffDistance( cutOffDistance );
-    functor->setSource( loader );
-    source->setFunctor( functor );
+
+    ::fivox::EventSourcePtr loader = functor->getSource();
+    loader->load( time );
 
     Volume::SizeType vSize;
     vSize.Fill( size );

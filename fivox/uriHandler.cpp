@@ -44,7 +44,38 @@ namespace
 using boost::lexical_cast;
 const float _dt = 10.0f;
 const size_t _maxBlockSize = LB_16MB;
-const float _voxelsPerUM = 10.0f;
+const float _resolution = 10.0f; // voxels per unit
+
+EventSourcePtr _newLoader( const URIHandler& data )
+{
+    switch( data.getType( ))
+    {
+    case SOMAS:        return std::make_shared< SomaLoader >( data );
+    case COMPARTMENTS: return std::make_shared< CompartmentLoader >( data);
+    case VSD:          return std::make_shared< VSDLoader >( data );
+    case SPIKES:       return std::make_shared< SpikeLoader >( data );
+    case SYNAPSES:     return std::make_shared< SynapseLoader >( data );
+    default:           return nullptr;
+    }
+}
+
+template< class T > std::shared_ptr< EventFunctor< itk::Image< T, 3 >>>
+_newFunctor( const URIHandler& data )
+{
+    switch( data.getType( ))
+    {
+    case SOMAS:
+    case COMPARTMENTS:
+    case VSD:
+        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>();
+
+    case SPIKES:
+    case SYNAPSES:
+        return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
+
+    default: return nullptr;
+    }
+}
 }
 
 class URIHandler::Impl
@@ -106,7 +137,7 @@ public:
     std::string getSpikes() const { return _get( "spikes" ); }
     float getDuration() const { return _get( "duration",  getDt( )); }
     std::string getDyeCurve() const { return _get( "dyecurve" ); }
-    float getResolution() const { return _get( "resolution", _voxelsPerUM); }
+    float getResolution() const { return _get( "resolution", _resolution ); }
     size_t getMaxBlockSize() const
     {
         return _get( "maxBlockSize", _maxBlockSize );
@@ -219,41 +250,23 @@ VolumeType URIHandler::getType() const
     return _impl->getType();
 }
 
-EventSourcePtr URIHandler::newLoader() const
+template< class T > itk::SmartPointer< ImageSource< itk::Image< T, 3 >>>
+URIHandler::newImageSource() const
 {
-    switch( getType( ))
-    {
-    case SOMAS:        return std::make_shared< SomaLoader >( *this );
-    case COMPARTMENTS: return std::make_shared< CompartmentLoader >( *this );
-    case VSD:          return std::make_shared< VSDLoader >( *this );
-    case SPIKES:       return std::make_shared< SpikeLoader >( *this );
-    case SYNAPSES:     return std::make_shared< SynapseLoader >( *this );
-    default:           return nullptr;
-    }
+    itk::SmartPointer< ImageSource< itk::Image< T, 3 >>> source =
+        ImageSource< itk::Image< T, 3 >>::New();
+    std::shared_ptr< EventFunctor< itk::Image< T, 3 >>> functor =
+        _newFunctor< T >( *this );
+    EventSourcePtr loader = _newLoader( *this );
+
+    functor->setSource( loader );
+    source->setFunctor( functor );
+    return source;
 }
-
-template< class T > std::shared_ptr< EventFunctor< itk::Image< T, 3 >>>
-URIHandler::newFunctor() const
-{
-    switch( getType( ))
-    {
-    case SOMAS:
-    case COMPARTMENTS:
-    case VSD:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>();
-
-    case SPIKES:
-    case SYNAPSES:
-        return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
-
-    default: return nullptr;
-    }
-}
-
 }
 
 // template instantiations
-template std::shared_ptr< fivox::EventFunctor< itk::Image< uint8_t, 3 >>>
-fivox::URIHandler::newFunctor() const;
-template std::shared_ptr< fivox::EventFunctor< itk::Image< float, 3 >>>
-fivox::URIHandler::newFunctor() const;
+template fivox::ImageSource< itk::Image< uint8_t, 3 >>::Pointer
+    fivox::URIHandler::newImageSource() const;
+template fivox::ImageSource< itk::Image< float, 3 >>::Pointer
+    fivox::URIHandler::newImageSource() const;

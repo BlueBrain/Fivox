@@ -95,7 +95,7 @@ public:
     std::string getDyeCurve() const;
 
     /**
-     * Get the specified resolution (voxels per micrometer).
+     * Get the specified resolution in voxels per unit (typically um).
      *
      * @return the specified resolution. If invalid or empty, return 10.
      */
@@ -116,12 +116,9 @@ public:
      */
     VolumeType getType() const;
 
-    /** @return a new loader for the given parameters. */
-    EventSourcePtr newLoader() const;
-
-    /** @return a new functor for the given parameters and pixel data type. */
+    /** @return a new image source for the given parameters and pixel type. */
     template< class T >
-    std::shared_ptr< EventFunctor< itk::Image< T, 3 >>> newFunctor() const;
+    itk::SmartPointer< ImageSource< itk::Image< T, 3 >>> newImageSource() const;
 
 private:
     class Impl;
