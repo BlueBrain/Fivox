@@ -8,8 +8,11 @@
 
 #include <BBP/BBP.h>
 #include <brion/brion.h>
+#include <isc/streaming/spikeReportReader.h>
+#include <isc/streaming/spikes.h>
 #include <lunchbox/os.h>
 #include <lunchbox/memoryMap.h>
+
 #ifdef final
 #  undef final
 #endif
@@ -83,7 +86,7 @@ public:
         LBINFO << "No valid binary .spikes file found, loading from .dat..."
                << std::endl;
         _spikesReader.reset(
-                    new bbp::SpikeReportReader( lunchbox::URI( spikes )));
+                    new isc::SpikeReportReader( lunchbox::URI( spikes )));
         _spikesStart = _spikesReader->getStartTime();
     }
 
@@ -181,7 +184,7 @@ private:
     size_t _loadSpikesSlow( const float start, const float end )
     {
         size_t numSpikes = 0;
-        const bbp::Spikes& spikes = _spikesReader->getSpikes( start, end );
+        const isc::Spikes& spikes = _spikesReader->getSpikes( start, end );
         for( const bbp::Spike& spike: spikes )
         {
             if( spike.second >= _gidIndex.size( ))
@@ -217,7 +220,7 @@ private:
     std::pair< float, size_t > _previousStart;
 
     // for _loadSpikesSlow
-    std::unique_ptr< bbp::SpikeReportReader > _spikesReader;
+    std::unique_ptr< isc::SpikeReportReader > _spikesReader;
 };
 
 SpikeLoader::SpikeLoader( const URIHandler& params )

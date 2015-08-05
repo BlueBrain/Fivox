@@ -40,10 +40,16 @@ if(BBPSDK_FOUND)
   list(APPEND FIVOX_SOURCES
     compartmentLoader.cpp
     somaLoader.cpp
-    spikeLoader.cpp
     synapseLoader.cpp
     vsdLoader.cpp)
   list(APPEND FIVOX_LINK_LIBRARIES ${BBPSDK_LIBRARIES})
+endif()
+
+
+if(ISC_FOUND)
+  list(APPEND FIVOX_SOURCES
+    spikeLoader.cpp )
+  list(APPEND FIVOX_LINK_LIBRARIES ${ISC_LIBRARIES})
 endif()
 
 common_library(Fivox)

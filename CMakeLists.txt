@@ -23,6 +23,7 @@ common_package(BBPSDK)
 common_package(BBPTestData)
 common_package(Boost REQUIRED COMPONENTS unit_test_framework
                                          program_options system)
+common_package(ISC)
 common_package(ITK REQUIRED)
 common_package(Livre)
 common_package(vmmlib REQUIRED)
