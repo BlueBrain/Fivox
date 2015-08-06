@@ -36,7 +36,7 @@ public:
         , _reader( *_experiment.reports().find( params.getReport( )),
                    _experiment.cell_target(
                        params.getTarget( _experiment.circuit_target( ))))
-        , _currentFrameId( 0xFFFFFFFFu )
+        , _currentTime( -1.f )
         , _dt( params.getDt( ))
     {
         const bbp::Cell_Target& target_ = _reader.getCellTarget();
@@ -77,6 +77,10 @@ public:
 
     bool load( const float time )
     {
+        if( time == _currentTime )
+            return true;
+        _currentTime = time;
+
         static const float magnitude = 0.1f; // heuristic
 
         bbp::CompartmentReportFrame frame;
@@ -104,10 +108,6 @@ public:
 
     void load( const uint32_t frame )
     {
-        if( frame == _currentFrameId )
-            return;
-
-        _currentFrameId = frame;
         const float time  = _reader.getStartTime() + _dt * frame;
         LBCHECK( load( time ));
     }
@@ -118,7 +118,7 @@ private:
     bbp::CompartmentReportReader _reader;
     SectionInfos _sections;
 
-    uint32_t _currentFrameId;
+    float _currentTime;
     float _dt;
 };
 

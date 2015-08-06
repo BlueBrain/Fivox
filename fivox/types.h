@@ -15,6 +15,7 @@ namespace fivox
 class EventSource;
 struct Event;
 template< class TImage > class EventFunctor;
+template< typename TImage > class ImageSource;
 
 typedef std::shared_ptr< EventSource > EventSourcePtr;
 typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
@@ -41,6 +42,7 @@ enum VolumeType
 namespace itk
 {
 template< typename, unsigned > class Image;
+template< typename > class SmartPointer;
 }
 
 #endif

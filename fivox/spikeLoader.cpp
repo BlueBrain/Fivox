@@ -27,7 +27,7 @@ public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
         , _experiment( params.getConfig( ))
-        , _currentFrameId( 0xFFFFFFFFu )
+        , _currentTime( -1.f )
         , _dt( params.getDt( ))
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
@@ -116,6 +116,10 @@ public:
 
     void load( const float start )
     {
+        if( start == _currentTime )
+            return;
+        _currentTime = start;
+
         lunchbox::setZero( _spikesPerNeuron.data(),
                            _spikesPerNeuron.size() * sizeof(size_t));
 
@@ -132,10 +136,6 @@ public:
 
     void load( const uint32_t frame )
     {
-        if( frame == _currentFrameId )
-            return;
-
-        _currentFrameId = frame;
         const float time  = _spikesStart + _dt * frame;
         load( time );
     }
@@ -199,7 +199,7 @@ private:
 
     fivox::EventSource& _output;
     const bbp::Experiment_Specification _experiment;
-    uint32_t _currentFrameId;
+    float _currentTime;
     float _dt;
     const float _duration;
     float _spikesStart;

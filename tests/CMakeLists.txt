@@ -10,7 +10,7 @@ if(BBPSDK_FOUND)
   list(APPEND TEST_LIBRARIES ${BBPSDK_LIBRARIES})
 endif()
 
-set(TESTDATA_TESTS compartmentSource.cpp somaSource.cpp synapseSource.cpp)
+set(TESTDATA_TESTS sources.cpp)
 if(BBPTESTDATA_FOUND AND BBPSDK_FOUND)
   set(UNIT_AND_PERF_TESTS ${TESTDATA_TESTS})
 else()
