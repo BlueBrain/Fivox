@@ -91,6 +91,10 @@ BOOST_AUTO_TEST_CASE( Sources )
     const bool unitTest = std::string( argv[0] ).find( "perf-" ) ==
                           std::string::npos;
     static const size_t maxSize = unitTest ? _minResolution : 1024;
+    static const size_t maxThreads = unitTest ? 0 : 16;
+    // Better, but not always available data:
+    // "fivoxSynapses:///gpfs/bbp.cscs.ch/home/nachbaur/BlueConfig_3m#L23_DBC",
+    // "fivoxSpikes:///gpfs/bbp.cscs.ch/home/nachbaur/BlueConfig_3m",
     const lunchbox::Strings uris = { "fivox://", "fivoxSomas://",
                                      "fivoxSpikes://", "fivoxSynapses://" };
 
@@ -106,7 +110,7 @@ BOOST_AUTO_TEST_CASE( Sources )
 
     std::cout.setf( std::ios::right, std::ios::adjustfield );
     std::cout.precision( 5 );
-    std::cout << "Comp Kernel, byte MVox/sec, float MVox/sec" << std::endl;
+    std::cout << "    Test, byte MVox/sec, float MVox/sec" << std::endl;
 
     for( lunchbox::StringsCIter it = uris.begin(); it != uris.end(); ++it )
     {
@@ -115,16 +119,41 @@ BOOST_AUTO_TEST_CASE( Sources )
         auto filter1 = params.newImageSource< uint8_t >();
         auto filter2 = params.newImageSource< float >();
 
-        std::cout << "------------, " << *it << ", ------------" << std::endl;
+        std::cout << "   Size, " << *it << "," << std::endl;
         for( size_t j = _minResolution; j <= maxSize; j = j << 1 )
         {
             const float t1 = _testSDKKernel< uint8_t >( filter1, j,
                                                         byteRef[ i ] );
             const float t2 = _testSDKKernel< float >( filter2, j,
                                                       floatRef[ i ] );
-            std::cout << std::setw( 11 ) << j << ',' << std::setw(14)
+            std::cout << std::setw( 8 ) << j << ',' << std::setw(14)
                       << j*j*j / 1024.f / 1024.f / t1 << ',' << std::setw(15)
                       << j*j*j / 1024.f / 1024.f / t2 << std::endl;
+        }
+
+        if( maxThreads )
+            std::cout << "Threads, " << *it << "," << std::endl;
+        const size_t size = maxSize >> 2;
+        for( size_t j = 1; j <= maxThreads; j = j << 1 )
+        {
+            filter1->SetNumberOfThreads( maxThreads * j );
+            filter2->SetNumberOfThreads( maxThreads * j );
+
+            float t1 = _testSDKKernel< uint8_t >( filter1, size, byteRef[i]);
+            float t2 = _testSDKKernel< float >( filter2, size, floatRef[i] );
+            std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
+                      << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
+                      << ',' << std::setw(15)
+                      << size*size*size / 1024.f / 1024.f / t2 << std::endl;
+
+            filter1->SetNumberOfThreads( maxThreads / j );
+            filter2->SetNumberOfThreads( maxThreads / j );
+            t1 = _testSDKKernel< uint8_t >( filter1, size, byteRef[ i ] );
+            t2 = _testSDKKernel< float >( filter2, size, floatRef[ i ] );
+            std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
+                      << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
+                      << ',' << std::setw(15)
+                      << size*size*size / 1024.f / 1024.f / t2 << std::endl;
         }
     }
 }

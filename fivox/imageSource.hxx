@@ -16,6 +16,11 @@ namespace fivox
 template< typename TImage > ImageSource< TImage >::ImageSource()
     : _functor( new DensityFunctor< TImage > )
 {
+    itk::ImageRegionSplitterDirection::Pointer splitter =
+        itk::ImageRegionSplitterDirection::New();
+    splitter->SetDirection( 2 );
+    _splitter = splitter;
+
     // set up default size
     static const size_t size = 256;
     typename TImage::SizeType vSize;

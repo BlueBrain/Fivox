@@ -53,6 +53,9 @@ public:
     /** Set a new functor. */
     void setFunctor( FunctorPtr functor );
 
+    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const
+        { return _splitter; }
+
 protected:
     ImageSource();
     ~ImageSource() {}
@@ -68,6 +71,7 @@ private:
     void operator=(const Self &);   //purposely not implemented
 
     FunctorPtr _functor;
+    itk::ImageRegionSplitterBase::Pointer _splitter;
 };
 } // end namespace fivox
 

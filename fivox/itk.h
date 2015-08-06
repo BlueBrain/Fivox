@@ -17,5 +17,6 @@
 
 #include <itkImageSource.h>
 #include <itkNumericTraits.h>
+#include <itkImageRegionSplitterDirection.h>
 
 #endif
