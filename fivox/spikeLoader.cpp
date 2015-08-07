@@ -71,8 +71,8 @@ public:
         _spikesPerNeuron.resize( gids.size( ));
         _loadSpikes( params.getSpikes( ));
 
-        LBINFO << "Finished loading, use magnitude of " << _magnitude
-               << " for " << gids.size() << " neurons" << std::endl;
+        LBINFO << "Finished loading, magnitude " << _magnitude << ", "
+               << gids.size() << " neurons" << std::endl;
     }
 
     void _loadSpikes( std::string spikes )
