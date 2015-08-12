@@ -43,7 +43,7 @@ namespace
 {
 using boost::lexical_cast;
 const float _dt = 10.0f;
-const size_t _maxBlockSize = LB_16MB;
+const size_t _maxBlockSize = LB_64MB;
 const float _resolution = 10.0f; // voxels per unit
 
 EventSourcePtr _newLoader( const URIHandler& data )

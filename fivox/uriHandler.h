@@ -105,7 +105,7 @@ public:
      * Get the specified maximum size per block (bytes).
      *
      * @return the specified maximum size per block. If invalid or empty,
-     * return 16MB
+     * return 64MB
      */
     size_t getMaxBlockSize() const;
 
