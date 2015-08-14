@@ -6,11 +6,6 @@
 
 #include <fivox/fivox.h>
 
-#ifdef FIVOX_USE_BBPTESTDATA
-#  include <BBP/TestDatasets.h>
-#endif
-#include <BBP/BBP.h>
-
 #include <itkImageFileWriter.h>
 #include <lunchbox/file.h>
 #include <lunchbox/log.h>

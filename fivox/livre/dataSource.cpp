@@ -29,13 +29,7 @@
 #include <livre/core/data/MemoryUnit.h>
 #include <livre/core/version.h>
 
-#include <BBP/BBP.h>
-
 #include <boost/algorithm/string.hpp>
-
-#ifdef FIVOX_USE_BBPTESTDATA
-#  include <BBP/TestDatasets.h>
-#endif
 
 extern "C" int LunchboxPluginGetVersion() { return LIVRECORE_VERSION_ABI; }
 extern "C" bool LunchboxPluginRegister()

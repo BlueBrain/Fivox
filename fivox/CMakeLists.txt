@@ -29,7 +29,9 @@ set(FIVOX_SOURCES
   eventSource.cpp
   uriHandler.cpp)
 
-set(FIVOX_LINK_LIBRARIES ${ITK_LIBRARIES} ${Boost_LIBRARIES})
+set(FIVOX_LINK_LIBRARIES
+  PUBLIC ${ITK_LIBRARIES} Lunchbox vmmlib
+  PRIVATE ${Boost_LIBRARIES})
 
 # Optionally enable rtree from boost_geometry, if found
 if(EXISTS "${Boost_INCLUDE_DIR}/boost/geometry.hpp")
@@ -42,14 +44,17 @@ if(BBPSDK_FOUND)
     somaLoader.cpp
     synapseLoader.cpp
     vsdLoader.cpp)
-  list(APPEND FIVOX_LINK_LIBRARIES ${BBPSDK_LIBRARIES})
+  list(APPEND FIVOX_LINK_LIBRARIES BBPSDK)
 endif()
 
+if(BBPTESTDATA_FOUND)
+  list(APPEND FIVOX_LINK_LIBRARIES BBPTestData)
+endif()
 
 if(ISC_FOUND)
   list(APPEND FIVOX_SOURCES
     spikeLoader.cpp )
-  list(APPEND FIVOX_LINK_LIBRARIES ${ISC_LIBRARIES})
+  list(APPEND FIVOX_LINK_LIBRARIES ISC)
 endif()
 
 common_library(Fivox)

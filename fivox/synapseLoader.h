@@ -7,7 +7,6 @@
 
 #include <fivox/eventSource.h> // base class
 #include <fivox/uriHandler.h>
-#include <BBP/Types.h>
 
 namespace fivox
 {
