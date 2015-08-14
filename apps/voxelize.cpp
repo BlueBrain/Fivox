@@ -118,8 +118,8 @@ int main( int argc, char* argv[] )
 
     ImageSourcePtr source = params.newImageSource< uint8_t >();
     FunctorPtr functor = source->getFunctor();
-    FieldFunctorPtr fieldFunctor(
-        dynamic_cast< FieldFunctor* >( functor.get( )));
+    FieldFunctorPtr fieldFunctor =
+        std::dynamic_pointer_cast< FieldFunctor >( functor );
     if( fieldFunctor )
         fieldFunctor->setCutOffDistance( cutOffDistance );
 
