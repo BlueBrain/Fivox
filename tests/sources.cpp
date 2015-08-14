@@ -99,12 +99,12 @@ BOOST_AUTO_TEST_CASE( Sources )
                                      "fivoxSpikes://", "fivoxSynapses://" };
 
     // Reference mean expected values for uris:
-    const float byteRef[] = { 0.708984375f,
-                              0.61328125f,
-                              0.306640625f,
-                              0.46484375f };
-    const float floatRef[] = { -0.0025700045186276554f,
-                               -0.0011685621490897802f,
+    const float byteRef[] = { 0.896484375f,
+                              0.521484375f,
+                              0.013671875f,
+                              0.03515625f };
+    const float floatRef[] = { 0.0047158297430449636f,
+                               0.0034715187880252074f,
                                8.9044979517893807e-05f,
                                0.00017834029219887526f };
 

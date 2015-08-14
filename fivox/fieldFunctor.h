@@ -8,9 +8,6 @@
 
 #include <fivox/eventFunctor.h> // base class
 
-// lowers the magnitude of each event such that there is no cutoff clipping
-#define PRETTY_FUNCTOR
-
 namespace fivox
 {
 /** Samples spatial events into the given pixel using a squared falloff. */
@@ -51,9 +48,6 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
     const AABBf region( base - Vector3f( _cutOffDistance ),
                         base + Vector3f( _cutOffDistance ));
     const Events& events = Super::_source->findEvents( region );
-#ifdef PRETTY_FUNCTOR
-    const float residueFrac = 1.f / _cutOffDistance / _cutOffDistance;
-#endif
 
     float sum = 0.f;
     for( const Event& event : events )
@@ -66,17 +60,10 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
         const float distance2( distance.array[0] * distance.array[0] +
                                distance.array[1] * distance.array[1] +
                                distance.array[2] * distance.array[2] );
-#ifdef PRETTY_FUNCTOR
-        const float residue = event.value * residueFrac;
-#else
-        const float residue = 0;
-#endif
-
         if( distance2 > 1. )
-            sum += event.value / distance2 - residue;
+            sum += event.value / distance2;
         else
-            sum += event.value - residue;
-
+            sum += event.value;
     }
 
     return Super::_scale( sum );

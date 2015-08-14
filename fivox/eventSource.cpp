@@ -144,7 +144,14 @@ void EventSource::add( const Event& event )
 void EventSource::update( const size_t index, const float value )
 {
     assert( index < _impl->events.size( ));
-    _impl->events[ index ].value = value;
+    static float clamped = 0.f;
+    if( value < clamped )
+    {
+        clamped = value;
+        LBINFO << "Clamping event " << value << " to 0" << std::endl;
+    }
+
+    _impl->events[ index ].value = std::max( value, 0.f );
 }
 
 }

@@ -91,7 +91,7 @@ public:
                 for( size_t k = 0; k < nCompartments; ++k )
                 {
                     const float normVoltage = neuron.voltage() -
-                                              brion::RESTING_VOLTAGE;
+                                              brion::MINIMUM_VOLTAGE;
 
                     const Event& event = _output.getEvents()[index];
                     const float depth = yMax - event.position[1];

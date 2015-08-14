@@ -98,8 +98,10 @@ public:
             const uint64_t end = info.numCompartments + info.offset;
 
             for( uint64_t offset = info.offset; offset < end; ++offset )
+            {
                 _output.update( index++, magnitude * (( *voltages )[ offset ] -
-                                                      brion::RESTING_VOLTAGE ));
+                                                      brion::MINIMUM_VOLTAGE ));
+            }
         }
         LBINFO << "Updated " << index << " events at " << time << "ms"
                << std::endl;

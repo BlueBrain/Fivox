@@ -3,6 +3,12 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [15814](https://bbpcode.epfl.ch/code/#/c/15814/)
+  Fix underflow events by using the newly introduced MINIMUM_VOLTAGE in the
+  voltage-related loaders
+* [15670](https://bbpcode.epfl.ch/code/#/c/15670/)
+  Tweak livre rendering parameters: blocks are now max 64 MB, and their size
+  in voxels is always multiple of 8 for better alignment
 * [14496](https://bbpcode.epfl.ch/code/#/c/14496/)
   New synapse loader to visualize synapse densities
 * [14204](https://bbpcode.epfl.ch/code/#/c/14204/)

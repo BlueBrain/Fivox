@@ -56,7 +56,7 @@ public:
         size_t i = 0;
         BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
             _output.update( i++, magnitude * ( neuron.voltage() -
-                                               brion::RESTING_VOLTAGE ));
+                                               brion::MINIMUM_VOLTAGE ));
         return true;
     }
 
