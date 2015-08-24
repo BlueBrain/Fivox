@@ -87,7 +87,8 @@ public:
                << std::endl;
         _spikesReader.reset(
                     new isc::SpikeReportReader( lunchbox::URI( spikes )));
-        _spikesStart = _spikesReader->getStartTime();
+        _spikesStart = _spikesReader->isStream() ? 0.0 :
+                                                _spikesReader->getStartTime();
     }
 
     bool _loadBinarySpikes( const std::string& spikes )
@@ -136,7 +137,7 @@ public:
 
     void load( const uint32_t frame )
     {
-        const float time  = _spikesStart + _dt * frame;
+        const float time = _spikesStart + _dt * frame;
         load( time );
     }
 
