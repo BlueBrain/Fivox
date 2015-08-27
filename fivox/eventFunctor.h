@@ -11,7 +11,7 @@
 #include <fivox/eventSource.h>      // member
 #include <fivox/itk.h>
 #include <lunchbox/log.h>
-#include <boost/type_traits/is_floating_point.hpp>
+#include <type_traits>
 
 namespace fivox
 {
@@ -41,7 +41,7 @@ public:
 protected:
     TPixel _scale( const float value ) const
     {
-        if( boost::is_floating_point< TPixel >::value )
+        if( std::is_floating_point< TPixel >::value )
             return value;
         static float clamped = 1.f;
         if( value > clamped )

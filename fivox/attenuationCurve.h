@@ -7,8 +7,6 @@
 #ifndef FIVOX_ATTENUATION_CURVE_H
 #define FIVOX_ATTENUATION_CURVE_H
 
-#include <boost/foreach.hpp>
-
 #include <string>
 #include <vector>
 #include <fstream>
@@ -47,7 +45,7 @@ public:
 
         const float maxAttn = *std::max_element( _dyeCurve.begin(),
                                                  _dyeCurve.end());
-        BOOST_FOREACH( float& dyeAttn, _dyeCurve )
+        for( float& dyeAttn : _dyeCurve )
             dyeAttn = dyeAttn / maxAttn;
     }
 

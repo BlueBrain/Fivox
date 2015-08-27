@@ -8,7 +8,6 @@
 #include <fivox/attenuationCurve.h>
 #include <fivox/types.h>
 #include <lunchbox/compiler.h>
-#include <boost/noncopyable.hpp>
 
 namespace fivox
 {
@@ -19,7 +18,7 @@ namespace fivox
  * point. Subclassing or aggregation provides the events using add() and
  * update(), and the functor accesses the data using getEvents().
  */
-class EventSource : public boost::noncopyable
+class EventSource
 {
 public:
     virtual ~EventSource();
@@ -74,6 +73,8 @@ protected:
     EventSource();
 
 private:
+    EventSource( const EventSource& ) = delete;
+    EventSource operator=( const EventSource& ) = delete;
     class Impl;
     std::unique_ptr< Impl > _impl;
 };
