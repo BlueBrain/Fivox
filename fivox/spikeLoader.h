@@ -28,14 +28,26 @@ public:
     /**
     * Load the data at the given timestamp
     * @param time the timestamp of interest
+    * @return true if the time stamp can be retrieved from the data source
     */
-    void load( float time );
+    bool load( float time ) final;
 
     /**
     * Load a new frame, based on the duration defined for each timestep (dt)
-    * @param frame The frame number to be loaded
+    * @param frame The absolute frame number to be loaded
+    * @return true if the frame can be retrieved from the data source
     */
-    void load( uint32_t frame );
+    bool load( uint32_t frame ) final;
+
+    /**
+     * Gets the valid frame range according to data. For spike data, each
+     * frame represents a time interval [t, t + dt). Frames become available
+     * every dt, the first one being reported at t = dt, that is, in the
+     * range [0,dt) no full frame has been completed yet and the
+     * function would return (0, 0).
+     * @return the valid frame range [a,b)
+     */
+    Vector2ui getFrameRange() final;
 
 private:
     class Impl;

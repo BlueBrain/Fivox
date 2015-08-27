@@ -52,22 +52,40 @@ public:
     /**
     * Given a frame number, update the event source with new events to be
     * sampled.
-    * @param frame The frame number to be loaded.
+    * @param frame The frame number to be loaded. Whether frame numbers are
+    * relative to the start time or absolute (frame 0 is at time 0) depends
+    * on the actual data source.
+    * @return true if the frame can be retrieved from the data source
     */
-    virtual void load( uint32_t frame LB_UNUSED ) {}
+    virtual bool load( uint32_t frame LB_UNUSED ) { return false; }
 
     /**
     * Given a timestamp, update the event source with new events to be
     * sampled.
     * @param time The time stamp (ms) to be loaded.
+    * @return true if the time stamp can be retrieved from the data source
     */
-    virtual void load( float time LB_UNUSED ) {}
+    virtual bool load( float time LB_UNUSED ) { return false; }
 
     /**
     * Set the attenuation curve that will be applied to the computed events
     * @param curve The attenuation curve to apply
     */
     virtual void setCurve( const AttenuationCurve& curve LB_UNUSED ) {}
+
+    /**
+     * Gets the valid frame range according to data. The valid frames are in the
+     * [a, b) range
+     * @return the valid frame range
+     */
+    virtual Vector2ui getFrameRange() { return Vector2ui( 0, 0 ); }
+
+    /**
+     * @param frame The frame number to be checked.
+     * @return Checks the frame range, if the frame is satisfying [a, b)
+     * range, returns true
+     */
+    bool isInFrameRange( uint32_t frame );
 
 protected:
     EventSource();

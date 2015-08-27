@@ -27,14 +27,23 @@ public:
     /**
     * Load the data at the given timestamp
     * @param time the timestamp of interest
+    * @return true if the time stamp can be retrieved from the data source
     */
-    void load( float time );
+    bool load( float time ) final;
 
     /**
     * Load a new frame, based on the duration defined for each timestep (dt)
     * @param frame The frame number to be loaded
+    * @return true if the frame can be retrieved from the data source
     */
-    void load( uint32_t frame );
+    bool load( uint32_t frame ) final;
+
+    /**
+     * Gets the valid frame range according to data. The valid frames are in the
+     * [a, b) range
+     * @return the valid frame range
+     */
+    Vector2ui getFrameRange() final;
 
 private:
     class Impl;

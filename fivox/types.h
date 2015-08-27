@@ -23,6 +23,7 @@ typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
 typedef std::vector< Event > Events;
 
 using vmml::Vector3f;
+using vmml::Vector2ui;
 using vmml::AABBf;
 
 /** Supported data sources */

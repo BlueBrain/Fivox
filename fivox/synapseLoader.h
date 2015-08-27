@@ -24,6 +24,14 @@ public:
     explicit SynapseLoader( const URIHandler& params );
     virtual ~SynapseLoader();
 
+    /**
+     * Gets the valid frame range according to data. The valid frames are in the
+     * [a, b) range. This function returns (0,1) because for synapses do not
+     * change over time.
+     * @return the valid frame range
+     */
+    Vector2ui getFrameRange() final { return Vector2ui( 0, 1 ); }
+
 private:
     class Impl;
     std::unique_ptr< Impl > _impl;

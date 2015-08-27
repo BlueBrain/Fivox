@@ -25,30 +25,30 @@
 
 namespace fivox
 {
-namespace livre
-{
+
 /**
 * Generate volume data sampling BBPSDK simulation reports.
 */
-class DataSource : public ::livre::VolumeDataSourcePlugin
+class DataSource : public livre::VolumeDataSourcePlugin
 {
 public:
-    explicit DataSource( const ::livre::VolumeDataSourcePluginData& data );
+    explicit DataSource( const livre::VolumeDataSourcePluginData& data );
     virtual ~DataSource();
 
-    ::livre::MemoryUnitPtr getData( const ::livre::LODNode& node ) override;
+    livre::MemoryUnitPtr getData( const livre::LODNode& node ) override;
 
-    static bool handles( const ::livre::VolumeDataSourcePluginData& data );
+    static bool handles( const livre::VolumeDataSourcePluginData& data );
+
+    livre::Vector2ui getFrameRange() final;
 
 private:
     class Impl;
     std::unique_ptr< Impl > _impl;
 
-    void internalNodeToLODNode( const ::livre::NodeId internalNode,
-                                ::livre::LODNode& lodNode ) const final;
+    void internalNodeToLODNode( const livre::NodeId internalNode,
+                                livre::LODNode& lodNode ) const final;
 };
 
-}
 }
 
 #endif

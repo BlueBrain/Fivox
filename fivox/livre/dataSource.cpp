@@ -34,14 +34,13 @@
 extern "C" int LunchboxPluginGetVersion() { return LIVRECORE_VERSION_ABI; }
 extern "C" bool LunchboxPluginRegister()
 {
-    lunchbox::PluginRegisterer< fivox::livre::DataSource > registerer;
+    lunchbox::PluginRegisterer< fivox::DataSource > registerer;
     return true;
 }
 
 namespace fivox
 {
-namespace livre
-{
+
 using boost::lexical_cast;
 
 namespace
@@ -56,18 +55,20 @@ typedef typename ImageSource::FunctorPtr FunctorPtr;
 class DataSource::Impl
 {
 public:
-    explicit Impl( const ::livre::VolumeDataSourcePluginData& pluginData )
+    explicit Impl( const livre::VolumeDataSourcePluginData& pluginData )
         : params( std::to_string( pluginData.getURI( )))
         , source( params.newImageSource< uint8_t >( ))
-    {}
+    {
+    }
 
-    ::livre::MemoryUnitPtr sample( const ::livre::LODNode& node,
-                                   const ::livre::VolumeInformation& info )
+    livre::MemoryUnitPtr sample( const livre::LODNode& node,
+                                   const livre::VolumeInformation& info )
         const
     {
         ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
         const uint32_t frame = node.getNodeId().getFrame();
-        loader->load( frame );
+        if( loader->load( frame ))
+            return livre::MemoryUnitPtr();
 
         // Alloc voxels
         const vmml::Vector3i& voxels = info.maximumBlockSize;
@@ -118,11 +119,17 @@ public:
         source->Modified();
         source->Update();
 
-        ::livre::AllocMemoryUnitPtr memoryUnit( new ::livre::AllocMemoryUnit );
+        livre::AllocMemoryUnitPtr memoryUnit( new livre::AllocMemoryUnit );
         const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
         memoryUnit->allocAndSetData( output->GetBufferPointer(), size );
         return memoryUnit;
+    }
+
+    livre::Vector2ui getFrameRange()
+    {
+        ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
+        return loader->getFrameRange();
     }
 
     const URIHandler params;
@@ -133,23 +140,34 @@ private:
     mutable lunchbox::Lock _lock;
 };
 
-DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
+DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
     : _impl( new DataSource::Impl( pluginData ))
 {
     const float resolution = _impl->params.getResolution();
     const size_t maxBlockByteSize = _impl->params.getMaxBlockSize( );
 
     FunctorPtr functor = _impl->source->getFunctor();
-    ::fivox::ConstEventSourcePtr loader = functor->getSource();
+    ::fivox::EventSourcePtr loader = functor->getSource();
+
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
     const Vector3f fullResolution =
         ( bbox.getDimension() + functor->getKernelSize() * 2.0f ) * resolution;
     Vector3f blockResolution = fullResolution;
 
-    while (( ceil( blockResolution.x( )) * ceil( blockResolution.y( )) *
-             ceil( blockResolution.z( ))) > maxBlockByteSize )
+    // maxTextureSize value should be retrieved from OpenGL. But at this
+    // point in time there may be no GL context. So a general object is
+    // needed in Livre to query the OpenGL device properties.
+    const size_t maxTextureSize = 2048;
+    while( true )
     {
+        if( blockResolution.product() < maxBlockByteSize
+            &&  blockResolution.x( ) < maxTextureSize &&
+                blockResolution.y( ) < maxTextureSize &&
+                blockResolution.z( ) < maxTextureSize )
+        {
+            break;
+        }
         blockResolution = blockResolution / 2.0f;
         ++depth;
     }
@@ -169,7 +187,7 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
     _volumeInfo.voxels = totalTreeSize;
     _volumeInfo.maximumBlockSize = blockDim;
 
-    if( !::livre::fillRegularVolumeInfo( _volumeInfo ))
+    if( !livre::fillRegularVolumeInfo( _volumeInfo ))
         LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
     // SDK uses microns, volume information uses meters
@@ -179,26 +197,26 @@ DataSource::DataSource( const ::livre::VolumeDataSourcePluginData& pluginData )
 DataSource::~DataSource()
 {}
 
-::livre::MemoryUnitPtr DataSource::getData( const ::livre::LODNode& node )
+livre::MemoryUnitPtr DataSource::getData( const livre::LODNode& node )
 {
     try
     {
-        return _impl->sample( node, getVolumeInformation( ));
+        return _impl->sample( node, _volumeInfo );
     }
     catch( const std::exception& e )
     {
         LBERROR << "sample failed: " << e.what() << std::endl;
-        return ::livre::MemoryUnitPtr();
+        return livre::MemoryUnitPtr();
     }
     catch( ... )
     {
         LBERROR << "sample failed" << std::endl;
-        return ::livre::MemoryUnitPtr();
+        return livre::MemoryUnitPtr();
     }
 }
 
 void DataSource::internalNodeToLODNode(
-    const ::livre::NodeId internalNode, ::livre::LODNode& lodNode ) const
+    const livre::NodeId internalNode, livre::LODNode& lodNode ) const
 {
     const uint32_t refLevel = internalNode.getLevel();
     const vmml::Vector3ui& bricksInRefLevel =
@@ -220,7 +238,7 @@ void DataSource::internalNodeToLODNode(
            << "  volume world size " << _volumeInfo.worldSize << std::endl
            << std::endl;
 
-    lodNode = ::livre::LODNode( internalNode,
+    lodNode = livre::LODNode( internalNode,
                                 _volumeInfo.maximumBlockSize -
                                 _volumeInfo.overlap * 2,
                                 AABBf( boxCoordMin * _volumeInfo.worldSize -
@@ -229,12 +247,16 @@ void DataSource::internalNodeToLODNode(
                                        _volumeInfo.worldSize * 0.5f ));
 }
 
-bool DataSource::handles( const ::livre::VolumeDataSourcePluginData& data )
+bool DataSource::handles( const livre::VolumeDataSourcePluginData& data )
 {
     const std::string fivox = "fivox";
     const std::string& scheme = data.getURI().getScheme();
     return scheme.substr( 0, fivox.size( )) == fivox;
 }
 
+livre::Vector2ui DataSource::getFrameRange()
+{
+    return _impl->getFrameRange();
 }
+
 }

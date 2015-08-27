@@ -22,6 +22,8 @@ public:
         , _areas( *_experiment.reports().find( "area" ), _target )
         , _currentFrameId( 0xFFFFFFFFu )
         , _dt( params.getDt( ))
+        , _reportStartTime( _voltages.getStartTime())
+        , _reportEndTime( _voltages.getEndTime())
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _target, bbp::NEURONS | bbp::MORPHOLOGIES );
@@ -107,17 +109,23 @@ public:
         return true;
     }
 
-    void load( const uint32_t frame )
+    bool load( const uint32_t frame )
     {
-        if( frame == _currentFrameId )
-            return;
+        if( frame == _currentFrameId || !_output.isInFrameRange( frame ))
+            return false;
 
         _currentFrameId = frame;
         const float time  = _voltages.getStartTime() + _dt * frame;
-        LBCHECK( load( time ));
+        return load( time );
     }
 
     void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
+
+    Vector2ui getFrameRange()
+    {
+       return Vector2ui( _reportStartTime / _dt,
+                         _reportEndTime / _dt );
+    }
 
 private:
     fivox::EventSource& _output;
@@ -126,10 +134,13 @@ private:
     bbp::CompartmentReportReader _voltages;
     bbp::CompartmentReportReader _areas;
     bbp::CompartmentReportFrame _areasFrame;
+
     AttenuationCurve _curve;
 
     uint32_t _currentFrameId;
     float _dt;
+    float _reportStartTime;
+    float _reportEndTime;
 };
 
 VSDLoader::VSDLoader( const URIHandler& params )
@@ -139,19 +150,25 @@ VSDLoader::VSDLoader( const URIHandler& params )
 VSDLoader::~VSDLoader()
 {}
 
-void VSDLoader::load( const float time )
+bool VSDLoader::load( const float time )
 {
-    _impl->load( time );
+    return _impl->load( time );
 }
 
-void VSDLoader::load( const uint32_t frame )
+bool VSDLoader::load( const uint32_t frame )
 {
-    _impl->load( frame );
+    return _impl->load( frame );
 }
 
 void VSDLoader::setCurve( const AttenuationCurve& curve )
 {
     _impl->setCurve( curve );
 }
+
+Vector2ui VSDLoader::getFrameRange()
+{
+    return _impl->getFrameRange();
+}
+
 
 }

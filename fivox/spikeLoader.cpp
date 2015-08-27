@@ -11,6 +11,8 @@
 #include <monsteer/streaming/spikeReportReader.h>
 #include <monsteer/streaming/spikes.h>
 #include <lunchbox/os.h>
+#include <lunchbox/lock.h>
+#include <lunchbox/scopedMutex.h>
 #include <lunchbox/memoryMap.h>
 
 #ifdef final
@@ -89,6 +91,8 @@ public:
                     new monsteer::SpikeReportReader( lunchbox::URI( spikes )));
         _spikesStart = _spikesReader->isStream() ? 0.0 :
                                                 _spikesReader->getStartTime();
+        _spikesEnd = _spikesReader->isStream() ? 0.0 :
+                                                _spikesReader->getEndTime();
     }
 
     bool _loadBinarySpikes( const std::string& spikes )
@@ -115,10 +119,10 @@ public:
         return true;
     }
 
-    void load( const float start )
+    bool load( const float start )
     {
         if( start == _currentTime )
-            return;
+            return false;
         _currentTime = start;
 
         lunchbox::setZero( _spikesPerNeuron.data(),
@@ -133,12 +137,33 @@ public:
 
         LBINFO << "Loaded " << numSpikes << " spikes from " << start << " to "
                << end << " ms" << std::endl;
+
+        return true;
     }
 
-    void load( const uint32_t frame )
+    bool load( const uint32_t frame )
     {
-        const float time = _spikesStart + _dt * frame;
-        load( time );
+        if( !_output.isInFrameRange( frame ))
+            return false;
+
+        const float time = _dt * frame;
+        return load( time );
+    }
+
+    Vector2ui getFrameRange( )
+    {
+        if( _spikesReader->isStream( ) )
+        {
+            lunchbox::ScopedWrite mutex( _getSpikesLock );
+            const monsteer::Spikes& spikes = _spikesReader->getSpikes();
+            if( !spikes.empty( ))
+            {
+                _spikesStart = spikes.getStartTime();
+                _spikesEnd = spikes.getEndTime();
+            }
+        }
+        return Vector2ui( _spikesStart / _dt,
+                          _spikesEnd / _dt );
     }
 
 private:
@@ -185,6 +210,7 @@ private:
     size_t _loadSpikesSlow( const float start, const float end )
     {
         size_t numSpikes = 0;
+        lunchbox::ScopedWrite mutex( _getSpikesLock );
         const monsteer::Spikes& spikes = _spikesReader->getSpikes( start, end );
         for( const bbp::Spike& spike: spikes )
         {
@@ -204,6 +230,7 @@ private:
     float _dt;
     const float _duration;
     float _spikesStart;
+    float _spikesEnd;
     const float _magnitude;
 
     // maps GID to its index in the target
@@ -222,6 +249,7 @@ private:
 
     // for _loadSpikesSlow
     std::unique_ptr< monsteer::SpikeReportReader > _spikesReader;
+    mutable lunchbox::Lock _getSpikesLock;
 };
 
 SpikeLoader::SpikeLoader( const URIHandler& params )
@@ -231,14 +259,19 @@ SpikeLoader::SpikeLoader( const URIHandler& params )
 SpikeLoader::~SpikeLoader()
 {}
 
-void SpikeLoader::load( const float time )
+bool SpikeLoader::load( const float time )
 {
-    _impl->load( time );
+    return _impl->load( time );
 }
 
-void SpikeLoader::load( const uint32_t frame )
+bool SpikeLoader::load( const uint32_t frame )
 {
-    _impl->load( frame );
+    return _impl->load( frame );
+}
+
+Vector2ui SpikeLoader::getFrameRange()
+{
+    return _impl->getFrameRange();
 }
 
 }

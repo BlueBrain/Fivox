@@ -28,14 +28,25 @@ public:
     /**
     * Load the data at the given timestamp
     * @param time the timestamp of interest
+    * @return true if the time stamp can be retrieved from the data source
     */
-    void load( float time );
+    bool load( float time ) final;
 
     /**
     * Load a new frame, based on the duration defined for each timestep (dt)
-    * @param frame The frame number to be loaded
+    * @param frame The frame number relative to the starting time of the report.
+    * @return true if the frame can be retrieved from the data source
     */
-    void load( uint32_t frame );
+    bool load( uint32_t frame ) final;
+
+    /**
+     * Gets the valid frame range according to data. If the simulation
+     * reporting starts at t_0, frame 0 is available for any time stamp
+     * t > t_0. If the reporting delta is d, at any t in (t_0, t_0 + d],
+     * this function will return (0, 1)
+     * @return the valid frame range [a,b)
+     */
+    Vector2ui getFrameRange() final;
 
 private:
     class Impl;

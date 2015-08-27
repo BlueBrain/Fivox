@@ -154,4 +154,10 @@ void EventSource::update( const size_t index, const float value )
     _impl->events[ index ].value = std::max( value, 0.f );
 }
 
+bool EventSource::isInFrameRange( uint32_t frame )
+{
+    const Vector2ui& frameRange = getFrameRange();
+    return frame >= frameRange[0] && frame < frameRange[1];
+}
+
 }

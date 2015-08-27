@@ -25,6 +25,8 @@ public:
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
         , _dt( params.getDt( ))
+        , _reportStartTime( _reader.getStartTime( ))
+        , _reportEndTime( _reader.getEndTime( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
@@ -60,10 +62,19 @@ public:
         return true;
     }
 
-    void load( const uint32_t frame )
+    bool load( const uint32_t frame )
     {
+        if( !_output.isInFrameRange( frame ))
+            return false;
+
         const float time  = _reader.getStartTime() + _dt * frame;
-        LBCHECK( load( time ));
+        return load( time );
+    }
+
+    Vector2ui getFrameRange()
+    {
+       return Vector2ui( _reportStartTime / _dt,
+                         _reportEndTime / _dt );
     }
 
 private:
@@ -73,6 +84,8 @@ private:
 
     float _currentTime;
     float _dt;
+    float _reportStartTime;
+    float _reportEndTime;
 };
 
 SomaLoader::SomaLoader( const URIHandler& params )
@@ -82,14 +95,19 @@ SomaLoader::SomaLoader( const URIHandler& params )
 SomaLoader::~SomaLoader()
 {}
 
-void SomaLoader::load( const float time )
+bool SomaLoader::load( const float time )
 {
-    _impl->load( time );
+    return _impl->load( time );
 }
 
-void SomaLoader::load( const uint32_t frame )
+bool SomaLoader::load( const uint32_t frame )
 {
-    _impl->load( frame );
+    return _impl->load( frame );
+}
+
+Vector2ui SomaLoader::getFrameRange()
+{
+    return _impl->getFrameRange();
 }
 
 }

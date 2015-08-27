@@ -38,6 +38,8 @@ public:
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
         , _dt( params.getDt( ))
+        , _reportStartTime( _reader.getStartTime( ))
+        , _reportEndTime( _reader.getEndTime( ))
     {
         const bbp::Cell_Target& target_ = _reader.getCellTarget();
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
@@ -108,10 +110,23 @@ public:
         return true;
     }
 
-    void load( const uint32_t frame )
+    bool load( const uint32_t frame )
     {
+        if( !_output.isInFrameRange( frame ))
+            return false;
+
         const float time  = _reader.getStartTime() + _dt * frame;
-        LBCHECK( load( time ));
+        return load( time );
+    }
+
+    Vector2ui getFrameRange()
+    {
+        uint32_t endFrame = ( _reportEndTime - _reportStartTime ) / _dt;
+        if( (( _reportEndTime - _reportStartTime )  - endFrame * _dt) >
+            std::numeric_limits<double>::epsilon( ))
+            ++endFrame;
+
+        return Vector2ui( 0, endFrame );
     }
 
 private:
@@ -122,6 +137,8 @@ private:
 
     float _currentTime;
     float _dt;
+    float _reportStartTime;
+    float _reportEndTime;
 };
 
 CompartmentLoader::CompartmentLoader( const URIHandler& params )
@@ -131,14 +148,19 @@ CompartmentLoader::CompartmentLoader( const URIHandler& params )
 CompartmentLoader::~CompartmentLoader()
 {}
 
-void CompartmentLoader::load( const float time )
+bool CompartmentLoader::load( const float time )
 {
-    _impl->load( time );
+    return _impl->load( time );
 }
 
-void CompartmentLoader::load( const uint32_t frame )
+bool CompartmentLoader::load( const uint32_t frame )
 {
-    _impl->load( frame );
+    return _impl->load( frame );
+}
+
+Vector2ui CompartmentLoader::getFrameRange()
+{
+    return _impl->getFrameRange();
 }
 
 }
