@@ -22,6 +22,9 @@ Changelog {#changelog}
   Add missing method in SpikeLoader to load data for a specific timestamp
 * [14181](https://bbpcode.epfl.ch/code/#/c/14181/)
   Fix computation of event sampling values for squared distances below 1
+* [16290](https://bbpcode.epfl.ch/code/16290/)
+  The targets can be given as a part of URL queries ( i.e.: target=Column )
+
 
 # Release 0.2 (9-Jul-2015){#Release02}
 

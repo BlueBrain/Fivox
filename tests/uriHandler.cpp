@@ -28,13 +28,24 @@ BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
     BOOST_CHECK_EQUAL( handler.getTarget( "foo" ), "foo" );
     BOOST_CHECK_EQUAL( handler.getDt(), 10.f );
 
-    const fivox::URIHandler params(
-        "fivoxcompartment:///path/to/BlueConfig?report=simulation,dt=0.2#target" );
-    BOOST_CHECK_EQUAL( params.getConfig(), "/path/to/BlueConfig" );
-    BOOST_CHECK_EQUAL( params.getTarget( "" ), "target" );
-    BOOST_CHECK_EQUAL( params.getTarget( "foo" ), "target" );
-    BOOST_CHECK_EQUAL( params.getReport(), "simulation" );
-    BOOST_CHECK_EQUAL( params.getDt(), 0.2f );
+    const fivox::URIHandler params1(
+        "fivoxcompartment:///path/to/BlueConfig?report=simulation,dt=0.2,target=Column" );
+    BOOST_CHECK_EQUAL( params1.getConfig(), "/path/to/BlueConfig" );
+    BOOST_CHECK_EQUAL( params1.getTarget( "" ), "Column" );
+    BOOST_CHECK_EQUAL( params1.getTarget( "foo" ), "Column" );
+    BOOST_CHECK_EQUAL( params1.getReport(), "simulation" );
+    BOOST_CHECK_EQUAL( params1.getDt(), 0.2f );
+
+    const fivox::URIHandler params2(
+        "fivoxcompartment:///path/to/BlueConfig?target=First#Second" );
+    BOOST_CHECK_EQUAL( params2.getConfig(), "/path/to/BlueConfig" );
+    BOOST_CHECK_EQUAL( params2.getTarget( "" ), "First" );
+
+    const fivox::URIHandler params3(
+        "fivoxcompartment:///path/to/BlueConfig?report=simulation#Second" );
+    BOOST_CHECK_EQUAL( params3.getConfig(), "/path/to/BlueConfig" );
+    BOOST_CHECK_EQUAL( params3.getTarget( "" ), "Second" );
+    BOOST_CHECK_EQUAL( params3.getReport(), "simulation" );
 }
 
 BOOST_AUTO_TEST_CASE(URIHandlerSoma)

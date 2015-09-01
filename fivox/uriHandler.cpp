@@ -84,7 +84,7 @@ public:
     explicit Impl( const std::string& parameters )
         : uri( parameters )
         , config( uri.getPath( ))
-        , target( uri.getFragment( ))
+        , target( _get( "target" ).empty() ? uri.getFragment() : _get( "target" ))
 #ifdef FIVOX_USE_BBPTESTDATA
         , useTestData( config.empty( ))
 #else

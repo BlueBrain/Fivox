@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE( Sources )
     static const size_t maxSize = unitTest ? _minResolution : 1024;
     static const size_t maxThreads = unitTest ? 0 : 16;
     // Better, but not always available data:
-    // "fivoxSynapses:///gpfs/bbp.cscs.ch/home/nachbaur/BlueConfig_3m#L23_DBC",
+    // "fivoxSynapses:///gpfs/bbp.cscs.ch/home/nachbaur/BlueConfig_3m,target=L23_DBC",
     // "fivoxSpikes:///gpfs/bbp.cscs.ch/home/nachbaur/BlueConfig_3m",
     const lunchbox::Strings uris = { "fivox://", "fivoxSomas://",
                                      "fivoxSpikes://", "fivoxSynapses://" };
