@@ -51,10 +51,10 @@ if(BBPTESTDATA_FOUND)
   list(APPEND FIVOX_LINK_LIBRARIES BBPTestData)
 endif()
 
-if(ISC_FOUND)
+if(MONSTEER_FOUND)
   list(APPEND FIVOX_SOURCES
     spikeLoader.cpp )
-  list(APPEND FIVOX_LINK_LIBRARIES ISC)
+  list(APPEND FIVOX_LINK_LIBRARIES Monsteer)
 endif()
 
 common_library(Fivox)
