@@ -67,7 +67,7 @@ public:
     {
         ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
         const uint32_t frame = node.getNodeId().getFrame();
-        if( loader->load( frame ))
+        if( !loader->load( frame ))
             return livre::MemoryUnitPtr();
 
         // Alloc voxels
