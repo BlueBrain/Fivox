@@ -41,7 +41,7 @@ DensityFunctor< TImage >::operator()( const TPoint& itkPoint,
     for( size_t i = 0; i < components; ++i )
     {
         point[i] = itkPoint[i];
-        spacing_2 = itkSpacing[i] * 0.5;
+        spacing_2[i] = itkSpacing[i] * 0.5;
     }
 
     const AABBf region( point - spacing_2, point + spacing_2 );
