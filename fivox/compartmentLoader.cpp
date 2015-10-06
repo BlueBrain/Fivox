@@ -38,8 +38,6 @@ public:
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
         , _dt( params.getDt( ))
-        , _reportStartTime( _reader.getStartTime( ))
-        , _reportEndTime( _reader.getEndTime( ))
     {
         const bbp::Cell_Target& target_ = _reader.getCellTarget();
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
@@ -121,12 +119,14 @@ public:
 
     Vector2ui getFrameRange()
     {
-        uint32_t endFrame = ( _reportEndTime - _reportStartTime ) / _dt;
-        if( (( _reportEndTime - _reportStartTime )  - endFrame * _dt) >
-            std::numeric_limits<double>::epsilon( ))
-            ++endFrame;
+        const float reportTime = _reader.getEndTime() - _reader.getStartTime();
+        const uint32_t numFrames = reportTime / _dt;
 
-        return Vector2ui( 0, endFrame );
+        if( std::fmod( reportTime, _dt ) >
+                std::numeric_limits<double>::epsilon( ))
+            return Vector2ui( 0, numFrames + 1 );
+
+        return Vector2ui( 0, numFrames );
     }
 
 private:
@@ -137,8 +137,6 @@ private:
 
     float _currentTime;
     float _dt;
-    float _reportStartTime;
-    float _reportEndTime;
 };
 
 CompartmentLoader::CompartmentLoader( const URIHandler& params )

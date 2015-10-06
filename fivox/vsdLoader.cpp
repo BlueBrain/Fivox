@@ -22,8 +22,6 @@ public:
         , _areas( *_experiment.reports().find( "area" ), _target )
         , _currentFrameId( 0xFFFFFFFFu )
         , _dt( params.getDt( ))
-        , _reportStartTime( _voltages.getStartTime())
-        , _reportEndTime( _voltages.getEndTime())
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _target, bbp::NEURONS | bbp::MORPHOLOGIES );
@@ -123,8 +121,8 @@ public:
 
     Vector2ui getFrameRange()
     {
-       return Vector2ui( _reportStartTime / _dt,
-                         _reportEndTime / _dt );
+       return Vector2ui( _voltages.getStartTime() / _dt,
+                         _voltages.getEndTime() / _dt );
     }
 
 private:
@@ -139,8 +137,6 @@ private:
 
     uint32_t _currentFrameId;
     float _dt;
-    float _reportStartTime;
-    float _reportEndTime;
 };
 
 VSDLoader::VSDLoader( const URIHandler& params )

@@ -33,6 +33,7 @@ public:
         , _dt( params.getDt( ))
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
+        , _spikesEnd( 0.f )
         , _magnitude( 100000.f / _duration )
     {
         LBINFO << "Loading circuit..." << std::endl;
@@ -100,9 +101,9 @@ public:
         std::unique_ptr< lunchbox::MemoryMap > spikesFile
                 ( new lunchbox::MemoryMap( spikes ));
         const size_t size = spikesFile->getSize();
-        if( (size % sizeof( uint32_t )) != 0 )
+        if(( size % sizeof( uint32_t )) != 0 )
             return false;
-        const size_t nElems = spikesFile->getSize() / sizeof( uint32_t );
+        const size_t nElems = size / sizeof( uint32_t );
         const uint32_t* iData = spikesFile->getAddress< uint32_t >();
         size_t index = 0;
 
@@ -115,7 +116,8 @@ public:
 
         _spikesFile = std::move( spikesFile );
         const float* fData = _spikesFile->getAddress< float >();
-        _spikesStart = fData[index]; // first spike after header
+        _spikesStart = fData[index]; // first spike timestamp after header
+        _spikesEnd = fData[nElems - 2]; // last spike timestamp
         return true;
     }
 
@@ -152,7 +154,7 @@ public:
 
     Vector2ui getFrameRange( )
     {
-        if( _spikesReader->isStream( ) )
+        if( _spikesReader && _spikesReader->isStream( ))
         {
             lunchbox::ScopedWrite mutex( _getSpikesLock );
             const monsteer::Spikes& spikes = _spikesReader->getSpikes();
@@ -186,7 +188,7 @@ private:
             const float time = fData[ i ];
             if( time < start )
                 continue;
-            else if( once )
+            if( once )
             {
                 // remember this time for next start that might come after
                 _previousStart = std::make_pair( start, i );

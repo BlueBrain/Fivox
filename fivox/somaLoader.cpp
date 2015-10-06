@@ -25,8 +25,6 @@ public:
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
         , _dt( params.getDt( ))
-        , _reportStartTime( _reader.getStartTime( ))
-        , _reportEndTime( _reader.getEndTime( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
@@ -73,8 +71,8 @@ public:
 
     Vector2ui getFrameRange()
     {
-       return Vector2ui( _reportStartTime / _dt,
-                         _reportEndTime / _dt );
+       return Vector2ui( _reader.getStartTime() / _dt,
+                         _reader.getEndTime() / _dt );
     }
 
 private:
@@ -84,8 +82,6 @@ private:
 
     float _currentTime;
     float _dt;
-    float _reportStartTime;
-    float _reportEndTime;
 };
 
 SomaLoader::SomaLoader( const URIHandler& params )
