@@ -121,8 +121,8 @@ public:
 
     Vector2ui getFrameRange()
     {
-       return Vector2ui( _voltages.getStartTime() / _dt,
-                         _voltages.getEndTime() / _dt );
+        return Vector2ui( std::floor( _voltages.getStartTime() / _dt ),
+                          std::ceil( _voltages.getEndTime() / _dt ));
     }
 
 private:

@@ -90,9 +90,9 @@ public:
                << std::endl;
         _spikesReader.reset(
                     new monsteer::SpikeReportReader( lunchbox::URI( spikes )));
-        _spikesStart = _spikesReader->isStream() ? 0.0 :
+        _spikesStart = _spikesReader->isStream() ? 0.f :
                                                 _spikesReader->getStartTime();
-        _spikesEnd = _spikesReader->isStream() ? 0.0 :
+        _spikesEnd = _spikesReader->isStream() ? 0.f :
                                                 _spikesReader->getEndTime();
     }
 
@@ -154,7 +154,13 @@ public:
 
     Vector2ui getFrameRange( )
     {
-        if( _spikesReader && _spikesReader->isStream( ))
+        // All spikes already available; return usual range.
+        if( !_spikesReader || _spikesReader->hasEnded( ))
+            return Vector2ui( std::floor( _spikesStart / _dt ),
+                              std::ceil( _spikesEnd / _dt ));
+
+        // Streaming in progress; Only report fully finished frames.
+        if( _spikesReader )
         {
             lunchbox::ScopedWrite mutex( _getSpikesLock );
             const monsteer::Spikes& spikes = _spikesReader->getSpikes();
@@ -164,8 +170,8 @@ public:
                 _spikesEnd = spikes.getEndTime();
             }
         }
-        return Vector2ui( _spikesStart / _dt,
-                          _spikesEnd / _dt );
+        return Vector2ui( std::floor( _spikesStart / _dt ),
+                          std::floor( _spikesEnd / _dt ));
     }
 
 private:

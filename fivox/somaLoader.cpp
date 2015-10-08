@@ -71,8 +71,8 @@ public:
 
     Vector2ui getFrameRange()
     {
-       return Vector2ui( _reader.getStartTime() / _dt,
-                         _reader.getEndTime() / _dt );
+        return Vector2ui( std::floor( _reader.getStartTime() / _dt ),
+                          std::ceil( _reader.getEndTime() / _dt ));
     }
 
 private:

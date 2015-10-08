@@ -120,12 +120,7 @@ public:
     Vector2ui getFrameRange()
     {
         const float reportTime = _reader.getEndTime() - _reader.getStartTime();
-        const uint32_t numFrames = reportTime / _dt;
-
-        if( std::fmod( reportTime, _dt ) >
-                std::numeric_limits<double>::epsilon( ))
-            return Vector2ui( 0, numFrames + 1 );
-
+        const uint32_t numFrames = std::ceil( reportTime / _dt );
         return Vector2ui( 0, numFrames );
     }
 
