@@ -29,6 +29,9 @@
 #include <livre/core/data/MemoryUnit.h>
 #include <livre/core/version.h>
 
+#include <lunchbox/scopedMutex.h>
+#include <lunchbox/pluginRegisterer.h>
+
 extern "C" int LunchboxPluginGetVersion() { return LIVRECORE_VERSION_ABI; }
 extern "C" bool LunchboxPluginRegister()
 {

@@ -53,18 +53,18 @@ public:
     /** Set a new functor. */
     void setFunctor( FunctorPtr functor );
 
-    virtual const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const
+    const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const override
         { return _splitter; }
 
 protected:
     ImageSource();
     ~ImageSource() {}
 
-    void PrintSelf(std::ostream & os, itk::Indent indent) const;
+    void PrintSelf(std::ostream & os, itk::Indent indent) const override;
 
     /** ImageSource is implemented as a multithreaded filter. */
     void ThreadedGenerateData( const ImageRegionType& outputRegionForThread,
-                               itk::ThreadIdType threadId );
+                               itk::ThreadIdType threadId ) override;
 
 private:
     ImageSource(const Self &); //purposely not implemented

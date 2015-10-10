@@ -29,8 +29,6 @@ inline float _testSDKKernel(
     const size_t size, const float expectedValue, const vmml::Vector2ui& range )
 {
     typedef itk::Image< T, 3 > Image;
-    typedef fivox::ImageSource< Image > Filter;
-    typedef typename Filter::Functor Functor;
 
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
@@ -61,7 +59,8 @@ inline float _testSDKKernel(
     filter->Update();
 #else
     std::ostringstream os;
-    os << size << '_' << typeid( *source ).name() << '_' << typeid( T ).name()
+    fivox::EventSource& sourceRef = *source;
+    os << size << '_' << typeid( sourceRef ).name() << '_' << typeid( T ).name()
        << ".mhd";
 
     typedef itk::ImageFileWriter< Image > Writer;
