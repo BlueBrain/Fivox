@@ -124,7 +124,7 @@ public:
     bool load( const float start )
     {
         if( start == _currentTime )
-            return false;
+            return true;
         _currentTime = start;
 
         lunchbox::setZero( _spikesPerNeuron.data(),
