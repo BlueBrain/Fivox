@@ -100,9 +100,9 @@ BOOST_AUTO_TEST_CASE(URIHandlerVSD)
 #endif
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Layer1" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "allvoltage" );
+    BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
+    BOOST_CHECK_EQUAL( handler.getReport(), "soma" );
 #endif
 }

@@ -126,9 +126,14 @@ public:
         const std::string& report( _get( "report" ));
         if( report.empty( ))
         {
-            if( getType() == SOMAS )
+            switch( getType( ))
+            {
+            case SOMAS:
+            case VSD:
                 return useTestData ? "voltage" : "soma";
-            return useTestData ? "allvoltage" : "voltage";
+            default:
+                return useTestData ? "allvoltage" : "voltage";
+            }
         }
         return report;
     }

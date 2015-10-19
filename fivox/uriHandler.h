@@ -64,9 +64,9 @@ public:
     /**
      * Get the specified report name.
      *
-     * If the given report is empty, returns 'soma' (for volume type soma) or
-     * 'voltage' (for all others), or the default reports if test data circuit
-     * is used.
+     * If the given report is empty, returns 'soma' (for soma and vsd loaders)
+     * or 'voltage' (for all others), or the default reports if test data
+     * circuit is used.
      *
      * @return the specified report name.
      */

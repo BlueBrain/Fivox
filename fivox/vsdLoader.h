@@ -15,8 +15,8 @@ namespace fivox
  * Loads report data for voltage sensitive dye sampling.
  *
  * Expects an 'area' full compartment report with a single timestep containing
- * the surface areas of each compartment, and a 'voltages' soma report
- * containing the soma voltages for the given timestep.
+ * the surface areas of each compartment, and a soma report containing the soma
+ * voltages for the given timestep.
  */
 class VSDLoader : public EventSource
 {

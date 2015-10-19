@@ -18,7 +18,7 @@ public:
         , _experiment( params.getConfig( ))
         , _target( _experiment.cell_target(
                        params.getTarget( _experiment.circuit_target( ))))
-        , _voltages( *_experiment.reports().find( "v_comp" ), _target )
+        , _voltages( *_experiment.reports().find( params.getReport( )), _target)
         , _areas( *_experiment.reports().find( "area" ), _target )
         , _currentFrameId( 0xFFFFFFFFu )
         , _dt( params.getDt( ))
