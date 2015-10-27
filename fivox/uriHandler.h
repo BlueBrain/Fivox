@@ -79,14 +79,26 @@ public:
      */
     float getDt() const;
 
-
+    /** @return URI to spikes source, empty by default */
     std::string getSpikes() const;
+
     /**
      * Get the specified duration.
      *
      * @return the specified duration. If invalid or empty, return getDt().
      */
     float getDuration() const;
+
+    /**
+     * Get the magnitude value which is mulitplied on each sampled voxel value.
+     * The default magnitude depends on VolumeType:
+     * - 0.1 for COMPARTMENTS and SOMAS
+     * - 1.5 / getDuration() for SPIKES
+     * - 1.0 for SYNAPSES and VSD
+     *
+     * @return magnitude for each voxel (multiplied on its sampled value)
+     */
+    float getMagnitude() const;
 
     /**
      * Get the specified path to a dye curve file
@@ -104,8 +116,8 @@ public:
     /**
      * Get the specified maximum size per block (bytes).
      *
-     * @return the specified maximum size per block. If invalid or empty,
-     * return 64MB
+     * @return the specified maximum size per block. If invalid or empty, return
+     *         64MB
      */
     size_t getMaxBlockSize() const;
 
@@ -115,6 +127,18 @@ public:
      * @return the type of the volume
      */
     VolumeType getType() const;
+
+    /**
+     * Available functors are "density", "field" and "frequency". If "functor"
+     * is unspecified, the default functor for the VolumeType is returned:
+     * - FUNCTOR_DENSITY for SYNAPSES
+     * - FUNCTOR_FREQUENCY for SPIKES
+     * - FUNCTOR_FIELD for COMPARTMENTS, SOMAS and VSD
+     *
+     * @return the type of the functor to use, use VolumeType default functor
+     *          if unspecified.
+     */
+    FunctorType getFunctorType() const;
 
     /** @return a new image source for the given parameters and pixel type. */
     template< class T >

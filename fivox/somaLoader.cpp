@@ -25,6 +25,7 @@ public:
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
         , _dt( params.getDt( ))
+        , _magnitude( params.getMagnitude( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
@@ -40,7 +41,6 @@ public:
             return true;
         _currentTime = time;
 
-        static const float magnitude = .1f; // heuristic
         bbp::CompartmentReportFrame frame;
         if( !_reader.loadFrame( time, frame ))
         {
@@ -55,8 +55,8 @@ public:
         const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
         size_t i = 0;
         BOOST_FOREACH( const bbp::Neuron& neuron, neurons )
-            _output.update( i++, magnitude * ( neuron.voltage() -
-                                               brion::MINIMUM_VOLTAGE ));
+            _output.update( i++, _magnitude * ( neuron.voltage() -
+                                                brion::MINIMUM_VOLTAGE ));
         return true;
     }
 
@@ -82,6 +82,7 @@ private:
 
     float _currentTime;
     float _dt;
+    const float _magnitude;
 };
 
 SomaLoader::SomaLoader( const URIHandler& params )

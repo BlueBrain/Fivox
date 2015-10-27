@@ -12,6 +12,7 @@ set(FIVOX_PUBLIC_HEADERS
   eventFunctor.h
   eventSource.h
   fieldFunctor.h
+  frequencyFunctor.h
   imageSource.h
   imageSource.hxx
   itk.h

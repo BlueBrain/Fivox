@@ -34,7 +34,7 @@ public:
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
         , _spikesEnd( 0.f )
-        , _magnitude( 100000.f / _duration )
+        , _magnitude( params.getMagnitude( ))
     {
         LBINFO << "Loading circuit..." << std::endl;
         const brion::Circuit circuit( _experiment.circuit_source() +

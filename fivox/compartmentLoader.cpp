@@ -38,6 +38,7 @@ public:
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
         , _dt( params.getDt( ))
+        , _magnitude( params.getMagnitude( ))
     {
         const bbp::Cell_Target& target_ = _reader.getCellTarget();
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
@@ -81,8 +82,6 @@ public:
             return true;
         _currentTime = time;
 
-        static const float magnitude = 0.1f; // heuristic
-
         bbp::CompartmentReportFrame frame;
         if( !_reader.loadFrame( time, frame ))
         {
@@ -99,7 +98,7 @@ public:
 
             for( uint64_t offset = info.offset; offset < end; ++offset )
             {
-                _output.update( index++, magnitude * (( *voltages )[ offset ] -
+                _output.update( index++, _magnitude * (( *voltages )[ offset ] -
                                                       brion::MINIMUM_VOLTAGE ));
             }
         }
@@ -132,6 +131,7 @@ private:
 
     float _currentTime;
     float _dt;
+    const float _magnitude;
 };
 
 CompartmentLoader::CompartmentLoader( const URIHandler& params )
