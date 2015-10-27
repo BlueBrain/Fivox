@@ -53,13 +53,13 @@ public:
     /**
      * Get the specified target name.
      *
-     * If no target is specified will return the given default target. If this
-     * is not specified (and TestData is available), will return 'Column' when
-     * using spikes or synapses, 'Layer1' otherwise.
-     *
-     * @return the specified target name.
+     * @return If no target was given at construction return the given
+     *         default target.
+     *         If this is also empty (and TestData is available), return
+     *         'Column' when using spikes or synapses, 'Layer1' otherwise.
      */
     std::string getTarget( const std::string& defaultTarget ) const;
+    std::string getTarget() const;
 
     /**
      * Get the specified report name.

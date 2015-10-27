@@ -2,13 +2,16 @@
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *                          Daniel.Nachbaur@epfl.ch
+ *                          Juan Hernando <jhernando@fi.upm.es>
  */
 
 #include "somaLoader.h"
 #include "event.h"
 #include "uriHandler.h"
 
-#include <BBP/BBP.h>
+#include <brion/brion.h>
+#include <brain/circuit.h>
+#include <lunchbox/bitOperation.h>
 
 #ifdef final
 #  undef final
@@ -16,44 +19,50 @@
 
 namespace fivox
 {
+using boost::lexical_cast;
+
 class SomaLoader::Impl
 {
 public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( params.getConfig( ))
-        , _reader( *_experiment.reports().find( params.getReport( )),
-                   _experiment.cell_target(
-                       params.getTarget( _experiment.circuit_target( ))))
+        , _config( params.getConfig( ))
+        , _report( _config.getReportSource( params.getReport( )),
+                   brion::MODE_READ, _config.parseTarget( params.getTarget( )))
     {
-        bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-        microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
+        const brion::GIDSet& gids = _report.getGIDs();
+        brain::Circuit circuit( _config );
+        brain::Vector3fs positions = circuit.getPositions( gids );
 
-        const bbp::Neurons& neurons = microcircuit.neurons();
-        for( const bbp::Neuron& neuron : neurons )
-            output.add( Event( neuron.position(), 0.f ));
+        for( size_t i = 0; i < gids.size(); ++i )
+            output.add( Event( positions[i], 0.f ));
     }
 
     bool load( const float time )
     {
-        bbp::CompartmentReportFrame frame;
-        if( !_reader.loadFrame( time, frame ))
+        const brion::floatsPtr frame = _report.loadFrame( time );
+        if( !frame )
         {
             LBERROR << "Could not load frame at " << time << "ms" << std::endl;
             return false;
         }
 
-        _experiment.microcircuit().update( frame );
-        const bbp::Neurons& neurons = _experiment.microcircuit().neurons();
-        size_t i = 0;
-        for( const bbp::Neuron& neuron : neurons )
-            _output.update( i++, neuron.voltage() - brion::MINIMUM_VOLTAGE );
+        const brion::GIDSet& gids = _report.getGIDs();
+        const brion::SectionOffsets& offsets = _report.getOffsets();
+        const std::vector< float > voltages = *frame;
+
+        for( size_t i = 0; i < gids.size(); ++i )
+        {
+            // This code assumes that section 0 is the soma.
+            const float v = voltages[offsets[i][0]] - brion::MINIMUM_VOLTAGE;
+            _output.update( i, v );
+        }
         return true;
     }
 
     fivox::EventSource& _output;
-    bbp::Experiment _experiment;
-    bbp::CompartmentReportReader _reader;
+    brion::BlueConfig _config;
+    brion::CompartmentReport _report;
 };
 
 SomaLoader::SomaLoader( const URIHandler& params )
@@ -61,7 +70,7 @@ SomaLoader::SomaLoader( const URIHandler& params )
     , _impl( new SomaLoader::Impl( *this, params ))
 {
     if( getDt() < 0.f )
-        setDt( _impl->_reader.getTimestep( ));
+        setDt( _impl->_report.getTimestep( ));
 }
 
 SomaLoader::~SomaLoader()
@@ -69,8 +78,8 @@ SomaLoader::~SomaLoader()
 
 Vector2f SomaLoader::_getTimeRange() const
 {
-    return Vector2f( _impl->_reader.getStartTime(),
-                     _impl->_reader.getEndTime( ));
+    return Vector2f( _impl->_report.getStartTime(),
+                     _impl->_report.getEndTime( ));
 }
 
 bool SomaLoader::_load( const float time )

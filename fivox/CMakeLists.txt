@@ -45,7 +45,7 @@ if(BBPSDK_FOUND)
     somaLoader.cpp
     synapseLoader.cpp
     vsdLoader.cpp)
-  list(APPEND FIVOX_LINK_LIBRARIES BBPSDK)
+  list(APPEND FIVOX_LINK_LIBRARIES BBPSDK Brain)
 endif()
 
 if(BBPTESTDATA_FOUND)

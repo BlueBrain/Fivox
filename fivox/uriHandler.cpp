@@ -85,7 +85,8 @@ public:
     explicit Impl( const std::string& parameters )
         : uri( parameters )
         , config( uri.getPath( ))
-        , target( _get( "target" ).empty() ? uri.getFragment() : _get( "target" ))
+        , target( _get( "target" ).empty() ? uri.getFragment() :
+                                             _get( "target" ))
 #ifdef FIVOX_USE_BBPTESTDATA
         , useTestData( config.empty( ))
 #else
@@ -262,6 +263,11 @@ std::string URIHandler::getConfig() const
 std::string URIHandler::getTarget( const std::string& defaultTarget ) const
 {
     return _impl->getTarget( defaultTarget );
+}
+
+std::string URIHandler::getTarget() const
+{
+    return _impl->getTarget( std::string( ));
 }
 
 std::string URIHandler::getReport() const
