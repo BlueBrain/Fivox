@@ -8,7 +8,6 @@
 #include "event.h"
 #include "uriHandler.h"
 
-#include <BBP/BBP.h>
 #include <brion/brion.h>
 #include <monsteer/streaming/spikeReportReader.h>
 #include <monsteer/streaming/spikes.h>
@@ -30,26 +29,23 @@ class SpikeLoader::Impl
 public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( params.getConfig( ))
+        , _config( params.getConfig( ))
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
         , _spikesEnd( 0.f )
     {
         LBINFO << "Loading circuit..." << std::endl;
-        const brion::Circuit circuit( _experiment.circuit_source() +
-                                      "/circuit.mvd2" );
-        const std::string& target = params.getTarget(
-                                        _experiment.circuit_target( ));
 
-        LBINFO << "Loading target " << target << "..." << std::endl;
-        const brion::Targets targets {
-            brion::Target( _experiment.target_source() + "/start.target" ),
-            brion::Target( _experiment.user_target_source( )) };
-        const brion::GIDSet& gids = brion::Target::parse( targets, target );
+        const brion::Circuit circuit( _config.getCircuitSource( ));
+        LBINFO << "Loading default circuit target " << std::endl;
+        const brion::GIDSet& gids =
+            _config.parseTarget(
+                params.getTarget( _config.getCircuitTarget( )));
 
         if( gids.empty( ))
-            LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
-                                         "' in " + params.getConfig( )));
+            LBTHROW( std::runtime_error(
+                         "No GIDs found for default circuit target in "+
+                         params.getConfig( )));
 
         LBINFO << "Loading spikes for " << gids.size() << " cells..."
                << std::endl;
@@ -69,7 +65,9 @@ public:
             _gidIndex[gid] = i++;
         }
         _spikesPerNeuron.resize( gids.size( ));
-        _loadSpikes( params.getSpikes( ));
+        const std::string& spikePath = params.getSpikes();
+        _loadSpikes( spikePath.empty() ? _config.getSpikeSource() :
+                                         brion::URI( spikePath ));
 
         LBINFO << "Finished loading of " << gids.size() << " neurons"
                << std::endl;
@@ -89,18 +87,14 @@ public:
         }
     }
 
-    void _loadSpikes( std::string spikes )
+    void _loadSpikes( const brion::URI& spikes )
     {
-        if( spikes.empty( ))
-            spikes = _experiment.spikes_source().getPath();
-
-        if( _loadBinarySpikes( spikes ))
+        if( _loadBinarySpikes( spikes.getPath( )))
             return;
 
         LBINFO << "No valid binary .spikes file found, loading from .dat..."
                << std::endl;
-        _spikesReader.reset(
-                    new monsteer::SpikeReportReader( lunchbox::URI( spikes )));
+        _spikesReader.reset( new monsteer::SpikeReportReader( spikes ));
         _spikesStart = _spikesReader->isStream() ? 0.f :
                                                 _spikesReader->getStartTime();
         _spikesEnd = _spikesReader->isStream() ? 0.f :
@@ -195,7 +189,7 @@ public:
         size_t numSpikes = 0;
         lunchbox::ScopedWrite mutex( _getSpikesLock );
         const monsteer::Spikes& spikes = _spikesReader->getSpikes( start, end );
-        for( const bbp::Spike& spike: spikes )
+        for( const brion::Spike& spike : spikes )
         {
             if( spike.second >= _gidIndex.size( ))
                 continue;
@@ -208,7 +202,7 @@ public:
     }
 
     fivox::EventSource& _output;
-    const bbp::Experiment_Specification _experiment;
+    const brion::BlueConfig _config;
     const float _duration;
     float _spikesStart;
     float _spikesEnd;
@@ -237,7 +231,7 @@ SpikeLoader::SpikeLoader( const URIHandler& params )
     , _impl( new Impl( *this, params ))
 {
     if( getDt() < 0.f )
-        setDt( _impl->_experiment.timestep( ));
+        setDt( _impl->_config.getTimestep( ));
 }
 
 SpikeLoader::~SpikeLoader()
