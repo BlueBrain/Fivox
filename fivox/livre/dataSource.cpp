@@ -175,13 +175,16 @@ DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
     vmml::Vector3ui blockDim( std::ceil( blockResolution.x( )),
                               std::ceil( blockResolution.y( )),
                               std::ceil( blockResolution.z( )));
-    blockDim.x() -= (blockDim.x() % 8);
-    blockDim.y() -= (blockDim.y() % 8);
-    blockDim.z() -= (blockDim.z() % 8);
+    if( blockDim.x() > 8 )
+        blockDim.x() -= (blockDim.x() % 8);
+    if( blockDim.y() > 8 )
+        blockDim.y() -= (blockDim.y() % 8);
+    if( blockDim.z() > 8 )
+        blockDim.z() -= (blockDim.z() % 8);
 
     const size_t treeQuotient = 1 << depth;
     const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
-    _impl->_borders = vmml::Vector3f( totalTreeSize / resolution ) -
+    _impl->_borders = vmml::Vector3f( totalTreeSize ) / resolution -
                       bbox.getDimension();
 
     _volumeInfo.voxels = totalTreeSize;

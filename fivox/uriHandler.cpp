@@ -51,7 +51,7 @@ EventSourcePtr _newLoader( const URIHandler& data )
     switch( data.getType( ))
     {
     case SOMAS:        return std::make_shared< SomaLoader >( data );
-    case COMPARTMENTS: return std::make_shared< CompartmentLoader >( data);
+    case COMPARTMENTS: return std::make_shared< CompartmentLoader >( data );
     case VSD:          return std::make_shared< VSDLoader >( data );
     case SPIKES:       return std::make_shared< SpikeLoader >( data );
     case SYNAPSES:     return std::make_shared< SynapseLoader >( data );
