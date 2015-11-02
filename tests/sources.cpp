@@ -104,12 +104,12 @@ BOOST_AUTO_TEST_CASE( Sources )
     // Reference mean expected values for uris:
     const float byteRef[] = { 0.896484375f,  // (a)
                               0.521484375f,  // (b)
-                              0.013671875f,  // (c)
+                              0.7421875f,    // (c)
                               0.03515625f    // (d)
                             };
     const float floatRef[] = { 0.0047158297430449636f,  // (a)
                                0.0034715187880252074f,  // (b)
-                               8.9044979517893807e-05f, // (c)
+                               0.0029296876164153218f,  // (c)
                                0.00017834029219887526f  // (d)
                              };
     // (a) Compartement report 'allvoltage' (binary) contains timestamps

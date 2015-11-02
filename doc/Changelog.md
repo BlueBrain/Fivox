@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [18462](https://bbpcode.epfl.ch/code/#/c/18462/)
+  Added new frequency functor, make more parameters configurable in URI
 * [15814](https://bbpcode.epfl.ch/code/#/c/15814/)
   Fix underflow events by using the newly introduced MINIMUM_VOLTAGE in the
   voltage-related loaders

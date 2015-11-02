@@ -22,6 +22,7 @@ public:
         , _areas( *_experiment.reports().find( "area" ), _target )
         , _currentFrameId( 0xFFFFFFFFu )
         , _dt( params.getDt( ))
+        , _magnitude( params.getMagnitude( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _target, bbp::NEURONS | bbp::MORPHOLOGIES );
@@ -97,7 +98,7 @@ public:
                     const float depth = yMax - event.position[1];
                     const float eventValue = normVoltage * (*areas)[offset++] *
                                                  _curve.getAttenuation( depth );
-                    _output.update( index++, eventValue );
+                    _output.update( index++, _magnitude * eventValue );
                 }
                 ++j;
                 LBVERB << section.id() << std::endl;
@@ -137,6 +138,7 @@ private:
 
     uint32_t _currentFrameId;
     float _dt;
+    const float _magnitude;
 };
 
 VSDLoader::VSDLoader( const URIHandler& params )

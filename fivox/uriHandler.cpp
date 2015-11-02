@@ -23,6 +23,7 @@
 #include <fivox/compartmentLoader.h>
 #include <fivox/densityFunctor.h>
 #include <fivox/fieldFunctor.h>
+#include <fivox/frequencyFunctor.h>
 #include <fivox/imageSource.h>
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
@@ -62,18 +63,17 @@ EventSourcePtr _newLoader( const URIHandler& data )
 template< class T > std::shared_ptr< EventFunctor< itk::Image< T, 3 >>>
 _newFunctor( const URIHandler& data )
 {
-    switch( data.getType( ))
+    switch( data.getFunctorType( ))
     {
-    case SOMAS:
-    case COMPARTMENTS:
-    case VSD:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>();
-
-    case SPIKES:
-    case SYNAPSES:
+    case FUNCTOR_DENSITY:
         return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
-
-    default: return nullptr;
+    case FUNCTOR_FIELD:
+        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>();
+    case FUNCTOR_FREQUENCY:
+        return std::make_shared< FrequencyFunctor< itk::Image< T, 3  >>>();
+    case FUNCTOR_UNKNOWN:
+    default:
+        return nullptr;
     }
 }
 }
@@ -139,14 +139,38 @@ public:
     }
 
     float getDt() const { return _get( "dt", _dt ); }
+
     std::string getSpikes() const { return _get( "spikes" ); }
+
     float getDuration() const { return _get( "duration",  getDt( )); }
-    std::string getDyeCurve() const { return _get( "dyecurve" ); }
-    float getResolution() const { return _get( "resolution", _resolution ); }
-    size_t getMaxBlockSize() const
+
+    float getMagnitude() const
     {
-        return _get( "maxBlockSize", _maxBlockSize );
+        float defaultValue = 1.f;
+        switch( getType( ))
+        {
+        case COMPARTMENTS:
+        case SOMAS:
+            defaultValue = 0.1f;
+            break;
+        case SPIKES:
+            defaultValue = 1.5f / getDuration();
+            break;
+        case SYNAPSES:
+        case VSD:
+        default:
+            break;
+        }
+
+        return _get( "magnitude", defaultValue );
     }
+
+    std::string getDyeCurve() const { return _get( "dyecurve" ); }
+
+    float getResolution() const { return _get( "resolution", _resolution ); }
+
+    size_t getMaxBlockSize() const
+        { return _get( "maxBlockSize", _maxBlockSize ); }
 
     VolumeType getType() const
     {
@@ -164,6 +188,30 @@ public:
 
         LBERROR << "Unknown URI scheme: " << scheme << std::endl;
         return UNKNOWN;
+    }
+
+    FunctorType getFunctorType() const
+    {
+        const std::string& functor = _get( "functor" );
+        if( functor == "density" )
+            return FUNCTOR_DENSITY;
+        if( functor == "field" )
+            return FUNCTOR_FIELD;
+        if( functor == "frequency" )
+            return FUNCTOR_FREQUENCY;
+
+        switch( getType( ))
+        {
+        case SPIKES:
+            return FUNCTOR_FREQUENCY;
+        case SYNAPSES:
+            return FUNCTOR_DENSITY;
+        case COMPARTMENTS:
+        case SOMAS:
+        case VSD:
+        default:
+            return FUNCTOR_FIELD;
+        }
     }
 
 private:
@@ -235,6 +283,11 @@ float URIHandler::getDuration() const
     return _impl->getDuration();
 }
 
+float URIHandler::getMagnitude() const
+{
+    return _impl->getMagnitude();
+}
+
 std::string URIHandler::getDyeCurve() const
 {
     return _impl->getDyeCurve();
@@ -243,8 +296,8 @@ std::string URIHandler::getDyeCurve() const
 float URIHandler::getResolution() const
 {
     return _impl->getResolution();
-
 }
+
 size_t URIHandler::getMaxBlockSize() const
 {
     return _impl->getMaxBlockSize();
@@ -253,6 +306,11 @@ size_t URIHandler::getMaxBlockSize() const
 VolumeType URIHandler::getType() const
 {
     return _impl->getType();
+}
+
+FunctorType URIHandler::getFunctorType() const
+{
+    return _impl->getFunctorType();
 }
 
 template< class T > itk::SmartPointer< ImageSource< itk::Image< T, 3 >>>

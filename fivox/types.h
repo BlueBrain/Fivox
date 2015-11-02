@@ -37,6 +37,15 @@ enum VolumeType
     VSD,          //!< BBP voltage sensitive dye simulation reports
 };
 
+/** Supported functor types */
+enum FunctorType
+{
+    FUNCTOR_UNKNOWN,
+    FUNCTOR_DENSITY,
+    FUNCTOR_FIELD,
+    FUNCTOR_FREQUENCY
+};
+
 }
 
 // ITK forward decls
