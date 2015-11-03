@@ -9,49 +9,66 @@
 #include "event.h"
 #include "uriHandler.h"
 
-#include <BBP/BBP.h>
+#include <brion/brion.h>
+#include <brain/circuit.h>
+#include <brain/morphology.h>
 
 namespace fivox
 {
+
 class VSDLoader::Impl
 {
 public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( params.getConfig( ))
-        , _target( _experiment.cell_target(
-                       params.getTarget( _experiment.circuit_target( ))))
-        , _voltages( *_experiment.reports().find( params.getReport( )), _target)
-        , _areas( *_experiment.reports().find( "area" ), _target )
+        , _config( params.getConfig( ))
+        , _target( _config.parseTarget( params.getTarget( )))
+        , _voltageReport( _config.getReportSource( params.getReport( )),
+                          brion::MODE_READ, _target)
+        , _areaReport( _config.getReportSource( "area" ),
+                       brion::MODE_READ, _target )
     {
-        bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-        microcircuit.load( _target, bbp::NEURONS | bbp::MORPHOLOGIES );
-        _areas.updateMapping( _target );
+        _areaReport.updateMapping( _target );
+        _voltageReport.updateMapping( _target );
 
-        if( !_areas.loadFrame( 0.f, _areasFrame ))
+        const brain::Circuit circuit( _config );
+        const auto morphologies = circuit.loadMorphologies(
+            _target, brain::Circuit::COORDINATES_GLOBAL );
+
+        _areas = _areaReport.loadFrame( 0.f );
+        if( !_areas )
             throw std::runtime_error( "Can't load 'area' vsd report" );
 
-        size_t index = 0;
-        for( const uint32_t gid : _target )
-        {
-            const bbp::Neuron& neuron = microcircuit.neuron( gid );
-            output.add( Event( neuron.position(), 0.f));
+        _circuitSectionIDs.reserve( _target.size( ));
 
-            // The next statement is triggering the creation of a morphology
-            // in global coordinates. We will admit it despite if effectively
-            // doubles the memory usage at best because this code is to going
-            // to be changed in the very near future.
-            const bbp::Sections& sections = neuron.dendrites();
-            for( const bbp::Section& section : sections )
+        for( size_t i = 0; i != morphologies.size(); ++i )
+        {
+            const brain::Morphology& morphology = *morphologies[i];
+            _circuitSectionIDs[i] =
+                morphology.getSectionIDs({ brion::SECTION_SOMA,
+                                           brion::SECTION_DENDRITE,
+                                           brion::SECTION_APICAL_DENDRITE });
+
+            for( auto sectionId : _circuitSectionIDs[i] )
             {
-                const size_t nCompartments =
-                    _areas.getCompartmentCounts()[index][section.id()];
+                const auto& counts =
+                    _areaReport.getCompartmentCounts()[i];
+                assert( sectionId < counts.size( ));
+                const size_t nCompartments = counts[sectionId];
+                assert( nCompartments );
+
                 const float length = 1.f / float( nCompartments );
+                brion::floats samples;
+                samples.reserve(nCompartments);
                 for( float k = length * .5f; k < 1.0; k += length )
-                    output.add(
-                        Event( section.cross_section( k ).center(), 0.f ));
+                    samples.push_back( k );
+
+                const auto points =
+                    morphology.getSectionSamples( sectionId, samples );
+                for( const auto& point : points )
+                    output.add( Event( point.get_sub_vector< 3 >(), 0.f ));
             }
-            ++index;
+            ++i;
         }
 
         const float thickness = _output.getBoundingBox().getDimension()[1];
@@ -60,56 +77,34 @@ public:
 
     bool load( const float time )
     {
-        bbp::CompartmentReportFrame voltageFrame;
-        if( !_voltages.loadFrame( time, voltageFrame ))
+        brion::floatsPtr voltages = _voltageReport.loadFrame( time );
+        if( !voltages )
         {
             LBERROR << "Could not load frame at " << time << "ms" <<std::endl;
             return false;
         }
 
-        const bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-        const bbp::floatsPtr& areas = _areasFrame.getData< bbp::floatsPtr >();
-        const bbp::floatsPtr& voltages =
-            voltageFrame.getData< bbp::floatsPtr >();
-        const float yMax = _output.getBoundingBox().getMax()[1];
-
         size_t eventIndex = 0;
-        size_t i = 0;
-        for( const uint32_t gid : _target )
+        const float yMax = _output.getBoundingBox().getMax()[1];
+        for( size_t n = 0; n != _target.size(); ++n)
         {
-            const bbp::Neuron& neuron = microcircuit.neuron( gid );
-            const size_t somaID = neuron.soma().id();
-            assert( _voltages.getCompartmentCounts()[i][somaID] == 1 );
-            // New block to avoid shadowing warnings.
+            for( auto id : _circuitSectionIDs[n] )
             {
-                // Nothing guarantees that the offsets are going to be the same.
-                const uint64_t voltageOffset = _voltages.getOffsets()[i][somaID];
-                const uint64_t areaOffset = _areas.getOffsets()[i][somaID];
-                const float voltage = ( *voltages )[voltageOffset];
-                const float area = ( *areas )[areaOffset];
-                _updateEventValue( eventIndex++, voltage, area, yMax );
-            }
-
-            const bbp::Sections& sections = neuron.dendrites();
-            for( const bbp::Section& section : sections )
-            {
-                const uint32_t id = section.id();
-                const size_t nCompartments =_areas.getCompartmentCounts()[i][id];
+                const size_t nCompartments =
+                    _areaReport.getCompartmentCounts()[n][id];
                 assert( nCompartments ==
-                        _voltages.getCompartmentCounts()[i][id] );
-                uint64_t voltageOffset = _voltages.getOffsets()[i][id];
-                uint64_t areaOffset = _areas.getOffsets()[i][id];
+                        _voltageReport.getCompartmentCounts()[n][id] );
+                uint64_t voltageOffset = _voltageReport.getOffsets()[n][id];
+                uint64_t areaOffset = _areaReport.getOffsets()[n][id];
 
                 for( size_t k = 0; k < nCompartments;
                      ++k, ++eventIndex, ++voltageOffset, ++areaOffset )
                 {
                     const float voltage = ( *voltages )[voltageOffset];
-                    const float area = ( *areas )[areaOffset];
+                    const float area = ( *_areas )[areaOffset];
                     _updateEventValue( eventIndex, voltage, area, yMax );
                 }
-                LBVERB << section.id() << std::endl;
             }
-            ++i;
         }
         return true;
     }
@@ -117,11 +112,14 @@ public:
     void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
 
     fivox::EventSource& _output;
-    bbp::Experiment _experiment;
-    const bbp::Cell_Target _target;
-    bbp::CompartmentReportReader _voltages;
-    bbp::CompartmentReportReader _areas;
-    bbp::CompartmentReportFrame _areasFrame;
+
+    brion::BlueConfig _config;
+    brion::GIDSet _target;
+    std::vector< std::vector< uint32_t >> _circuitSectionIDs;
+
+    brion::CompartmentReport _voltageReport;
+    brion::CompartmentReport _areaReport;
+    brion::floatsPtr _areas;
 
     AttenuationCurve _curve;
 
@@ -142,7 +140,7 @@ VSDLoader::VSDLoader( const URIHandler& params )
     , _impl( new VSDLoader::Impl( *this, params ))
 {
     if( getDt() < 0.f )
-        setDt( _impl->_voltages.getTimestep( ));
+        setDt( _impl->_voltageReport.getTimestep( ));
 }
 
 VSDLoader::~VSDLoader()
@@ -155,8 +153,8 @@ void VSDLoader::setCurve( const AttenuationCurve& curve )
 
 Vector2f VSDLoader::_getTimeRange() const
 {
-    return Vector2f( _impl->_voltages.getStartTime(),
-                     _impl->_voltages.getEndTime( ));
+    return Vector2f( _impl->_voltageReport.getStartTime(),
+                     _impl->_voltageReport.getEndTime( ));
 }
 
 bool VSDLoader::_load( const float time )

@@ -27,7 +27,7 @@ namespace fivox
 {
 
 /**
-* Generate volume data sampling BBPSDK simulation reports.
+* Generate volume data sampling BBP simulation reports.
 */
 class DataSource : public livre::VolumeDataSourcePlugin
 {
