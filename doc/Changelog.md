@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+# Release 0.3 (9-Nov-2015){#Release03}
+
 * [18462](https://bbpcode.epfl.ch/code/#/c/18462/)
   Added new frequency functor, make more parameters configurable in URI
 * [15814](https://bbpcode.epfl.ch/code/#/c/15814/)

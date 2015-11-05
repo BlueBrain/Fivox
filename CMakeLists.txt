@@ -16,6 +16,8 @@ set(VERSION_PATCH "0")
 set(VERSION_ABI 3)
 
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
+set(FIVOX_MAINTAINER "BBP Visualization Team <bbp-dev-vizcore@groupes.epfl.ch>")
+set(FIVOX_LICENSE Proprietary)
 
 include(Common)
 
