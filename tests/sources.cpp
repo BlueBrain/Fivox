@@ -119,9 +119,9 @@ BOOST_AUTO_TEST_CASE( Sources )
     // (c) Spikes report timestamps range between 0.25 and 99.95 ms
     // (d) Synapse reports don't have time support and return a 1-frame interval
     // The expected number of 10 ms frames is thus 10 for (a)-(c) and 1 for (d)
-    const vmml::Vector2ui rangeRef[] = { vmml::Vector2ui( 0, 10 ),  // (a)
-                                         vmml::Vector2ui( 0, 10 ),  // (b)
-                                         vmml::Vector2ui( 0, 10 ),  // (c)
+    const vmml::Vector2ui rangeRef[] = { vmml::Vector2ui( 0, 1000 ),  // (a)
+                                         vmml::Vector2ui( 0, 1000 ),  // (b)
+                                         vmml::Vector2ui( 10, 3998 ),  // (c)
                                          vmml::Vector2ui( 0, 1 )    // (d)
                                        };
 

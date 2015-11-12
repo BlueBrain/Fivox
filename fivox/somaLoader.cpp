@@ -27,6 +27,9 @@ public:
         , _dt( params.getDt( ))
         , _magnitude( params.getMagnitude( ))
     {
+        if( _dt < 0.f )
+            _dt = _reader.getTimestep();
+
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
 
@@ -47,9 +50,6 @@ public:
             LBERROR << "Could not load frame at " << time << "ms" << std::endl;
             return false;
         }
-
-        if( _dt < 0.f )
-            _dt = _reader.getTimestep();
 
         _experiment.microcircuit().update( frame );
         const bbp::Neurons& neurons = _experiment.microcircuit().neurons();

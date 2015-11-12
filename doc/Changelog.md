@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [19077](https://bbpcode.epfl.ch/code/#/c/19077/)
+  Dt defaults to experiment/report dt, duration to 10 
+
 # Release 0.3 (9-Nov-2015){#Release03}
 
 * [18462](https://bbpcode.epfl.ch/code/#/c/18462/)

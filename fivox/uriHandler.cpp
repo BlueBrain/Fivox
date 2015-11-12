@@ -43,7 +43,8 @@ namespace fivox
 namespace
 {
 using boost::lexical_cast;
-const float _dt = 10.0f;
+const float _duration = 10.0f;
+const float _dt = -1.0f; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
 const float _resolution = 10.0f; // voxels per unit
 
@@ -142,7 +143,7 @@ public:
 
     std::string getSpikes() const { return _get( "spikes" ); }
 
-    float getDuration() const { return _get( "duration",  getDt( )); }
+    float getDuration() const { return _get( "duration",  _duration ); }
 
     float getMagnitude() const
     {

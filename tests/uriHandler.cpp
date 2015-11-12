@@ -26,7 +26,8 @@ BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
     BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
 #endif
     BOOST_CHECK_EQUAL( handler.getTarget( "foo" ), "foo" );
-    BOOST_CHECK_EQUAL( handler.getDt(), 10.f );
+    BOOST_CHECK_EQUAL( handler.getDt(), -1.f );
+    BOOST_CHECK_EQUAL( handler.getDuration(), 10.0f );
 
     const fivox::URIHandler params1(
         "fivoxcompartment:///path/to/BlueConfig?report=simulation,dt=0.2,target=Column" );
