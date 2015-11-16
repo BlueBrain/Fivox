@@ -159,6 +159,8 @@ public:
             defaultValue = 1.5f / getDuration();
             break;
         case SYNAPSES:
+            defaultValue = 10.0f;
+            break;
         case VSD:
         default:
             break;

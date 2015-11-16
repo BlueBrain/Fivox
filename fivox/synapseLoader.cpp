@@ -6,7 +6,6 @@
 #include "event.h"
 #include "uriHandler.h"
 
-#include <BBP/BBP.h>
 #include <brion/brion.h>
 #include <lunchbox/os.h>
 #include <lunchbox/memoryMap.h>
@@ -22,27 +21,23 @@ class SynapseLoader::Impl
 public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _experiment( params.getConfig( ))
+        , _config( params.getConfig( ))
     {
-        const std::string& target = params.getTarget(
-                                        _experiment.circuit_target( ));
-
-        LBINFO << "Loading target " << target << "..." << std::endl;
-        const brion::Targets targets{
-            brion::Target( _experiment.target_source() + "/start.target" ),
-            brion::Target( _experiment.user_target_source( )) };
-        const brion::GIDSet& gids = brion::Target::parse( targets, target );
+        const brion::GIDSet& gids = _config.parseTarget( params.getTarget( ));
 
         if( gids.empty( ))
-            LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
-                                         "' in " + params.getConfig( )));
+        {
+            LBTHROW( std::runtime_error(
+                         "No GIDs found for requested target in " +
+                         params.getConfig( )));
+        }
 
         LBINFO << "Loading synapses for " << gids.size() << " cells..."
                << std::endl;
         boost::progress_display progress( gids.size( ));
-        const brion::Synapse synapses( _experiment.synapse_source() +
+        const brion::Synapse synapses( _config.getSynapseSource().getPath() +
                                        "/nrn_positions.h5" );
-        static const float magnitude = 10.f;
+        const float magnitude = params.getMagnitude();
 
         for( const uint32_t gid : gids )
         {
@@ -59,7 +54,7 @@ public:
 
 private:
     fivox::EventSource& _output;
-    const bbp::Experiment_Specification _experiment;
+    brion::BlueConfig _config;
 };
 
 SynapseLoader::SynapseLoader( const URIHandler& params )
