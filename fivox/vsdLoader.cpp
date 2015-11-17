@@ -1,6 +1,7 @@
 /* Copyright (c) 2015, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
  *                     Jafet.VillafrancaDiaz@epfl.ch
+ *                     Juan Hernando <jhernando@fi.upm.es>
  */
 
 #include "vsdLoader.h"
@@ -34,28 +35,27 @@ public:
         if( _dt < 0.f )
             _dt = _voltages.getTimestep();
 
-        size_t i = 0;
+        size_t index = 0;
         for( const uint32_t gid : _target )
         {
             const bbp::Neuron& neuron = microcircuit.neuron( gid );
+            output.add( Event( neuron.position(), 0.f));
+
+            // The next statement is triggering the creation of a morphology
+            // in global coordinates. We will admit it despite if effectively
+            // doubles the memory usage at best because this code is to going
+            // to be changed in the very near future.
             const bbp::Sections& sections = neuron.dendrites();
-            size_t j = 0;
             for( const bbp::Section& section : sections )
             {
-                const size_t nCompartments =_areas.getCompartmentCounts()[i][j];
-                const float compartmentLength = 1.f / float( nCompartments );
-                const float compartmentMiddle = compartmentLength * .5f;
-
-                for( size_t k = 0; k < nCompartments; ++k )
-                {
-                    const bbp::Cross_Section& midPoint = section.cross_section(
-                        compartmentMiddle + k * compartmentLength );
-
-                    output.add( Event( midPoint.center(), 0.f ));
-                }
-                ++j;
+                const size_t nCompartments =
+                    _areas.getCompartmentCounts()[index][section.id()];
+                const float length = 1.f / float( nCompartments );
+                for( float k = length * .5f; k < 1.0; k += length )
+                    output.add(
+                        Event( section.cross_section( k ).center(), 0.f ));
             }
-            ++i;
+            ++index;
         }
 
         const float thickness = _output.getBoundingBox().getDimension()[1];
@@ -64,43 +64,53 @@ public:
 
     bool load( const float time )
     {
-        bbp::CompartmentReportFrame voltages;
-        if( !_voltages.loadFrame( time, voltages ))
+        bbp::CompartmentReportFrame voltageFrame;
+        if( !_voltages.loadFrame( time, voltageFrame ))
         {
             LBERROR << "Could not load frame at " << time << "ms" <<std::endl;
             return false;
         }
 
-        bbp::Microcircuit& microcircuit = _experiment.microcircuit();
-        microcircuit.update( voltages );
+        const bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         const bbp::floatsPtr& areas = _areasFrame.getData< bbp::floatsPtr >();
-
-        size_t i=0;
-        size_t index = 0;
+        const bbp::floatsPtr& voltages =
+            voltageFrame.getData< bbp::floatsPtr >();
         const float yMax = _output.getBoundingBox().getMax()[1];
+
+        size_t eventIndex = 0;
+        size_t i = 0;
         for( const uint32_t gid : _target )
         {
             const bbp::Neuron& neuron = microcircuit.neuron( gid );
-            const bbp::Sections& sections = neuron.dendrites();
+            const size_t somaID = neuron.soma().id();
+            assert( _voltages.getCompartmentCounts()[i][somaID] == 1 );
+            // New block to avoid shadowing warnings.
+            {
+                // Nothing guarantees that the offsets are going to be the same.
+                const uint64_t voltageOffset = _voltages.getOffsets()[i][somaID];
+                const uint64_t areaOffset = _areas.getOffsets()[i][somaID];
+                const float voltage = ( *voltages )[voltageOffset];
+                const float area = ( *areas )[areaOffset];
+                _updateEventValue( eventIndex++, voltage, area, yMax );
+            }
 
-            size_t j = 0;
+            const bbp::Sections& sections = neuron.dendrites();
             for( const bbp::Section& section : sections )
             {
-                const size_t nCompartments =_areas.getCompartmentCounts()[i][j];
-                uint64_t offset = _areas.getOffsets()[i][j];
+                const uint32_t id = section.id();
+                const size_t nCompartments =_areas.getCompartmentCounts()[i][id];
+                assert( nCompartments ==
+                        _voltages.getCompartmentCounts()[i][id] );
+                uint64_t voltageOffset = _voltages.getOffsets()[i][id];
+                uint64_t areaOffset = _areas.getOffsets()[i][id];
 
-                for( size_t k = 0; k < nCompartments; ++k )
+                for( size_t k = 0; k < nCompartments;
+                     ++k, ++eventIndex, ++voltageOffset, ++areaOffset )
                 {
-                    const float normVoltage = neuron.voltage() -
-                                              brion::MINIMUM_VOLTAGE;
-
-                    const Event& event = _output.getEvents()[index];
-                    const float depth = yMax - event.position[1];
-                    const float eventValue = normVoltage * (*areas)[offset++] *
-                                                 _curve.getAttenuation( depth );
-                    _output.update( index++, _magnitude * eventValue );
+                    const float voltage = ( *voltages )[voltageOffset];
+                    const float area = ( *areas )[areaOffset];
+                    _updateEventValue( eventIndex, voltage, area, yMax );
                 }
-                ++j;
                 LBVERB << section.id() << std::endl;
             }
             ++i;
@@ -139,6 +149,17 @@ private:
     uint32_t _currentFrameId;
     float _dt;
     const float _magnitude;
+
+    void _updateEventValue( const size_t index, const float voltage,
+                            const float area, const float yMax )
+    {
+        const float normVoltage = voltage - brion::MINIMUM_VOLTAGE;
+        const Event& event = _output.getEvents()[index];
+        const float depth = yMax - event.position[1];
+        const float eventValue =
+            normVoltage * area * _curve.getAttenuation( depth );
+        _output.update( index, _magnitude * eventValue );
+    }
 };
 
 VSDLoader::VSDLoader( const URIHandler& params )

@@ -10,9 +10,9 @@ Run Default
          MeshPath /gpfs/bbp.cscs.ch/release/l2/data/meshes
       CircuitPath /gpfs/bbp.cscs.ch/release/l2/data/circuit/23.07.12/SomatosensoryCxS1-v4.lowerCellDensity.r151/O1/merged_circuit
           nrnPath /gpfs/bbp.cscs.ch/release/l2/data/circuit/23.07.12/SomatosensoryCxS1-v4.lowerCellDensity.r151/O1/merged_circuit/ncsFunctionalAllRecipePathways
-        CurrentDir /gpfs/bbp.cscs.ch/home/newton/VSD
-        OutputRoot /gpfs/bbp.cscs.ch/project/proj45/vsd/Data
-        TargetFile /gpfs/bbp.cscs.ch/home/newton/VSD/user.target
+        CurrentDir /gpfs/bbp.cscs.ch/project/proj45/vsd/
+        OutputRoot /gpfs/bbp.cscs.ch/project/proj45/vsd/
+        TargetFile /gpfs/bbp.cscs.ch/project/proj45/vsd/misc/user.target
     CircuitTarget mc2_Column
           RunMode LoadBalance
          Duration 100
@@ -21,7 +21,7 @@ Run Default
 
 Report area
 {
-        Target AllCompartments
+        Target mc2_Column
           Type compartment
       ReportOn area
           Unit micron^2
@@ -33,7 +33,7 @@ Report area
 
 Report v_comp
 {
-        Target MiniColumn_0
+        Target mc2_Column
           Type compartment
       ReportOn v
           Unit mV

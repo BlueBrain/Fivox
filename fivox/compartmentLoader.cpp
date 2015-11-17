@@ -1,6 +1,7 @@
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
+ *                          Juan Hernando <jhernando@fi.upm.es>
  */
 
 #include "compartmentLoader.h"
@@ -52,25 +53,30 @@ public:
         BOOST_FOREACH( const uint32_t gid, target_ )
         {
             const bbp::Neuron& neuron = microcircuit.neuron( gid );
+            // The voltage reports typically include the soma, dendrites and
+            // first two axon sections. Here we will ignore the axon sections.
             const bbp::Sections& sections = neuron.dendrites();
-            size_t j = 0;
+
+            output.add( Event( neuron.position( ), 0.f ));
+            _sections.push_back(
+                SectionInfo( 1, _reader.getOffsets()[i][neuron.soma().id()] ));
+
             BOOST_FOREACH( const bbp::Section& section, sections )
             {
-                const size_t nCompartments = _reader.getCompartmentCounts()[i][j];
-                const float compartmentLength = 1.f / float( nCompartments );
-                const float compartmentMiddle = compartmentLength * .5f;
+                const uint32_t id = section.id();
+                const size_t nCompartments =
+                    _reader.getCompartmentCounts()[i][id];
+                assert( nCompartments );
+                if( !nCompartments )
+                    return;
+                const float length = 1.f / float( nCompartments );
 
-                for( size_t k = 0; k < nCompartments; ++k )
-                {
-                    const bbp::Cross_Section& midPoint = section.cross_section(
-                                compartmentMiddle + k * compartmentLength );
-
-                    output.add( Event( midPoint.center(), 0.f ));
-                }
+                for( float k = length * .5f; k < 1.0; k += length )
+                    output.add(
+                        Event( section.cross_section( k ).center(), 0.f ));
 
                 _sections.push_back( SectionInfo( nCompartments,
-                                                  _reader.getOffsets()[i][j] ));
-                ++j;
+                                                  _reader.getOffsets()[i][id] ));
             }
             ++i;
         }
@@ -96,10 +102,10 @@ public:
             const SectionInfo& info = _sections[i];
             const uint64_t end = info.numCompartments + info.offset;
 
-            for( uint64_t offset = info.offset; offset < end; ++offset )
+            for( uint64_t offset = info.offset; offset < end; ++offset, ++index )
             {
-                _output.update( index++, _magnitude * (( *voltages )[ offset ] -
-                                                      brion::MINIMUM_VOLTAGE ));
+                _output.update( index, _magnitude * (( *voltages )[ offset ] -
+                                                     brion::MINIMUM_VOLTAGE ));
             }
         }
         LBINFO << "Updated " << index << " events at " << time << "ms"
