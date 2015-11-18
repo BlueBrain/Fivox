@@ -1,6 +1,7 @@
 
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Daniel.Nachbaur@epfl.ch
  */
 
 #include "eventSource.h"
@@ -34,7 +35,9 @@ namespace fivox
 class EventSource::Impl
 {
 public:
+    Impl() : dt( -1.0f ) {}
 
+    float dt;
     Events events;
     AABBf boundingBox;
 #if USE_BOOST_GEOMETRY
@@ -158,6 +161,16 @@ bool EventSource::isInFrameRange( uint32_t frame )
 {
     const Vector2ui& frameRange = getFrameRange();
     return frame >= frameRange[0] && frame < frameRange[1];
+}
+
+float EventSource::getDt() const
+{
+    return _impl->dt;
+}
+
+void EventSource::setDt( const float dt )
+{
+    _impl->dt = dt;
 }
 
 }

@@ -1,7 +1,9 @@
 
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Daniel.Nachbaur@epfl.ch
  */
+
 #ifndef FIVOX_EVENTSOURCE_H
 #define FIVOX_EVENTSOURCE_H
 
@@ -87,8 +89,23 @@ public:
      */
     bool isInFrameRange( uint32_t frame );
 
+    /**
+     * @return the dt used for frame-to-time conversion in the data source,
+     *         default is -1.0 and should be set accordingly in constructor.
+     */
+    float getDt() const;
+
 protected:
     EventSource();
+
+    /**
+     * Set the dt that the datasource is using to correctly compute frame
+     * number from time in load().
+     *
+     * This should be called by derived classes in their constructor.
+     */
+    void setDt( float dt );
+
 
 private:
     EventSource( const EventSource& ) = delete;

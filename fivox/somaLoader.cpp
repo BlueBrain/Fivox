@@ -1,6 +1,7 @@
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
+ *                          Daniel.Nachbaur@epfl.ch
  */
 
 #include "somaLoader.h"
@@ -24,12 +25,8 @@ public:
                    _experiment.cell_target(
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
-        , _dt( params.getDt( ))
         , _magnitude( params.getMagnitude( ))
     {
-        if( _dt < 0.f )
-            _dt = _reader.getTimestep();
-
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _reader.getCellTarget(), bbp::NEURONS );
 
@@ -65,29 +62,32 @@ public:
         if( !_output.isInFrameRange( frame ))
             return false;
 
-        const float time  = _reader.getStartTime() + _dt * frame;
+        const float time  = _reader.getStartTime() + _output.getDt() * frame;
         return load( time );
     }
 
     Vector2ui getFrameRange()
     {
-        return Vector2ui( std::floor( _reader.getStartTime() / _dt ),
-                          std::ceil( _reader.getEndTime() / _dt ));
+        return Vector2ui( std::floor( _reader.getStartTime() / _output.getDt()),
+                          std::ceil( _reader.getEndTime() / _output.getDt( )));
     }
 
-private:
     fivox::EventSource& _output;
     bbp::Experiment _experiment;
     bbp::CompartmentReportReader _reader;
 
     float _currentTime;
-    float _dt;
     const float _magnitude;
 };
 
 SomaLoader::SomaLoader( const URIHandler& params )
     : _impl( new SomaLoader::Impl( *this, params ))
-{}
+{
+    float dt = params.getDt();
+    if( dt < 0.f )
+         dt = _impl->_reader.getTimestep();
+    setDt( dt );
+}
 
 SomaLoader::~SomaLoader()
 {}

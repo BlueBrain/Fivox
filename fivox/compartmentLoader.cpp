@@ -2,6 +2,7 @@
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *                          Juan Hernando <jhernando@fi.upm.es>
+ *                          Daniel.Nachbaur@epfl.ch
  */
 
 #include "compartmentLoader.h"
@@ -38,7 +39,6 @@ public:
                    _experiment.cell_target(
                        params.getTarget( _experiment.circuit_target( ))))
         , _currentTime( -1.f )
-        , _dt( params.getDt( ))
         , _magnitude( params.getMagnitude( ))
     {
         const bbp::Cell_Target& target_ = _reader.getCellTarget();
@@ -46,10 +46,7 @@ public:
         microcircuit.load( target_, bbp::NEURONS | bbp::MORPHOLOGIES );
         _reader.updateMapping( target_ );
 
-        if( _dt < 0.f )
-            _dt = _reader.getTimestep();
-
-        size_t i=0;
+        size_t i = 0;
         BOOST_FOREACH( const uint32_t gid, target_ )
         {
             const bbp::Neuron& neuron = microcircuit.neuron( gid );
@@ -118,31 +115,34 @@ public:
         if( !_output.isInFrameRange( frame ))
             return false;
 
-        const float time  = _reader.getStartTime() + _dt * frame;
+        const float time  = _reader.getStartTime() + _output.getDt() * frame;
         return load( time );
     }
 
     Vector2ui getFrameRange()
     {
         const float reportTime = _reader.getEndTime() - _reader.getStartTime();
-        const uint32_t numFrames = std::ceil( reportTime / _dt );
+        const uint32_t numFrames = std::ceil( reportTime / _output.getDt( ));
         return Vector2ui( 0, numFrames );
     }
 
-private:
     fivox::EventSource& _output;
     bbp::Experiment _experiment;
     bbp::CompartmentReportReader _reader;
     SectionInfos _sections;
 
     float _currentTime;
-    float _dt;
     const float _magnitude;
 };
 
 CompartmentLoader::CompartmentLoader( const URIHandler& params )
     : _impl( new CompartmentLoader::Impl( *this, params ))
-{}
+{
+    float dt = params.getDt();
+    if( dt < 0.f )
+         dt = _impl->_reader.getTimestep();
+    setDt( dt );
+}
 
 CompartmentLoader::~CompartmentLoader()
 {}

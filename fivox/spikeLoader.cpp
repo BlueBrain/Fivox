@@ -1,6 +1,7 @@
 /* Copyright (c) 2015, EPFL/Blue Brain Project
  *                     Stefan.Eilemann@epfl.ch
  *                     Jafet.VillafrancaDiaz@epfl.ch
+ *                     Daniel.Nachbaur@epfl.ch
  */
 
 #include "spikeLoader.h"
@@ -30,7 +31,6 @@ public:
         : _output( output )
         , _experiment( params.getConfig( ))
         , _currentTime( -1.f )
-        , _dt( params.getDt( ))
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
         , _spikesEnd( 0.f )
@@ -43,7 +43,7 @@ public:
                                         _experiment.circuit_target( ));
 
         LBINFO << "Loading target " << target << "..." << std::endl;
-        const brion::Targets targets{
+        const brion::Targets targets {
             brion::Target( _experiment.target_source() + "/start.target" ),
             brion::Target( _experiment.user_target_source( )) };
         const brion::GIDSet& gids = brion::Target::parse( targets, target );
@@ -51,8 +51,6 @@ public:
         if( gids.empty( ))
             LBTHROW( std::runtime_error( "No GIDs found for target '" + target +
                                          "' in " + params.getConfig( )));
-        if( _dt < 0.f )
-            _dt = _experiment.timestep();
 
         LBINFO << "Loading spikes for " << gids.size() << " cells..."
                << std::endl;
@@ -148,7 +146,7 @@ public:
         if( !_output.isInFrameRange( frame ))
             return false;
 
-        const float time = _dt * frame;
+        const float time = _output.getDt() * frame;
         return load( time );
     }
 
@@ -156,8 +154,8 @@ public:
     {
         // All spikes already available; return usual range.
         if( !_spikesReader || _spikesReader->hasEnded( ))
-            return Vector2ui( std::floor( _spikesStart / _dt ),
-                              std::ceil( _spikesEnd / _dt ));
+            return Vector2ui( std::floor( _spikesStart / _output.getDt( )),
+                              std::ceil( _spikesEnd / _output.getDt( )));
 
         // Streaming in progress; Only report fully finished frames.
         if( _spikesReader )
@@ -170,11 +168,10 @@ public:
                 _spikesEnd = spikes.getEndTime();
             }
         }
-        return Vector2ui( std::floor( _spikesStart / _dt ),
-                          std::floor( _spikesEnd / _dt ));
+        return Vector2ui( std::floor( _spikesStart / _output.getDt( )),
+                          std::floor( _spikesEnd / _output.getDt( )));
     }
 
-private:
     // OPT: directly iterate on binary spike file; saves loading all spikes
     // a priori and slow access in multimap (brion::Spikes)
     size_t _loadSpikesFast( const float start, const float end )
@@ -235,7 +232,6 @@ private:
     fivox::EventSource& _output;
     const bbp::Experiment_Specification _experiment;
     float _currentTime;
-    float _dt;
     const float _duration;
     float _spikesStart;
     float _spikesEnd;
@@ -262,7 +258,12 @@ private:
 
 SpikeLoader::SpikeLoader( const URIHandler& params )
     : _impl( new Impl( *this, params ))
-{}
+{
+    float dt = params.getDt();
+    if( dt < 0.f )
+         dt = _impl->_experiment.timestep();
+    setDt( dt );
+}
 
 SpikeLoader::~SpikeLoader()
 {}

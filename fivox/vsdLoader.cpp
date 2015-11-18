@@ -2,6 +2,7 @@
  *                     Stefan.Eilemann@epfl.ch
  *                     Jafet.VillafrancaDiaz@epfl.ch
  *                     Juan Hernando <jhernando@fi.upm.es>
+ *                     Daniel.Nachbaur@epfl.ch
  */
 
 #include "vsdLoader.h"
@@ -22,7 +23,6 @@ public:
         , _voltages( *_experiment.reports().find( params.getReport( )), _target)
         , _areas( *_experiment.reports().find( "area" ), _target )
         , _currentFrameId( 0xFFFFFFFFu )
-        , _dt( params.getDt( ))
         , _magnitude( params.getMagnitude( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
@@ -31,9 +31,6 @@ public:
 
         if( !_areas.loadFrame( 0.f, _areasFrame ))
             throw std::runtime_error( "Can't load 'area' vsd report" );
-
-        if( _dt < 0.f )
-            _dt = _voltages.getTimestep();
 
         size_t index = 0;
         for( const uint32_t gid : _target )
@@ -124,7 +121,7 @@ public:
             return false;
 
         _currentFrameId = frame;
-        const float time  = _voltages.getStartTime() + _dt * frame;
+        const float time  = _voltages.getStartTime() + _output.getDt() * frame;
         return load( time );
     }
 
@@ -132,11 +129,11 @@ public:
 
     Vector2ui getFrameRange()
     {
-        return Vector2ui( std::floor( _voltages.getStartTime() / _dt ),
-                          std::ceil( _voltages.getEndTime() / _dt ));
+        return
+            Vector2ui( std::floor( _voltages.getStartTime() / _output.getDt( )),
+                       std::ceil( _voltages.getEndTime() / _output.getDt( )));
     }
 
-private:
     fivox::EventSource& _output;
     bbp::Experiment _experiment;
     const bbp::Cell_Target _target;
@@ -147,7 +144,6 @@ private:
     AttenuationCurve _curve;
 
     uint32_t _currentFrameId;
-    float _dt;
     const float _magnitude;
 
     void _updateEventValue( const size_t index, const float voltage,
@@ -164,7 +160,12 @@ private:
 
 VSDLoader::VSDLoader( const URIHandler& params )
     : _impl( new VSDLoader::Impl( *this, params ))
-{}
+{
+    float dt = params.getDt();
+    if( dt < 0.f )
+         dt = _impl->_voltages.getTimestep();
+    setDt( dt );
+}
 
 VSDLoader::~VSDLoader()
 {}

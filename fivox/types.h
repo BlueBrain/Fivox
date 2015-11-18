@@ -1,5 +1,6 @@
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Daniel.Nachbaur@epfl.ch
  */
 #ifndef FIVOX_TYPES_H
 #define FIVOX_TYPES_H
@@ -22,6 +23,7 @@ typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
 
 typedef std::vector< Event > Events;
 
+using vmml::Vector2f;
 using vmml::Vector3f;
 using vmml::Vector2ui;
 using vmml::AABBf;

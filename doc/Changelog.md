@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [19230](https://bbpcode.epfl.ch/code/#/c/19230/)
+  Add support for volume time series generation for voxelize tool.
 * [19188](https://bbpcode.epfl.ch/code/#/c/19181/)
   Bug fixes in compartment report indexing in compartment and VSD loaders.
 * [19077](https://bbpcode.epfl.ch/code/#/c/19077/)

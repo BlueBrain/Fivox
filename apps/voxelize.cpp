@@ -2,6 +2,7 @@
 /* Copyright (c) 2015, EPFL/Blue Brain Project
  *                     Jafet.VillafrancaDiaz@epfl.ch
  *                     Stefan.Eilemann@epfl.ch
+ *                     Daniel.Nachbaur@epfl.ch
  */
 
 #include <fivox/fivox.h>
@@ -25,6 +26,19 @@ typedef fivox::ImageSource< Volume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 }
 
+namespace vmml
+{
+std::istream& operator>>( std::istream& is, Vector2f& vec )
+{
+    return is >> std::skipws >> vec.x() >> vec.y();
+}
+
+std::istream& operator>>( std::istream& is, Vector2ui& vec )
+{
+    return is >> std::skipws >> vec.x() >> vec.y();
+}
+}
+
 using boost::lexical_cast;
 namespace po = boost::program_options;
 
@@ -32,17 +46,16 @@ int main( int argc, char* argv[] )
 {
     // Default values
     size_t size = 256;
-    float time = 0.f;
     float cutOffDistance = 50.f;
-    std::string outputFile( "volume.mhd" );
+    std::string outputFile( "volume" );
     std::string uri( "fivox://" );
 
     // Argument parsing
     po::variables_map vm;
     po::options_description desc( "Supported options", 140 /*line len*/ );
     desc.add_options()
-        ( "help,h", "Show help message." )
-        ( "version,v", "Show program name and version." )
+        ( "help,h", "Show help message" )
+        ( "version,v", "Show program name and version" )
         ( "volume", po::value< std::string >(),
 //! [Usage]
           "Volume URI with parameters in the form:\n"
@@ -103,14 +116,21 @@ int main( int argc, char* argv[] )
 //! [Usage]
           )
         ( "size,s", po::value< size_t >()->default_value( size ),
-          "Size of the output volume." )
-        ( "time,t", po::value< float >()->default_value( time ),
-          "Timestep in voltage report to use." )
+          "Size of the output volume" )
+        ( "time", po::value< float >(),
+          "Timestamp to load in the report" )
+        ( "times", po::value< fivox::Vector2f >(),
+          "Time range [start end) to load in the report" )
+        ( "frame", po::value< unsigned >(),
+          "Frame to load in the report" )
+        ( "frames", po::value< fivox::Vector2ui >(),
+          "Frame range [start end) to load in the report" )
         ( "cutoffdistance,f",
           po::value< float >()->default_value( cutOffDistance ),
-          "The (micrometer) region of events considered per voxel." )
+          "The (micrometer) region of events considered per voxel" )
         ( "output,o", po::value< std::string >()->default_value( outputFile ),
-          "Name of the output volume file." );
+          "Name of the output volume file (mhd and raw); contains frame number "
+          "if --frames or --times" );
 
     po::store( po::parse_command_line( argc, argv, desc ), vm );
     po::notify( vm );
@@ -135,8 +155,6 @@ int main( int argc, char* argv[] )
 
     if( vm.count( "size" ))
         size = vm["size"].as< size_t >();
-    if( vm.count( "time" ))
-        time = vm["time"].as< float >();
     if( vm.count( "cutoffdistance" ))
         cutOffDistance = vm["cutoffdistance"].as< float >();
     if( vm.count( "output" ))
@@ -152,7 +170,9 @@ int main( int argc, char* argv[] )
         fieldFunctor->setCutOffDistance( cutOffDistance );
 
     ::fivox::EventSourcePtr loader = functor->getSource();
-    loader->load( time );
+    const fivox::AABBf& bbox = loader->getBoundingBox();
+    const fivox::Vector3f& position = bbox.getMin();
+    const float extent = bbox.getDimension().find_max();
 
     Volume::SizeType vSize;
     vSize.Fill( size );
@@ -162,11 +182,6 @@ int main( int argc, char* argv[] )
 
     VolumePtr output = source->GetOutput();
     output->SetRegions( region );
-
-    // Set up size and origin for loaded circuit
-    const fivox::AABBf& bbox = loader->getBoundingBox();
-    const fivox::Vector3f& position = bbox.getMin();
-    const float extent = bbox.getDimension().find_max();
 
     typename Volume::SpacingType spacing;
     spacing.Fill( extent / float( size ));
@@ -181,8 +196,45 @@ int main( int argc, char* argv[] )
     typedef itk::ImageFileWriter< Volume > Writer;
     typename Writer::Pointer writer = Writer::New();
     writer->SetInput( output );
-    writer->SetFileName( outputFile );
 
-    writer->Update(); // Run pipeline to write volume
-    LBINFO << "Volume written as " << outputFile << std::endl;
+    fivox::Vector2ui frameRange;
+    if( vm.count( "time" ))
+    {
+        const size_t frame = vm["time"].as< float >() / loader->getDt();
+        frameRange = fivox::Vector2ui( frame, frame + 1 );
+    }
+    if( vm.count( "times" ))
+    {
+        const fivox::Vector2f times = vm["times"].as< fivox::Vector2f >();
+        frameRange = fivox::Vector2ui( times.x() / loader->getDt(),
+                                       times.y() / loader->getDt( ));
+    }
+    if( vm.count( "frame" ))
+    {
+        const size_t frame = vm["frame"].as< unsigned >();
+        frameRange = fivox::Vector2ui( frame, frame + 1 );
+    }
+    if( vm.count( "frames" ))
+        frameRange = vm["frames"].as< fivox::Vector2ui >();
+
+    const size_t numDigits = std::to_string( frameRange.y( )).length( );
+    for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
+    {
+        std::string filename;
+        if( frameRange.y() - frameRange.x() > 1 )
+        {
+            std::ostringstream fileStream;
+            fileStream << outputFile << std::setfill('0')
+                       << std::setw( numDigits ) << i << ".mhd";
+            filename = fileStream.str();
+        }
+        else
+            filename = outputFile + ".mhd";
+
+        loader->load( i );
+        writer->SetFileName( filename );
+        source->Modified();
+        writer->Update(); // Run pipeline to write volume
+        LBINFO << "Volume written as " << filename << std::endl;
+    }
 }
