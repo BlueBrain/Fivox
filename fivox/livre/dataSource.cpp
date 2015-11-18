@@ -61,7 +61,7 @@ public:
     }
 
     livre::MemoryUnitPtr sample( const livre::LODNode& node,
-                                   const livre::VolumeInformation& info )
+                                 const livre::VolumeInformation& info )
         const
     {
         ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
@@ -125,10 +125,12 @@ public:
         return memoryUnit;
     }
 
-    livre::Vector2ui getFrameRange()
+    void update( livre::VolumeInformation& info )
     {
         ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
-        return loader->getFrameRange();
+        const Vector2ui& frameRange = loader->getFrameRange();
+        if( frameRange[1] > 0 ) // is any frame present
+            info.frameRange = frameRange;
     }
 
     const URIHandler params;
@@ -256,9 +258,9 @@ bool DataSource::handles( const livre::VolumeDataSourcePluginData& data )
     return scheme.substr( 0, fivox.size( )) == fivox;
 }
 
-livre::Vector2ui DataSource::getFrameRange()
+void DataSource::update()
 {
-    return _impl->getFrameRange();
+    _impl->update( _volumeInfo );
 }
 
 }

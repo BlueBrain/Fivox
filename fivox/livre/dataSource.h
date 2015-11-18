@@ -35,16 +35,30 @@ public:
     explicit DataSource( const livre::VolumeDataSourcePluginData& data );
     virtual ~DataSource();
 
+    /**
+     * @param node is the LODNode for block information.
+     * @return the data related to the node. If there is no data an
+     * empty MemoryPtr is returned.
+     */
     livre::MemoryUnitPtr getData( const livre::LODNode& node ) override;
 
+    /**
+     * Check whether the plugin supports the given URI and read mode.
+     * @param data includes the URI and read mode.
+     * @return true if the URI and read mode are handled.
+     */
     static bool handles( const livre::VolumeDataSourcePluginData& data );
 
-    livre::Vector2ui getFrameRange() final;
+    /**
+     * Updates the data source. Fivox data sources can be data streams,
+     * which means that the number of frames changes over time.
+     * This function updates the data source to the latest data received.
+     */
+    void update() final;
 
 private:
     class Impl;
     std::unique_ptr< Impl > _impl;
-
     void internalNodeToLODNode( const livre::NodeId internalNode,
                                 livre::LODNode& lodNode ) const final;
 };
