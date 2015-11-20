@@ -29,14 +29,14 @@ public:
     const Events& getEvents() const;
 
     /**
-    * Find all events in the given area.
-    *
-    * Returns a conservative set of events, may contain events outside of the
-    * area, depending on the implementation.
-    *
-    * @param area The query bounding box.
-    * @return The events contained in the area.
-    */
+     * Find all events in the given area.
+     *
+     * Returns a conservative set of events, may contain events outside of the
+     * area, depending on the implementation.
+     *
+     * @param area The query bounding box.
+     * @return The events contained in the area.
+     */
     Events findEvents( const AABBf& area ) const;
 
     /** @return the bounding box of all events. */
@@ -52,27 +52,30 @@ public:
     void update( const size_t index, const float value );
 
     /**
-    * Given a frame number, update the event source with new events to be
-    * sampled.
-    * @param frame The frame number to be loaded. Whether frame numbers are
-    * relative to the start time or absolute (frame 0 is at time 0) depends
-    * on the actual data source.
-    * @return true if the frame can be retrieved from the data source
-    */
-    virtual bool load( uint32_t frame LB_UNUSED ) { return false; }
+     * Given a frame number, update the event source with new events to be
+     * sampled.
+     *
+     * @param frame The frame number to be loaded. Whether frame numbers are
+     *              relative to the start time or absolute (frame 0 is at time
+     *              0) depends on the actual data source.
+     * @return true if the frame can be retrieved from the data source
+     */
+    bool load( uint32_t frame );
 
     /**
-    * Given a timestamp, update the event source with new events to be
-    * sampled.
-    * @param time The time stamp (ms) to be loaded.
-    * @return true if the time stamp can be retrieved from the data source
-    */
-    virtual bool load( float time LB_UNUSED ) { return false; }
+     * Given a timestamp, update the event source with new events to be
+     * sampled.
+     *
+     * @param time The time stamp (ms) to be loaded.
+     * @return true if the time stamp can be retrieved from the data source
+     */
+    bool load( float time );
 
     /**
-    * Set the attenuation curve that will be applied to the computed events
-    * @param curve The attenuation curve to apply
-    */
+     * Set the attenuation curve that will be applied to the computed events
+     *
+     * @param curve The attenuation curve to apply
+     */
     virtual void setCurve( const AttenuationCurve& curve LB_UNUSED ) {}
 
     /**
@@ -80,7 +83,7 @@ public:
      * [a, b) range
      * @return the valid frame range
      */
-    virtual Vector2ui getFrameRange() { return Vector2ui( 0, 0 ); }
+    Vector2ui getFrameRange() const;
 
     /**
      * @param frame The frame number to be checked.
@@ -96,7 +99,19 @@ public:
     float getDt() const;
 
 protected:
-    EventSource();
+    explicit EventSource( const URIHandler& params );
+
+    /** @name Abstract interface */
+    //@{
+    /** @return the interval [a, b) in ms of available events. */
+    virtual Vector2f _getTimeRange() const = 0;
+
+    /** @sa EventSource::load( float ) */
+    virtual bool _load( float time ) = 0;
+
+    /** @return the type of this event source, needed for getFrameRange() */
+    virtual SourceType _getType() const = 0;
+    //@}
 
     /**
      * Set the dt that the datasource is using to correctly compute frame
@@ -106,10 +121,10 @@ protected:
      */
     void setDt( float dt );
 
-
 private:
+    EventSource() = delete;
     EventSource( const EventSource& ) = delete;
-    EventSource operator=( const EventSource& ) = delete;
+    EventSource& operator=( const EventSource& ) = delete;
     class Impl;
     std::unique_ptr< Impl > _impl;
 };

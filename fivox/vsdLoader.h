@@ -7,7 +7,6 @@
 
 #include <fivox/attenuationCurve.h>
 #include <fivox/eventSource.h> // base class
-#include <fivox/uriHandler.h>
 
 namespace fivox
 {
@@ -32,33 +31,19 @@ public:
     virtual ~VSDLoader(); //!< Destruct this vsd event source
 
     /**
-    * Load the data at the given timestamp
-    * @param time the timestamp of interest
-    * @return true if time stamp can be retrieved from data source
-    */
-    bool load( float time ) final;
-
-    /**
-    * Load a new frame, based on the duration defined for each timestep (dt)
-    * @param frame The frame number to be loaded
-    * @return true if frame can be retrieved from data source
-    */
-    bool load( uint32_t frame ) final;
-
-    /**
     * Set the attenuation curve that will be applied to the computed events
     * @param curve The attenuation curve to apply
     */
     void setCurve( const AttenuationCurve& curve ) final;
 
-    /**
-     * Gets the valid frame range according to data. The valid frames are in the
-     * [a, b) range
-     * @return the valid frame range
-     */
-    Vector2ui getFrameRange() final;
-
 private:
+    /** @name Abstract interface implementation */
+    //@{
+    Vector2f _getTimeRange() const final;
+    bool _load( float time ) final;
+    SourceType _getType() const final { return SOURCE_FRAME; }
+    //@}
+
     class Impl;
     std::unique_ptr< Impl > _impl;
 };

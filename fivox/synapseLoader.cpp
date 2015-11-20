@@ -4,6 +4,7 @@
 
 #include "synapseLoader.h"
 #include "event.h"
+#include "uriHandler.h"
 
 #include <BBP/BBP.h>
 #include <brion/brion.h>
@@ -62,10 +63,23 @@ private:
 };
 
 SynapseLoader::SynapseLoader( const URIHandler& params )
-    : _impl( new Impl( *this, params ))
-{}
+    : EventSource( params )
+    , _impl( new Impl( *this, params ))
+{
+    setDt( 1.0 );
+}
 
 SynapseLoader::~SynapseLoader()
 {}
+
+Vector2f SynapseLoader::_getTimeRange() const
+{
+    return Vector2f( 0.f, 1.f );
+}
+
+bool SynapseLoader::_load( const float )
+{
+    return false;
+}
 
 }

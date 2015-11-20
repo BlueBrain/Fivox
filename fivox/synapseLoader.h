@@ -6,7 +6,6 @@
 #define FIVOX_SYNAPSELOADER_H
 
 #include <fivox/eventSource.h> // base class
-#include <fivox/uriHandler.h>
 
 namespace fivox
 {
@@ -24,15 +23,14 @@ public:
     explicit SynapseLoader( const URIHandler& params );
     virtual ~SynapseLoader();
 
-    /**
-     * Gets the valid frame range according to data. The valid frames are in the
-     * [a, b) range. This function returns (0,1) because for synapses do not
-     * change over time.
-     * @return the valid frame range
-     */
-    Vector2ui getFrameRange() final { return Vector2ui( 0, 1 ); }
-
 private:
+    /** @name Abstract interface implementation */
+    //@{
+    Vector2f _getTimeRange() const final;
+    bool _load( float time ) final;
+    SourceType _getType() const final { return SOURCE_FRAME; }
+    //@}
+
     class Impl;
     std::unique_ptr< Impl > _impl;
 };

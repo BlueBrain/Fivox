@@ -6,6 +6,7 @@
 
 #include "spikeLoader.h"
 #include "event.h"
+#include "uriHandler.h"
 
 #include <BBP/BBP.h>
 #include <brion/brion.h>
@@ -30,11 +31,9 @@ public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
         , _experiment( params.getConfig( ))
-        , _currentTime( -1.f )
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
         , _spikesEnd( 0.f )
-        , _magnitude( params.getMagnitude( ))
     {
         LBINFO << "Loading circuit..." << std::endl;
         const brion::Circuit circuit( _experiment.circuit_source() +
@@ -72,8 +71,22 @@ public:
         _spikesPerNeuron.resize( gids.size( ));
         _loadSpikes( params.getSpikes( ));
 
-        LBINFO << "Finished loading, magnitude " << _magnitude << ", "
-               << gids.size() << " neurons" << std::endl;
+        LBINFO << "Finished loading of " << gids.size() << " neurons"
+               << std::endl;
+    }
+
+    void updateTimeRange()
+    {
+        // Streaming in progress; Only report fully finished frames.
+        if( _spikesReader && !_spikesReader->hasEnded( ))
+        {
+            lunchbox::ScopedWrite mutex( _getSpikesLock );
+            const monsteer::Spikes& spikes = _spikesReader->getSpikes();
+            if( !spikes.empty( ))
+                // don't update _spikesStart to calculate absolute frame numbers
+                // see https://bbpcode.epfl.ch/code/#/c/19337
+                _spikesEnd = spikes.getEndTime();
+        }
     }
 
     void _loadSpikes( std::string spikes )
@@ -121,10 +134,6 @@ public:
 
     bool load( const float start )
     {
-        if( start == _currentTime )
-            return true;
-        _currentTime = start;
-
         lunchbox::setZero( _spikesPerNeuron.data(),
                            _spikesPerNeuron.size() * sizeof(size_t));
 
@@ -133,43 +142,12 @@ public:
                                              : _loadSpikesSlow( start, end );
 
         for( size_t i = 0; i < _spikesPerNeuron.size(); ++i )
-            _output.update( i, _spikesPerNeuron[i] * _magnitude );
+            _output.update( i, _spikesPerNeuron[i] );
 
         LBINFO << "Loaded " << numSpikes << " spikes from " << start << " to "
                << end << " ms" << std::endl;
 
         return true;
-    }
-
-    bool load( const uint32_t frame )
-    {
-        if( !_output.isInFrameRange( frame ))
-            return false;
-
-        const float time = _output.getDt() * frame;
-        return load( time );
-    }
-
-    Vector2ui getFrameRange( )
-    {
-        // All spikes already available; return usual range.
-        if( !_spikesReader || _spikesReader->hasEnded( ))
-            return Vector2ui( std::floor( _spikesStart / _output.getDt( )),
-                              std::ceil( _spikesEnd / _output.getDt( )));
-
-        // Streaming in progress; Only report fully finished frames.
-        if( _spikesReader )
-        {
-            lunchbox::ScopedWrite mutex( _getSpikesLock );
-            const monsteer::Spikes& spikes = _spikesReader->getSpikes();
-            if( !spikes.empty( ))
-            {
-                _spikesStart = spikes.getStartTime();
-                _spikesEnd = spikes.getEndTime();
-            }
-        }
-        return Vector2ui( std::floor( _spikesStart / _output.getDt( )),
-                          std::floor( _spikesEnd / _output.getDt( )));
     }
 
     // OPT: directly iterate on binary spike file; saves loading all spikes
@@ -231,11 +209,9 @@ public:
 
     fivox::EventSource& _output;
     const bbp::Experiment_Specification _experiment;
-    float _currentTime;
     const float _duration;
     float _spikesStart;
     float _spikesEnd;
-    const float _magnitude;
 
     // maps GID to its index in the target
     // OPT: no (unordered)map because of constant lookup but 'wastes' memory
@@ -257,30 +233,32 @@ public:
 };
 
 SpikeLoader::SpikeLoader( const URIHandler& params )
-    : _impl( new Impl( *this, params ))
+    : EventSource( params )
+    , _impl( new Impl( *this, params ))
 {
-    float dt = params.getDt();
-    if( dt < 0.f )
-         dt = _impl->_experiment.timestep();
-    setDt( dt );
+    if( getDt() < 0.f )
+        setDt( _impl->_experiment.timestep( ));
 }
 
 SpikeLoader::~SpikeLoader()
 {}
 
-bool SpikeLoader::load( const float time )
+Vector2f SpikeLoader::_getTimeRange() const
+{
+    _impl->updateTimeRange();
+    return Vector2f( _impl->_spikesStart, _impl->_spikesEnd );
+}
+
+bool SpikeLoader::_load( const float time )
 {
     return _impl->load( time );
 }
 
-bool SpikeLoader::load( const uint32_t frame )
+SourceType SpikeLoader::_getType() const
 {
-    return _impl->load( frame );
-}
-
-Vector2ui SpikeLoader::getFrameRange()
-{
-    return _impl->getFrameRange();
+    if( !_impl->_spikesReader || _impl->_spikesReader->hasEnded( ))
+        return SOURCE_FRAME;
+    return SOURCE_EVENT;
 }
 
 }

@@ -11,9 +11,7 @@
 #include <lunchbox/file.h>
 #include <lunchbox/log.h>
 #include <lunchbox/uri.h>
-#include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
-#include <boost/scoped_ptr.hpp>
 
 namespace
 {
@@ -39,7 +37,6 @@ std::istream& operator>>( std::istream& is, Vector2ui& vec )
 }
 }
 
-using boost::lexical_cast;
 namespace po = boost::program_options;
 
 int main( int argc, char* argv[] )

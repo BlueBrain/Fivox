@@ -6,6 +6,7 @@
 
 #include "eventSource.h"
 #include "event.h"
+#include "uriHandler.h"
 
 #include <lunchbox/atomic.h>
 #include <lunchbox/log.h>
@@ -35,9 +36,15 @@ namespace fivox
 class EventSource::Impl
 {
 public:
-    Impl() : dt( -1.0f ) {}
+    Impl( const URIHandler& params )
+        : dt( params.getDt( ))
+        , magnitude( params.getMagnitude( ))
+        , currentTime( -1.0f )
+    {}
 
     float dt;
+    float magnitude;
+    float currentTime;
     Events events;
     AABBf boundingBox;
 #if USE_BOOST_GEOMETRY
@@ -73,8 +80,8 @@ private:
 #endif
 };
 
-EventSource::EventSource()
-    : _impl( new EventSource::Impl )
+EventSource::EventSource( const URIHandler& params )
+    : _impl( new EventSource::Impl( params ))
 {}
 
 EventSource::~EventSource()
@@ -144,10 +151,11 @@ void EventSource::add( const Event& event )
     _impl->events.push_back( event );
 }
 
-void EventSource::update( const size_t index, const float value )
+void EventSource::update( const size_t index, float value )
 {
     assert( index < _impl->events.size( ));
     static float clamped = 0.f;
+    value *= _impl->magnitude;
     if( value < clamped )
     {
         clamped = value;
@@ -155,6 +163,42 @@ void EventSource::update( const size_t index, const float value )
     }
 
     _impl->events[ index ].value = std::max( value, 0.f );
+}
+
+bool EventSource::load( const uint32_t frame )
+{
+    if( !isInFrameRange( frame ))
+        return false;
+
+    const float time  = _getTimeRange().x() + getDt() * frame;
+    return load( time );
+}
+
+bool EventSource::load( const float time )
+{
+    if( time == _impl->currentTime )
+        return true;
+
+    if( !_load( time ))
+        return false;
+
+    _impl->currentTime = time;
+    return true;
+}
+
+Vector2ui EventSource::getFrameRange() const
+{
+    const Vector2f& interval = _getTimeRange();
+    switch( _getType( ))
+    {
+    case SOURCE_EVENT:
+        return Vector2ui( std::floor( interval.x() / getDt( )),
+                          std::floor( interval.y() / getDt( )));
+    case SOURCE_FRAME:
+    default:
+        return Vector2ui( std::floor( interval.x() / getDt( )),
+                          std::ceil( interval.y() / getDt( )));
+    }
 }
 
 bool EventSource::isInFrameRange( uint32_t frame )

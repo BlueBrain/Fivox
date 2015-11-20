@@ -12,6 +12,7 @@
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
 #include <fivox/synapseLoader.h>
+#include <fivox/uriHandler.h>
 #include <BBP/TestDatasets.h>
 #include <itkImageFileWriter.h>
 #include <itkStatisticsImageFilter.h>

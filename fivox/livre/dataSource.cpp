@@ -29,8 +29,6 @@
 #include <livre/core/data/MemoryUnit.h>
 #include <livre/core/version.h>
 
-#include <boost/algorithm/string.hpp>
-
 extern "C" int LunchboxPluginGetVersion() { return LIVRECORE_VERSION_ABI; }
 extern "C" bool LunchboxPluginRegister()
 {
@@ -40,8 +38,6 @@ extern "C" bool LunchboxPluginRegister()
 
 namespace fivox
 {
-
-using boost::lexical_cast;
 
 namespace
 {

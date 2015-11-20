@@ -7,6 +7,7 @@
 
 #include "vsdLoader.h"
 #include "event.h"
+#include "uriHandler.h"
 
 #include <BBP/BBP.h>
 
@@ -22,8 +23,6 @@ public:
                        params.getTarget( _experiment.circuit_target( ))))
         , _voltages( *_experiment.reports().find( params.getReport( )), _target)
         , _areas( *_experiment.reports().find( "area" ), _target )
-        , _currentFrameId( 0xFFFFFFFFu )
-        , _magnitude( params.getMagnitude( ))
     {
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
         microcircuit.load( _target, bbp::NEURONS | bbp::MORPHOLOGIES );
@@ -115,24 +114,7 @@ public:
         return true;
     }
 
-    bool load( const uint32_t frame )
-    {
-        if( frame == _currentFrameId || !_output.isInFrameRange( frame ))
-            return false;
-
-        _currentFrameId = frame;
-        const float time  = _voltages.getStartTime() + _output.getDt() * frame;
-        return load( time );
-    }
-
     void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
-
-    Vector2ui getFrameRange()
-    {
-        return
-            Vector2ui( std::floor( _voltages.getStartTime() / _output.getDt( )),
-                       std::ceil( _voltages.getEndTime() / _output.getDt( )));
-    }
 
     fivox::EventSource& _output;
     bbp::Experiment _experiment;
@@ -143,9 +125,6 @@ public:
 
     AttenuationCurve _curve;
 
-    uint32_t _currentFrameId;
-    const float _magnitude;
-
     void _updateEventValue( const size_t index, const float voltage,
                             const float area, const float yMax )
     {
@@ -154,41 +133,35 @@ public:
         const float depth = yMax - event.position[1];
         const float eventValue =
             normVoltage * area * _curve.getAttenuation( depth );
-        _output.update( index, _magnitude * eventValue );
+        _output.update( index, eventValue );
     }
 };
 
 VSDLoader::VSDLoader( const URIHandler& params )
-    : _impl( new VSDLoader::Impl( *this, params ))
+    : EventSource( params )
+    , _impl( new VSDLoader::Impl( *this, params ))
 {
-    float dt = params.getDt();
-    if( dt < 0.f )
-         dt = _impl->_voltages.getTimestep();
-    setDt( dt );
+    if( getDt() < 0.f )
+        setDt( _impl->_voltages.getTimestep( ));
 }
 
 VSDLoader::~VSDLoader()
 {}
-
-bool VSDLoader::load( const float time )
-{
-    return _impl->load( time );
-}
-
-bool VSDLoader::load( const uint32_t frame )
-{
-    return _impl->load( frame );
-}
 
 void VSDLoader::setCurve( const AttenuationCurve& curve )
 {
     _impl->setCurve( curve );
 }
 
-Vector2ui VSDLoader::getFrameRange()
+Vector2f VSDLoader::_getTimeRange() const
 {
-    return _impl->getFrameRange();
+    return Vector2f( _impl->_voltages.getStartTime(),
+                     _impl->_voltages.getEndTime( ));
 }
 
+bool VSDLoader::_load( const float time )
+{
+    return _impl->load( time );
+}
 
 }

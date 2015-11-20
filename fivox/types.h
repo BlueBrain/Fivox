@@ -14,6 +14,7 @@
 namespace fivox
 {
 class EventSource;
+class URIHandler;
 struct Event;
 template< class TImage > class EventFunctor;
 template< typename TImage > class ImageSource;
@@ -46,6 +47,13 @@ enum FunctorType
     FUNCTOR_DENSITY,
     FUNCTOR_FIELD,
     FUNCTOR_FREQUENCY
+};
+
+/** Different types of event sources which defines EventSource::getFrameRange */
+enum SourceType
+{
+    SOURCE_EVENT, //!< e.g. spikes reports
+    SOURCE_FRAME //!< e.g. compartment reports
 };
 
 }

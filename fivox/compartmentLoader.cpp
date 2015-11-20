@@ -7,9 +7,9 @@
 
 #include "compartmentLoader.h"
 #include "event.h"
+#include "uriHandler.h"
 
 #include <BBP/BBP.h>
-#include <boost/foreach.hpp>
 
 namespace fivox
 {
@@ -38,8 +38,6 @@ public:
         , _reader( *_experiment.reports().find( params.getReport( )),
                    _experiment.cell_target(
                        params.getTarget( _experiment.circuit_target( ))))
-        , _currentTime( -1.f )
-        , _magnitude( params.getMagnitude( ))
     {
         const bbp::Cell_Target& target_ = _reader.getCellTarget();
         bbp::Microcircuit& microcircuit = _experiment.microcircuit();
@@ -47,7 +45,7 @@ public:
         _reader.updateMapping( target_ );
 
         size_t i = 0;
-        BOOST_FOREACH( const uint32_t gid, target_ )
+        for( const uint32_t gid : target_ )
         {
             const bbp::Neuron& neuron = microcircuit.neuron( gid );
             // The voltage reports typically include the soma, dendrites and
@@ -58,7 +56,7 @@ public:
             _sections.push_back(
                 SectionInfo( 1, _reader.getOffsets()[i][neuron.soma().id()] ));
 
-            BOOST_FOREACH( const bbp::Section& section, sections )
+            for( const bbp::Section& section : sections )
             {
                 const uint32_t id = section.id();
                 const size_t nCompartments =
@@ -81,10 +79,6 @@ public:
 
     bool load( const float time )
     {
-        if( time == _currentTime )
-            return true;
-        _currentTime = time;
-
         bbp::CompartmentReportFrame frame;
         if( !_reader.loadFrame( time, frame ))
         {
@@ -99,24 +93,15 @@ public:
             const SectionInfo& info = _sections[i];
             const uint64_t end = info.numCompartments + info.offset;
 
-            for( uint64_t offset = info.offset; offset < end; ++offset, ++index )
+            for( uint64_t offset = info.offset; offset < end; ++offset, ++index)
             {
-                _output.update( index, _magnitude * (( *voltages )[ offset ] -
-                                                     brion::MINIMUM_VOLTAGE ));
+                _output.update( index,
+                             ( *voltages )[ offset ] - brion::MINIMUM_VOLTAGE );
             }
         }
         LBINFO << "Updated " << index << " events at " << time << "ms"
                << std::endl;
         return true;
-    }
-
-    bool load( const uint32_t frame )
-    {
-        if( !_output.isInFrameRange( frame ))
-            return false;
-
-        const float time  = _reader.getStartTime() + _output.getDt() * frame;
-        return load( time );
     }
 
     Vector2ui getFrameRange()
@@ -130,36 +115,28 @@ public:
     bbp::Experiment _experiment;
     bbp::CompartmentReportReader _reader;
     SectionInfos _sections;
-
-    float _currentTime;
-    const float _magnitude;
 };
 
 CompartmentLoader::CompartmentLoader( const URIHandler& params )
-    : _impl( new CompartmentLoader::Impl( *this, params ))
+    : EventSource( params )
+    , _impl( new CompartmentLoader::Impl( *this, params ))
 {
-    float dt = params.getDt();
-    if( dt < 0.f )
-         dt = _impl->_reader.getTimestep();
-    setDt( dt );
+    if( getDt() < 0.f )
+        setDt( _impl->_reader.getTimestep( ));
 }
 
 CompartmentLoader::~CompartmentLoader()
 {}
 
-bool CompartmentLoader::load( const float time )
+Vector2f CompartmentLoader::_getTimeRange() const
+{
+    return Vector2f( _impl->_reader.getStartTime(),
+                     _impl->_reader.getEndTime( ));
+}
+
+bool CompartmentLoader::_load( const float time )
 {
     return _impl->load( time );
-}
-
-bool CompartmentLoader::load( const uint32_t frame )
-{
-    return _impl->load( frame );
-}
-
-Vector2ui CompartmentLoader::getFrameRange()
-{
-    return _impl->getFrameRange();
 }
 
 }
