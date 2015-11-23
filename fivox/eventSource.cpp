@@ -192,8 +192,18 @@ Vector2ui EventSource::getFrameRange() const
     switch( _getType( ))
     {
     case SOURCE_EVENT:
-        return Vector2ui( std::floor( interval.x() / getDt( )),
-                          std::floor( interval.y() / getDt( )));
+        if( _hasEnded( ))
+        {
+            if( interval.x() == interval.y() && _impl->events.empty( ))
+                // Do not return (0, 1) for empty sources.
+                return Vector2ui( 0, 0 );
+            return Vector2ui( std::floor( interval.x() / getDt( )),
+                              std::floor( interval.y() / getDt( ) + 1));
+        }
+        else
+            // Return only full frames [t, t+dt)
+            return Vector2ui( std::floor( interval.x() / getDt( )),
+                              std::floor( interval.y() / getDt( )));
     case SOURCE_FRAME:
     default:
         return Vector2ui( std::floor( interval.x() / getDt( )),

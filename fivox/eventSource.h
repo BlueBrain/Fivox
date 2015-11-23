@@ -111,6 +111,12 @@ protected:
 
     /** @return the type of this event source, needed for getFrameRange() */
     virtual SourceType _getType() const = 0;
+
+    /**
+     * @return whether all data from the source is available or it's
+     * an ongoing stream, needed for getFrameRange()
+     */
+    virtual bool _hasEnded() const = 0;
     //@}
 
     /**

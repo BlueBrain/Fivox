@@ -49,7 +49,8 @@ enum FunctorType
     FUNCTOR_FREQUENCY
 };
 
-/** Different types of event sources which defines EventSource::getFrameRange */
+/** @internal Different types of event sources which defines
+    EventSource::getFrameRange */
 enum SourceType
 {
     SOURCE_EVENT, //!< e.g. spikes reports

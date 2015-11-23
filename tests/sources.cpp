@@ -1,6 +1,7 @@
 
 /* Copyright (c) 2014-2015, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Juan Hernando <jhernando@fi.upm.es>
  */
 
 #define BOOST_TEST_MODULE Sources
@@ -13,18 +14,39 @@
 #include <fivox/spikeLoader.h>
 #include <fivox/synapseLoader.h>
 #include <fivox/uriHandler.h>
+
+#if FIVOX_USE_MONSTEER
+#  include <brion/spikeReport.h>
+#  include <monsteer/plugin/spikeReport.h>
+#endif
+
 #include <BBP/TestDatasets.h>
+
 #include <itkImageFileWriter.h>
 #include <itkStatisticsImageFilter.h>
 #include <itkTimeProbe.h>
+
+#include <lunchbox/sleep.h>
+#include <lunchbox/pluginRegisterer.h>
+
 #include <iomanip>
+
+#define STARTUP_DELAY 250
+#define WRITE_DELAY 100
 
 namespace
 {
-static const size_t _minResolution = 8;
+
+const std::string _monsteerPluginScheme( "monsteer" );
+const size_t _minResolution = 8;
+
+// Explicit registration required because for some reason the test binary is
+// not linked against the plugin library and the lib output directory is not
+// part of LD_LIBRARY_PATH in the test environment.
+lunchbox::PluginRegisterer< monsteer::plugin::SpikeReport > registerer;
 
 template< typename T >
-inline float _testSDKKernel(
+inline float _testKernel(
     itk::SmartPointer< fivox::ImageSource< itk::Image< T, 3 >>> filter,
     const size_t size, const float expectedValue, const vmml::Vector2ui& range )
 {
@@ -115,10 +137,10 @@ struct SourcesFixture
         std::cout << "   Size, " << uri << "," << std::endl;
         for( size_t j = _minResolution; j <= maxSize; j = j << 1 )
         {
-            const float t1 = _testSDKKernel< uint8_t >( filter1, j,
-                                                        byteRef, rangeRef );
-            const float t2 = _testSDKKernel< float >( filter2, j,
-                                                      floatRef, rangeRef );
+            const float t1 =
+                _testKernel< uint8_t >( filter1, j, byteRef, rangeRef );
+            const float t2 =
+                _testKernel< float >( filter2, j, floatRef, rangeRef );
             std::cout << std::setw( 8 ) << j << ',' << std::setw(14)
                       << j*j*j / 1024.f / 1024.f / t1 << ',' << std::setw(15)
                       << j*j*j / 1024.f / 1024.f / t2 << std::endl;
@@ -132,10 +154,10 @@ struct SourcesFixture
             filter1->SetNumberOfThreads( maxThreads * j );
             filter2->SetNumberOfThreads( maxThreads * j );
 
-            float t1 = _testSDKKernel< uint8_t >( filter1, size,
-                                                  byteRef, rangeRef );
-            float t2 = _testSDKKernel< float >( filter2, size,
-                                                floatRef, rangeRef );
+            float t1 =
+                _testKernel< uint8_t >( filter1, size, byteRef, rangeRef );
+            float t2 =
+                _testKernel< float >( filter2, size, floatRef, rangeRef );
             std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
                       << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
                       << ',' << std::setw(15)
@@ -143,8 +165,8 @@ struct SourcesFixture
 
             filter1->SetNumberOfThreads( maxThreads / j );
             filter2->SetNumberOfThreads( maxThreads / j );
-            t1 = _testSDKKernel< uint8_t >( filter1, size, byteRef, rangeRef );
-            t2 = _testSDKKernel< float >( filter2, size, floatRef, rangeRef );
+            t1 = _testKernel< uint8_t >( filter1, size, byteRef, rangeRef );
+            t2 = _testKernel< float >( filter2, size, floatRef, rangeRef );
             std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
                       << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
                       << ',' << std::setw(15)
@@ -192,3 +214,57 @@ BOOST_AUTO_TEST_CASE( fivoxSynapses_source )
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+#if FIVOX_USE_MONSTEER
+
+BOOST_AUTO_TEST_CASE( fivoxSpikes_stream_source_frame_range )
+{
+    brion::SpikeReport spikeWriter(
+        servus::URI( _monsteerPluginScheme + "://127.0.0.1" ),
+        brion::MODE_WRITE );
+    servus::URI uri = spikeWriter.getURI();
+    uri.setScheme( _monsteerPluginScheme );
+
+    fivox::URIHandler params(
+        "fivoxspikes://?dt=1,spikes=" + std::to_string( uri ));
+    auto filter = params.newImageSource< float >();
+    fivox::EventSourcePtr source = filter->getFunctor()->getSource();
+
+    lunchbox::sleep( STARTUP_DELAY );
+
+    brion::Spikes spikes;
+    for( uint32_t i = 1; i <= 50; ++i )
+        spikes.insert(std::make_pair( i / 100.0f, i ));
+    spikeWriter.writeSpikes( spikes );
+
+    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 0 ));
+
+    spikes.clear();
+    for( uint32_t i = 51; i <= 101; ++i )
+        spikes.insert(std::make_pair( i / 100.0f, i ));
+    spikeWriter.writeSpikes( spikes );
+
+    lunchbox::sleep( WRITE_DELAY );
+
+    // The very last spike is not digested by the internal SpikeReportReader
+    // because to provide complete data inside a time window it cannot advance
+    // past time t_max until one spike with t > t_max arrives.
+    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 1 ));
+
+    spikes.clear();
+    for( uint32_t i = 102; i <= 200; ++i )
+        spikes.insert(std::make_pair( i / 100.0f, i ));
+    spikeWriter.writeSpikes( spikes );
+    // The time window [1, 2) is still not complete for the reason explained
+    // above.
+    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 1 ));
+    lunchbox::sleep( WRITE_DELAY );
+
+    // After closing the report all spikes are made available, even for the
+    // time window.
+    spikeWriter.close();
+    lunchbox::sleep( WRITE_DELAY );
+    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 3 ));
+}
+
+#endif
