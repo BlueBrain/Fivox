@@ -19,4 +19,10 @@
 #include <itkNumericTraits.h>
 #include <itkImageRegionSplitterDirection.h>
 
+// reset final/override setup
+#ifdef LUNCHBOX_COMPILER_H
+#  undef LUNCHBOX_COMPILER_H
+#endif
+#include <lunchbox/compiler.h>
+
 #endif
