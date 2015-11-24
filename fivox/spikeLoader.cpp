@@ -254,11 +254,9 @@ bool SpikeLoader::_load( const float time )
     return _impl->load( time );
 }
 
-SourceType SpikeLoader::_getType() const
+bool SpikeLoader::_hasEnded() const
 {
-    if( !_impl->_spikesReader || _impl->_spikesReader->hasEnded( ))
-        return SOURCE_FRAME;
-    return SOURCE_EVENT;
+    return _impl->_spikesReader->hasEnded();
 }
 
 }

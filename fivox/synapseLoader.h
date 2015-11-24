@@ -29,6 +29,7 @@ private:
     Vector2f _getTimeRange() const final;
     bool _load( float time ) final;
     SourceType _getType() const final { return SOURCE_FRAME; }
+    bool _hasEnded() const final { return true; }
     //@}
 
     class Impl;
