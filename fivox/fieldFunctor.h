@@ -22,10 +22,18 @@ public:
     FieldFunctor() : _cutOffDistance( 50. ) {}
     virtual ~FieldFunctor() {}
 
-    void setCutOffDistance( const float distance )
-        { _cutOffDistance = distance; }
+    void computeCutOffDistance( const float maxError )
+    {
+        float max = 0.0f;
 
-    float getKernelSize() override { return _cutOffDistance; }
+        for( const Event& event : Super::_source->getEvents())
+            max = std::max( max, event.value );
+
+        const float distance = std::sqrt( max / maxError );
+        LBINFO << "Computed cutoff distance: " << distance
+               << " with maximum event's value: " << max << std::endl;
+        _cutOffDistance = distance;
+    }
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const override;

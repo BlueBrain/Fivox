@@ -20,6 +20,7 @@
 
 #include "dataSource.h"
 
+#include <fivox/fieldFunctor.h>
 #include <fivox/eventFunctor.h>
 #include <fivox/imageSource.h>
 #include <fivox/synapseLoader.h>
@@ -44,11 +45,12 @@ namespace fivox
 
 namespace
 {
-typedef itk::Image< uint8_t, 3 > Volume;
 typedef Volume::Pointer VolumePtr;
 typedef ::fivox::ImageSource< Volume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 typedef typename ImageSource::FunctorPtr FunctorPtr;
+typedef fivox::FieldFunctor< Volume > VolumeFieldFunctor;
+typedef std::shared_ptr< VolumeFieldFunctor > FieldFunctorPtr;
 }
 
 class DataSource::Impl
@@ -68,6 +70,11 @@ public:
         const uint32_t frame = node.getNodeId().getFrame();
         if( !loader->load( frame ))
             return livre::MemoryUnitPtr();
+
+        FieldFunctorPtr fieldFunctor =
+            std::dynamic_pointer_cast< VolumeFieldFunctor >( source->getFunctor() );
+        if( fieldFunctor )
+            fieldFunctor->computeCutOffDistance( params.getMaxError() );
 
         // Alloc voxels
         const vmml::Vector3i& voxels = info.maximumBlockSize;
@@ -153,7 +160,7 @@ DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
     const Vector3f fullResolution =
-        ( bbox.getDimension() + functor->getKernelSize() * 2.0f ) * resolution;
+        ( bbox.getDimension() + std::sqrt( 1.0 / _impl->params.getMaxError()) * 2.0f ) * resolution;
     Vector3f blockResolution = fullResolution;
 
     // maxTextureSize value should be retrieved from OpenGL. But at this

@@ -122,6 +122,14 @@ public:
     size_t getMaxBlockSize() const;
 
     /**
+     * Get the specified maximum absolute error.
+     *
+     * @return the specified maximum absolute error. If invalid or empty, return
+     *         0.001
+     */
+    float getMaxError() const;
+
+    /**
      * Get the type of the volume that is being loaded (present in the URI
      * schema)
      * @return the type of the volume
