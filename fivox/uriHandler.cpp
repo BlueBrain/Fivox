@@ -47,6 +47,7 @@ const float _duration = 10.0f;
 const float _dt = -1.0f; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
 const float _resolution = 10.0f; // voxels per unit
+const float _maxError = 0.001f;
 
 EventSourcePtr _newLoader( const URIHandler& data )
 {
@@ -175,6 +176,9 @@ public:
 
     size_t getMaxBlockSize() const
         { return _get( "maxBlockSize", _maxBlockSize ); }
+
+    float getMaxError() const
+        { return std::max( _get( "maxError", _maxError ), std::numeric_limits<float>::min()); }
 
     VolumeType getType() const
     {
@@ -310,6 +314,11 @@ float URIHandler::getResolution() const
 size_t URIHandler::getMaxBlockSize() const
 {
     return _impl->getMaxBlockSize();
+}
+
+float URIHandler::getMaxError() const
+{
+    return _impl->getMaxError();
 }
 
 VolumeType URIHandler::getType() const

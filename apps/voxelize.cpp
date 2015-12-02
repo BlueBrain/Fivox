@@ -15,9 +15,7 @@
 
 namespace
 {
-typedef itk::Image< uint8_t, 3 > Volume;
 typedef Volume::Pointer VolumePtr;
-typedef std::shared_ptr< fivox::EventFunctor< Volume >> FunctorPtr;
 typedef fivox::FieldFunctor< Volume > FieldFunctor;
 typedef std::shared_ptr< FieldFunctor > FieldFunctorPtr;
 typedef fivox::ImageSource< Volume > ImageSource;
@@ -43,7 +41,6 @@ int main( int argc, char* argv[] )
 {
     // Default values
     size_t size = 256;
-    float cutOffDistance = 50.f;
     std::string outputFile( "volume" );
     std::string uri( "fivox://" );
 
@@ -87,6 +84,10 @@ int main( int argc, char* argv[] )
           "- resolution: number of voxels per micrometer (default: 1.0)\n"
           "- maxBlockSize: maximum memory usage allowed for one block in bytes\n"
           "                (default: 64MB)\n"
+          "- maxError: maximum error allowed (default: 0.001). If the event's contribution is\n"
+          "            less than the specified error, the event is discarded. The units are\n"
+          "            not defined and depends on the current data. This parameter is\n"
+          "            used only with the field functor to compute the cutoff distance.\n"
           "\n"
           "Parameters for Compartments:\n"
           "- report: name of the compartment report\n"
@@ -122,9 +123,6 @@ int main( int argc, char* argv[] )
           "Frame to load in the report" )
         ( "frames", po::value< fivox::Vector2ui >(),
           "Frame range [start end) to load in the report" )
-        ( "cutoffdistance,f",
-          po::value< float >()->default_value( cutOffDistance ),
-          "The (micrometer) region of events considered per voxel" )
         ( "output,o", po::value< std::string >()->default_value( outputFile ),
           "Name of the output volume file (mhd and raw); contains frame number "
           "if --frames or --times" );
@@ -152,8 +150,6 @@ int main( int argc, char* argv[] )
 
     if( vm.count( "size" ))
         size = vm["size"].as< size_t >();
-    if( vm.count( "cutoffdistance" ))
-        cutOffDistance = vm["cutoffdistance"].as< float >();
     if( vm.count( "output" ))
         outputFile = vm["output"].as< std::string >();
 
@@ -161,15 +157,16 @@ int main( int argc, char* argv[] )
 
     ImageSourcePtr source = params.newImageSource< uint8_t >();
     FunctorPtr functor = source->getFunctor();
-    FieldFunctorPtr fieldFunctor =
-        std::dynamic_pointer_cast< FieldFunctor >( functor );
-    if( fieldFunctor )
-        fieldFunctor->setCutOffDistance( cutOffDistance );
 
     ::fivox::EventSourcePtr loader = functor->getSource();
     const fivox::AABBf& bbox = loader->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getDimension().find_max();
+
+    FieldFunctorPtr fieldFunctor =
+        std::dynamic_pointer_cast< FieldFunctor >( functor );
+    if( fieldFunctor )
+        fieldFunctor->computeCutOffDistance( params.getMaxError() );
 
     Volume::SizeType vSize;
     vSize.Fill( size );

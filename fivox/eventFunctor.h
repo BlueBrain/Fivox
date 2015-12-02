@@ -32,9 +32,6 @@ public:
     ConstEventSourcePtr getSource() const { return _source; }
     EventSourcePtr getSource() { return _source; }
 
-    /** @return the additional reach of the sampling kernel. */
-    virtual float getKernelSize() { return 0.f; }
-
     virtual TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const = 0;
 
