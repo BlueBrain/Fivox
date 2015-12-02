@@ -45,6 +45,13 @@ void ImageSource< TImage >::setFunctor( FunctorPtr functor )
 }
 
 template< typename TImage >
+void ImageSource< TImage >::showProgress()
+{
+    _progressObserver = ProgressObserver::New();
+    Superclass::AddObserver( itk::ProgressEvent(), _progressObserver );
+}
+
+template< typename TImage >
 void ImageSource< TImage >::PrintSelf(std::ostream & os, itk::Indent indent )
     const
 {
@@ -79,6 +86,14 @@ void ImageSource< TImage >::ThreadedGenerateData(
         progress.CompletedPixel();
     }
 }
+
+template< typename TImage >
+void ImageSource< TImage >::BeforeThreadedGenerateData()
+{
+    if( _progressObserver )
+        static_cast< ProgressObserver& >(*_progressObserver).reset();
+}
+
 } // end namespace fivox
 
 #endif

@@ -178,7 +178,11 @@ public:
         { return _get( "maxBlockSize", _maxBlockSize ); }
 
     float getMaxError() const
-        { return std::max( _get( "maxError", _maxError ), std::numeric_limits<float>::min()); }
+        { return std::max( _get( "maxError", _maxError ),
+                           std::numeric_limits<float>::min( )); }
+
+    bool showProgress() const
+        { return _get( "showProgress", false ); }
 
     VolumeType getType() const
     {
@@ -339,6 +343,9 @@ URIHandler::newImageSource() const
     std::shared_ptr< EventFunctor< itk::Image< T, 3 >>> functor =
         _newFunctor< T >( *this );
     EventSourcePtr loader = _newLoader( *this );
+
+    if( _impl->showProgress( ))
+        source->showProgress();
 
     functor->setSource( loader );
     source->setFunctor( functor );

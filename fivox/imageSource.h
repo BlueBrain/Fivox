@@ -8,6 +8,8 @@
 #include <fivox/itk.h>
 #include <fivox/types.h>
 
+#include <fivox/progressObserver.h>
+
 namespace fivox
 {
 /** Image source using an EventFunctor on each pixel to generate the output */
@@ -53,6 +55,9 @@ public:
     /** Set a new functor. */
     void setFunctor( FunctorPtr functor );
 
+    /** Enable display of progress bar during voxelization. */
+    void showProgress();
+
     const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const override
         { return _splitter; }
 
@@ -66,12 +71,15 @@ protected:
     void ThreadedGenerateData( const ImageRegionType& outputRegionForThread,
                                itk::ThreadIdType threadId ) override;
 
+    void BeforeThreadedGenerateData() override;
+
 private:
     ImageSource(const Self &); //purposely not implemented
     void operator=(const Self &);   //purposely not implemented
 
     FunctorPtr _functor;
     itk::ImageRegionSplitterBase::Pointer _splitter;
+    ProgressObserver::Pointer _progressObserver;
 };
 } // end namespace fivox
 

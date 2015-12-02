@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [19713](https://bbpcode.epfl.ch/code/#/c/19713/)
+  Add optional progress bar display if showProgress=1 in URI query.
 * [19230](https://bbpcode.epfl.ch/code/#/c/19230/)
   Add support for volume time series generation for voxelize tool.
 * [19188](https://bbpcode.epfl.ch/code/#/c/19181/)

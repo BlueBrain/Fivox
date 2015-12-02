@@ -16,6 +16,7 @@ set(FIVOX_PUBLIC_HEADERS
   imageSource.h
   imageSource.hxx
   itk.h
+  progressObserver.h
   somaLoader.h
   spikeLoader.h
   synapseLoader.h
@@ -28,7 +29,9 @@ set(FIVOX_HEADERS)
 
 set(FIVOX_SOURCES
   eventSource.cpp
-  uriHandler.cpp)
+  progressObserver.cpp
+  uriHandler.cpp
+)
 
 set(FIVOX_LINK_LIBRARIES
   PUBLIC ${ITK_LIBRARIES} Lunchbox vmmlib
