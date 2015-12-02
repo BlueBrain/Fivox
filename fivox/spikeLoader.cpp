@@ -250,7 +250,7 @@ bool SpikeLoader::_load( const float time )
 
 bool SpikeLoader::_hasEnded() const
 {
-    return _impl->_spikesReader->hasEnded();
+    return _impl->_spikesReader ? _impl->_spikesReader->hasEnded() : true;
 }
 
 }
