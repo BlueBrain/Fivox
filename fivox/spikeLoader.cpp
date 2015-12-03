@@ -240,7 +240,14 @@ SpikeLoader::~SpikeLoader()
 Vector2f SpikeLoader::_getTimeRange() const
 {
     _impl->updateTimeRange();
-    return Vector2f( _impl->_spikesStart, _impl->_spikesEnd );
+
+    // The duration of the frame needs to be considered,
+    // in order to not go over the available range.
+    const float spikesEnd = _impl->_spikesEnd - _impl->_duration;
+    if( spikesEnd < _impl->_spikesStart )
+        return Vector2f( 0.f, 0.f );
+
+    return Vector2f( _impl->_spikesStart, spikesEnd );
 }
 
 bool SpikeLoader::_load( const float time )

@@ -198,7 +198,7 @@ Vector2ui EventSource::getFrameRange() const
                 // Do not return (0, 1) for empty sources.
                 return Vector2ui( 0, 0 );
             return Vector2ui( std::floor( interval.x() / getDt( )),
-                              std::floor( interval.y() / getDt( ) + 1));
+                              std::floor( interval.y() / getDt() + 1 ));
         }
         else
             // Return only full frames [t, t+dt)
