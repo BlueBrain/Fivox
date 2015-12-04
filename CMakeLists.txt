@@ -21,7 +21,7 @@ set(FIVOX_LICENSE Proprietary)
 
 include(Common)
 
-common_package(BBPSDK)
+common_package(Brion)
 common_package(BBPTestData)
 common_package(Boost REQUIRED COMPONENTS unit_test_framework
                                          program_options system)
@@ -31,7 +31,7 @@ common_package(Livre)
 common_package(vmmlib REQUIRED)
 common_package_post()
 
-set(FIVOX_DEPENDENT_LIBRARIES ITK vmmlib BBPSDK)
+set(FIVOX_DEPENDENT_LIBRARIES ITK vmmlib)
 
 include(${ITK_USE_FILE})
 

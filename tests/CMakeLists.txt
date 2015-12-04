@@ -6,15 +6,12 @@ include(InstallFiles)
 include_directories(${CMAKE_SOURCE_DIR}) # some tests need private headers
 set(TEST_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
   ${Boost_SYSTEM_LIBRARY} Fivox)
-if(BBPSDK_FOUND)
-  list(APPEND TEST_LIBRARIES ${BBPSDK_LIBRARIES})
-endif()
 if(Monsteer_FOUND)
-  list(APPEND TEST_LIBRARIES Monsteer BrionMonsteerSpikeReport)
+  list(APPEND TEST_LIBRARIES BrionMonsteerSpikeReport)
 endif()
 
 set(TESTDATA_TESTS sources.cpp)
-if(BBPTESTDATA_FOUND AND BBPSDK_FOUND)
+if(BBPTESTDATA_FOUND AND BRION_FOUND)
   set(UNIT_AND_PERF_TESTS ${TESTDATA_TESTS})
   list(APPEND TEST_LIBRARIES BBPTestData)
 else()

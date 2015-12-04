@@ -23,7 +23,8 @@ public:
         : _output( output )
         , _config( params.getConfig( ))
     {
-        const brion::GIDSet& gids = _config.parseTarget( params.getTarget( ));
+        const auto gids = _config.parseTarget(
+                                params.getTarget( _config.getCircuitTarget( )));
 
         if( gids.empty( ))
         {
