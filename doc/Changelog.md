@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [19753](https://bbpcode.epfl.ch/code/#/c/19753/)
+  Fix [ISC-139]. Make sure the requested end time is inside the available time
+  range when streaming spikes.
 * [19713](https://bbpcode.epfl.ch/code/#/c/19713/)
   Add optional progress bar display if showProgress=1 in URI query.
 * [19230](https://bbpcode.epfl.ch/code/#/c/19230/)

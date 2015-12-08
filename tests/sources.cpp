@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE( fivoxSpikes_source )
     // Better, but not always available:
     // "fivoxSpikes:///gpfs/bbp.cscs.ch/home/nachbaur/BlueConfig_3m",
     testSource( "fivoxSpikes://", 0.7421875f, 0.0029296876164153218f,
-                vmml::Vector2ui( 10, 3998 ));
+                vmml::Vector2ui( 10, 3598 ));
 
 }
 
@@ -226,22 +226,24 @@ BOOST_AUTO_TEST_CASE( fivoxSpikes_stream_source_frame_range )
     uri.setScheme( _monsteerPluginScheme );
 
     fivox::URIHandler params(
-        "fivoxspikes://?dt=1,spikes=" + std::to_string( uri ));
+        "fivoxspikes://?dt=0.1,duration=1,spikes=" + std::to_string( uri ));
     auto filter = params.newImageSource< float >();
     fivox::EventSourcePtr source = filter->getFunctor()->getSource();
 
     lunchbox::sleep( STARTUP_DELAY );
 
     brion::Spikes spikes;
-    for( uint32_t i = 1; i <= 50; ++i )
-        spikes.insert(std::make_pair( i / 100.0f, i ));
+    for( uint32_t i = 0; i <= 50; ++i )
+        spikes.insert( std::make_pair( i / 100.0f, i ));
     spikeWriter.writeSpikes( spikes );
 
+    // Time range: [0, 0.5](ms)
+    // Since duration=1(ms), no full frames are available: [0,0)
     BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 0 ));
 
     spikes.clear();
-    for( uint32_t i = 51; i <= 101; ++i )
-        spikes.insert(std::make_pair( i / 100.0f, i ));
+    for( uint32_t i = 51; i <= 100; ++i )
+        spikes.insert( std::make_pair( i / 100.0f, i ));
     spikeWriter.writeSpikes( spikes );
 
     lunchbox::sleep( WRITE_DELAY );
@@ -249,22 +251,36 @@ BOOST_AUTO_TEST_CASE( fivoxSpikes_stream_source_frame_range )
     // The very last spike is not digested by the internal SpikeReportReader
     // because to provide complete data inside a time window it cannot advance
     // past time t_max until one spike with t > t_max arrives.
+    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 0 ));
+
+    spikes.clear();
+    for( uint32_t i = 101; i <= 120; ++i )
+        spikes.insert( std::make_pair( i / 100.0f, i ));
+    spikeWriter.writeSpikes( spikes );
+
+    lunchbox::sleep( WRITE_DELAY );
     BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 1 ));
 
     spikes.clear();
-    for( uint32_t i = 102; i <= 200; ++i )
-        spikes.insert(std::make_pair( i / 100.0f, i ));
+    for( uint32_t i = 121; i <= 150; ++i )
+        spikes.insert( std::make_pair( i / 100.0f, i ));
     spikeWriter.writeSpikes( spikes );
-    // The time window [1, 2) is still not complete for the reason explained
-    // above.
-    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 1 ));
     lunchbox::sleep( WRITE_DELAY );
+    // The time window [1.4, 1.5) is still not complete for the reason explained
+    // above.
+    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 4 ));
 
+    spikes.clear();
+    for( uint32_t i = 151; i <= 200; ++i )
+        spikes.insert( std::make_pair( i / 100.0f, i ));
+    spikeWriter.writeSpikes( spikes );
     // After closing the report all spikes are made available, even for the
     // time window.
     spikeWriter.close();
     lunchbox::sleep( WRITE_DELAY );
-    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 3 ));
+    // Time range: [0, 2.0](ms)
+    // Since duration=1(ms) and dt=0.1(ms), 11 full frames are available: [0,11)
+    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 11 ));
 }
 
 #endif
