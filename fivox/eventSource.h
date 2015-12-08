@@ -106,8 +106,11 @@ protected:
     /** @return the interval [a, b) in ms of available events. */
     virtual Vector2f _getTimeRange() const = 0;
 
-    /** @sa EventSource::load( float ) */
-    virtual bool _load( float time ) = 0;
+    /**
+     * @sa EventSource::load( float )
+     * @return the number of updated events, or -1 if the load failed.
+     */
+    virtual ssize_t _load( float time ) = 0;
 
     /** @return the type of this event source, needed for getFrameRange() */
     virtual SourceType _getType() const = 0;

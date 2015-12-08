@@ -19,20 +19,25 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor() : _cutOffDistance( 50. ) {}
+    FieldFunctor( const float maxError )
+        : _cutOffDistance( 50. )
+        , _maxError( maxError )
+    {}
     virtual ~FieldFunctor() {}
 
-    void computeCutOffDistance( const float maxError )
+    void beforeGenerate() override
     {
         float max = 0.0f;
-
         for( const Event& event : Super::_source->getEvents())
             max = std::max( max, event.value );
 
-        const float distance = std::sqrt( max / maxError );
-        LBINFO << "Computed cutoff distance: " << distance
-               << " with maximum event's value: " << max << std::endl;
-        _cutOffDistance = distance;
+        const float distance = std::sqrt( max / _maxError );
+        if( _cutOffDistance != distance )
+        {
+            LBINFO << "Computed cutoff distance: " << distance
+                   << " with maximum event's value: " << max << std::endl;
+            _cutOffDistance = distance;
+        }
     }
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
@@ -40,6 +45,7 @@ public:
 
 private:
     float _cutOffDistance;
+    const float _maxError;
 };
 
 template< class TImage > inline typename FieldFunctor< TImage >::TPixel

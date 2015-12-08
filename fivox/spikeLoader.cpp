@@ -34,10 +34,7 @@ public:
         , _spikesStart( 0.f )
         , _spikesEnd( 0.f )
     {
-        LBINFO << "Loading circuit..." << std::endl;
-
         const brion::Circuit circuit( _config.getCircuitSource( ));
-        LBINFO << "Loading default circuit target " << std::endl;
         const brion::GIDSet& gids =
             _config.parseTarget(
                 params.getTarget( _config.getCircuitTarget( )));
@@ -47,8 +44,6 @@ public:
                          "No GIDs found for default circuit target in "+
                          params.getConfig( )));
 
-        LBINFO << "Loading spikes for " << gids.size() << " cells..."
-               << std::endl;
         const brion::NeuronMatrix& matrix =
             circuit.get( gids, brion::NEURON_POSITION_X |
                                brion::NEURON_POSITION_Y |
@@ -69,8 +64,6 @@ public:
         _loadSpikes( spikePath.empty() ? _config.getSpikeSource() :
                                          brion::URI( spikePath ));
 
-        LBINFO << "Finished loading of " << gids.size() << " neurons"
-               << std::endl;
     }
 
     void updateTimeRange()
@@ -126,7 +119,7 @@ public:
         return true;
     }
 
-    bool load( const float start )
+    ssize_t load( const float start )
     {
         lunchbox::setZero( _spikesPerNeuron.data(),
                            _spikesPerNeuron.size() * sizeof(size_t));
@@ -138,10 +131,7 @@ public:
         for( size_t i = 0; i < _spikesPerNeuron.size(); ++i )
             _output.update( i, _spikesPerNeuron[i] );
 
-        LBINFO << "Loaded " << numSpikes << " spikes from " << start << " to "
-               << end << " ms" << std::endl;
-
-        return true;
+        return numSpikes;
     }
 
     // OPT: directly iterate on binary spike file; saves loading all spikes
@@ -250,7 +240,7 @@ Vector2f SpikeLoader::_getTimeRange() const
     return Vector2f( _impl->_spikesStart, spikesEnd );
 }
 
-bool SpikeLoader::_load( const float time )
+ssize_t SpikeLoader::_load( const float time )
 {
     return _impl->load( time );
 }

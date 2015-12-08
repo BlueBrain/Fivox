@@ -62,7 +62,7 @@ SynapseLoader::SynapseLoader( const URIHandler& params )
     : EventSource( params )
     , _impl( new Impl( *this, params ))
 {
-    setDt( 1.0 );
+    setDt( 1.f );
 }
 
 SynapseLoader::~SynapseLoader()
@@ -73,9 +73,9 @@ Vector2f SynapseLoader::_getTimeRange() const
     return Vector2f( 0.f, 1.f );
 }
 
-bool SynapseLoader::_load( const float )
+ssize_t SynapseLoader::_load( const float )
 {
-    return false;
+    return 0;
 }
 
 }

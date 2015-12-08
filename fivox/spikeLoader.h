@@ -28,7 +28,7 @@ private:
     /** @name Abstract interface implementation */
     //@{
     Vector2f _getTimeRange() const final;
-    bool _load( float time ) final;
+    ssize_t _load( float time ) final;
     SourceType _getType() const final { return SOURCE_EVENT; }
     bool _hasEnded() const final;
     //@}

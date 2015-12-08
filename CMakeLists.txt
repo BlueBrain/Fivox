@@ -21,13 +21,13 @@ set(FIVOX_LICENSE Proprietary)
 
 include(Common)
 
-common_package(Brion)
 common_package(BBPTestData)
 common_package(Boost REQUIRED COMPONENTS unit_test_framework
                                          program_options system)
-common_package(Monsteer)
+common_package(Brion REQUIRED)
 common_package(ITK REQUIRED)
 common_package(Livre)
+common_package(Monsteer REQUIRED)
 common_package(vmmlib REQUIRED)
 common_package_post()
 

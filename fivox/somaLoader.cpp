@@ -38,14 +38,11 @@ public:
             output.add( Event( positions[i], 0.f ));
     }
 
-    bool load( const float time )
+    ssize_t load( const float time )
     {
         const brion::floatsPtr frame = _report.loadFrame( time );
         if( !frame )
-        {
-            LBERROR << "Could not load frame at " << time << "ms" << std::endl;
-            return false;
-        }
+            return -1;
 
         const brion::GIDSet& gids = _report.getGIDs();
         const brion::SectionOffsets& offsets = _report.getOffsets();
@@ -57,7 +54,7 @@ public:
             const float v = voltages[offsets[i][0]] - brion::MINIMUM_VOLTAGE;
             _output.update( i, v );
         }
-        return true;
+        return gids.size();
     }
 
     fivox::EventSource& _output;
@@ -82,7 +79,7 @@ Vector2f SomaLoader::_getTimeRange() const
                      _impl->_report.getEndTime( ));
 }
 
-bool SomaLoader::_load( const float time )
+ssize_t SomaLoader::_load( const float time )
 {
     return _impl->load( time );
 }

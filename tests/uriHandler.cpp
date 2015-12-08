@@ -16,7 +16,7 @@
 BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
 {
     const fivox::URIHandler handler( "fivox://" );
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::COMPARTMENTS );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_COMPARTMENTS );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Layer1" );
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
 BOOST_AUTO_TEST_CASE(URIHandlerSoma)
 {
     const fivox::URIHandler handler( "fivoxsomas://" );
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::SOMAS );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SOMAS );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Layer1" );
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(URIHandlerSoma)
 BOOST_AUTO_TEST_CASE(URIHandlerSpikes)
 {
     const fivox::URIHandler handler( "fivoxspikes://" );
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::SPIKES );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SPIKES );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Column" );
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(URIHandlerSpikes)
 BOOST_AUTO_TEST_CASE(URIHandlerSynapses)
 {
     const fivox::URIHandler handler( "fivoxsynapses://" );
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::SYNAPSES );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SYNAPSES );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Column" );
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(URIHandlerSynapses)
 BOOST_AUTO_TEST_CASE(URIHandlerVSD)
 {
     const fivox::URIHandler handler( "fivoxvsd://" );
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::VSD );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_VSD );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), lunchbox::getExecutablePath()
                        + "/../share/Fivox/configs/BlueConfigVSD" );

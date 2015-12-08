@@ -32,6 +32,9 @@ public:
     ConstEventSourcePtr getSource() const { return _source; }
     EventSourcePtr getSource() { return _source; }
 
+    /** Called before threads are starting to voxelize */
+    virtual void beforeGenerate() {}
+
     virtual TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const = 0;
 

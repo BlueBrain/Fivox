@@ -47,7 +47,7 @@ public:
         const auto morphologies = circuit.loadMorphologies(
             _target, brain::Circuit::COORDINATES_GLOBAL );
 
-        for( size_t i = 0; i != morphologies.size(); ++i )
+        for( size_t i = 0; i < morphologies.size(); ++i )
         {
             const brain::Morphology& morphology = *morphologies[i];
 
@@ -85,14 +85,11 @@ public:
         }
     }
 
-    bool load( const float time )
+    ssize_t load( const float time )
     {
         const brion::floatsPtr values = _report.loadFrame( time );
         if( !values )
-        {
-            LBERROR << "Could not load frame at " << time << "ms" << std::endl;
-            return false;
-        }
+            return -1;
 
         size_t index = 0;
         for( const auto& section : _sections )
@@ -105,9 +102,7 @@ public:
                     index, (( *values )[ offset ] - brion::MINIMUM_VOLTAGE ));
             }
         }
-        LBINFO << "Updated " << index << " events at " << time << "ms"
-               << std::endl;
-        return true;
+        return index;
     }
 
     fivox::EventSource& _output;
@@ -136,7 +131,7 @@ Vector2f CompartmentLoader::_getTimeRange() const
                      _impl->_report.getEndTime( ));
 }
 
-bool CompartmentLoader::_load( const float time )
+ssize_t CompartmentLoader::_load( const float time )
 {
     return _impl->load( time );
 }

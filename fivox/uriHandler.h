@@ -156,6 +156,9 @@ private:
     class Impl;
     std::unique_ptr< Impl > _impl;
 };
+
+std::ostream& operator << ( std::ostream&, const URIHandler& );
+
 }
 
 #endif

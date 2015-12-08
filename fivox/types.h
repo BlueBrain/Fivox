@@ -32,12 +32,12 @@ using vmml::AABBf;
 /** Supported data sources */
 enum VolumeType
 {
-    UNKNOWN,      //!< Unknown URI scheme
-    COMPARTMENTS, //!< BBP compartment simulation reports
-    SOMAS,        //!< BBP soma simulation reports
-    SPIKES,       //!< BBP spike simulation reports
-    SYNAPSES,     //!< BBP synapse positions
-    VSD,          //!< BBP voltage sensitive dye simulation reports
+    TYPE_UNKNOWN,      //!< Unknown URI scheme
+    TYPE_COMPARTMENTS, //!< BBP compartment simulation reports
+    TYPE_SOMAS,        //!< BBP soma simulation reports
+    TYPE_SPIKES,       //!< BBP spike simulation reports
+    TYPE_SYNAPSES,     //!< BBP synapse positions
+    TYPE_VSD,          //!< BBP voltage sensitive dye simulation reports
 };
 
 /** Supported functor types */

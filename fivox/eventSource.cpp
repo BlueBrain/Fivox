@@ -43,7 +43,7 @@ public:
     {}
 
     float dt;
-    float magnitude;
+    const float magnitude;
     float currentTime;
     Events events;
     AABBf boundingBox;
@@ -179,8 +179,16 @@ bool EventSource::load( const float time )
     if( time == _impl->currentTime )
         return true;
 
-    if( !_load( time ))
+    const ssize_t updatedEvents = _load( time );
+    if( updatedEvents < 0 )
+    {
+        LBERROR << "Timestamp " << time << "ms not loaded, no data or events"
+                << std::endl;
         return false;
+    }
+
+    LBINFO << "Timestamp " << time << "ms loaded, updated " << updatedEvents
+           << " event(s)" << std::endl;
 
     _impl->currentTime = time;
     return true;

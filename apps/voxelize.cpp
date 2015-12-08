@@ -166,11 +166,6 @@ int main( int argc, char* argv[] )
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getDimension().find_max();
 
-    FieldFunctorPtr fieldFunctor =
-        std::dynamic_pointer_cast< FieldFunctor >( functor );
-    if( fieldFunctor )
-        fieldFunctor->computeCutOffDistance( params.getMaxError() );
-
     Volume::SizeType vSize;
     vSize.Fill( size );
 

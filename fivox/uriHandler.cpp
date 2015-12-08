@@ -53,11 +53,11 @@ EventSourcePtr _newLoader( const URIHandler& data )
 {
     switch( data.getType( ))
     {
-    case SOMAS:        return std::make_shared< SomaLoader >( data );
-    case COMPARTMENTS: return std::make_shared< CompartmentLoader >( data );
-    case VSD:          return std::make_shared< VSDLoader >( data );
-    case SPIKES:       return std::make_shared< SpikeLoader >( data );
-    case SYNAPSES:     return std::make_shared< SynapseLoader >( data );
+    case TYPE_SOMAS:        return std::make_shared< SomaLoader >( data );
+    case TYPE_COMPARTMENTS: return std::make_shared< CompartmentLoader >( data );
+    case TYPE_VSD:          return std::make_shared< VSDLoader >( data );
+    case TYPE_SPIKES:       return std::make_shared< SpikeLoader >( data );
+    case TYPE_SYNAPSES:     return std::make_shared< SynapseLoader >( data );
     default:           return nullptr;
     }
 }
@@ -70,7 +70,8 @@ _newFunctor( const URIHandler& data )
     case FUNCTOR_DENSITY:
         return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
     case FUNCTOR_FIELD:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>();
+        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>
+                                                         ( data.getMaxError( ));
     case FUNCTOR_FREQUENCY:
         return std::make_shared< FrequencyFunctor< itk::Image< T, 3  >>>();
     case FUNCTOR_UNKNOWN:
@@ -99,7 +100,7 @@ public:
     {
         if( useTestData )
         {
-            if( getType() == VSD )
+            if( getType() == TYPE_VSD )
                 return lunchbox::getExecutablePath() +
                            "/../share/Fivox/configs/BlueConfigVSD";
 #ifdef FIVOX_USE_BBPTESTDATA
@@ -115,7 +116,7 @@ public:
         {
             if( defaultTarget.empty() && useTestData )
             {
-                if( getType() == SPIKES || getType() == SYNAPSES )
+                if( getType() == TYPE_SPIKES || getType() == TYPE_SYNAPSES )
                     return "Column";
                 return "Layer1";
             }
@@ -131,8 +132,8 @@ public:
         {
             switch( getType( ))
             {
-            case SOMAS:
-            case VSD:
+            case TYPE_SOMAS:
+            case TYPE_VSD:
                 return useTestData ? "voltage" : "soma";
             default:
                 return useTestData ? "allvoltage" : "voltage";
@@ -152,17 +153,17 @@ public:
         float defaultValue = 1.f;
         switch( getType( ))
         {
-        case COMPARTMENTS:
-        case SOMAS:
+        case TYPE_COMPARTMENTS:
+        case TYPE_SOMAS:
             defaultValue = 0.1f;
             break;
-        case SPIKES:
+        case TYPE_SPIKES:
             defaultValue = 1.5f / getDuration();
             break;
-        case SYNAPSES:
+        case TYPE_SYNAPSES:
             defaultValue = 10.0f;
             break;
-        case VSD:
+        case TYPE_VSD:
         default:
             break;
         }
@@ -188,18 +189,18 @@ public:
     {
         const std::string& scheme = uri.getScheme();
         if( scheme == "fivoxsomas" )
-            return SOMAS;
+            return TYPE_SOMAS;
         if( scheme == "fivoxspikes" )
-            return SPIKES;
+            return TYPE_SPIKES;
         if( scheme == "fivoxsynapses" )
-            return SYNAPSES;
+            return TYPE_SYNAPSES;
         if( scheme == "fivoxvsd" )
-            return VSD;
+            return TYPE_VSD;
         if( scheme == "fivox" || scheme == "fivoxcompartments" )
-            return COMPARTMENTS;
+            return TYPE_COMPARTMENTS;
 
         LBERROR << "Unknown URI scheme: " << scheme << std::endl;
-        return UNKNOWN;
+        return TYPE_UNKNOWN;
     }
 
     FunctorType getFunctorType() const
@@ -214,13 +215,13 @@ public:
 
         switch( getType( ))
         {
-        case SPIKES:
+        case TYPE_SPIKES:
             return FUNCTOR_FREQUENCY;
-        case SYNAPSES:
+        case TYPE_SYNAPSES:
             return FUNCTOR_DENSITY;
-        case COMPARTMENTS:
-        case SOMAS:
-        case VSD:
+        case TYPE_COMPARTMENTS:
+        case TYPE_SOMAS:
+        case TYPE_VSD:
         default:
             return FUNCTOR_FIELD;
         }
@@ -338,11 +339,19 @@ FunctorType URIHandler::getFunctorType() const
 template< class T > itk::SmartPointer< ImageSource< itk::Image< T, 3 >>>
 URIHandler::newImageSource() const
 {
+    LBINFO << "Start loading of events..." << std::endl;
+
     itk::SmartPointer< ImageSource< itk::Image< T, 3 >>> source =
         ImageSource< itk::Image< T, 3 >>::New();
     std::shared_ptr< EventFunctor< itk::Image< T, 3 >>> functor =
         _newFunctor< T >( *this );
     EventSourcePtr loader = _newLoader( *this );
+
+    LBINFO << "Finished loading of " << loader->getEvents().size() << " events"
+           << std::endl;
+
+    LBINFO << "Ready to voxelize " << *this << ", dt = " << loader->getDt()
+           << std::endl;
 
     if( _impl->showProgress( ))
         source->showProgress();
@@ -351,6 +360,56 @@ URIHandler::newImageSource() const
     source->setFunctor( functor );
     return source;
 }
+
+std::ostream& operator << ( std::ostream& os, const URIHandler& params )
+{
+    switch( params.getType( ))
+    {
+    case TYPE_COMPARTMENTS:
+        os << "compartment voltages from " << params.getReport();
+        break;
+    case TYPE_SOMAS:
+        os << "soma voltages from " << params.getReport();
+        break;
+    case TYPE_SPIKES:
+        os << "spikes from " << (params.getSpikes().empty() ? params.getConfig()
+                                                           : params.getSpikes())
+           << ", duration = " << params.getDuration();
+        break;
+    case TYPE_SYNAPSES:
+        os << "synapse positions from " << params.getConfig();
+        break;
+    case TYPE_VSD:
+        os << "VSD from " << params.getReport();
+        break;
+    case TYPE_UNKNOWN:
+    default:
+        os << "unknown data source " << params.getConfig();
+        break;
+    }
+
+    os << ", using ";
+
+    switch( params.getFunctorType( ))
+    {
+    case FUNCTOR_DENSITY:
+        os << "density functor";
+        break;
+    case FUNCTOR_FIELD:
+        os << "field functor with max error " << params.getMaxError();
+        break;
+    case FUNCTOR_FREQUENCY:
+        os << "frequency functor";
+        break;
+    case FUNCTOR_UNKNOWN:
+    default:
+        os << "unknown functor";
+        break;
+    }
+
+    return os << ", magnitude = " << params.getMagnitude();
+}
+
 }
 
 // template instantiations

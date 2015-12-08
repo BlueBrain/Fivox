@@ -92,6 +92,7 @@ void ImageSource< TImage >::BeforeThreadedGenerateData()
 {
     if( _progressObserver )
         static_cast< ProgressObserver& >(*_progressObserver).reset();
+    _functor->beforeGenerate();
 }
 
 } // end namespace fivox

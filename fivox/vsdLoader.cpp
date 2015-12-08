@@ -37,7 +37,7 @@ public:
 
         _areas = _areaReport.loadFrame( 0.f );
         if( !_areas )
-            throw std::runtime_error( "Can't load 'area' vsd report" );
+            LBTHROW( std::runtime_error( "Can't load 'area' vsd report" ));
 
         _circuitSectionIDs.reserve( _target.size( ));
 
@@ -75,14 +75,11 @@ public:
         setCurve( fivox::AttenuationCurve( params.getDyeCurve(), thickness ));
     }
 
-    bool load( const float time )
+    ssize_t load( const float time )
     {
         brion::floatsPtr voltages = _voltageReport.loadFrame( time );
         if( !voltages )
-        {
-            LBERROR << "Could not load frame at " << time << "ms" <<std::endl;
-            return false;
-        }
+            return -1;
 
         size_t eventIndex = 0;
         const float yMax = _output.getBoundingBox().getMax()[1];
@@ -106,7 +103,7 @@ public:
                 }
             }
         }
-        return true;
+        return eventIndex;
     }
 
     void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
@@ -157,7 +154,7 @@ Vector2f VSDLoader::_getTimeRange() const
                      _impl->_voltageReport.getEndTime( ));
 }
 
-bool VSDLoader::_load( const float time )
+ssize_t VSDLoader::_load( const float time )
 {
     return _impl->load( time );
 }

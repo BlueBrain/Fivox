@@ -63,18 +63,12 @@ public:
     }
 
     livre::MemoryUnitPtr sample( const livre::LODNode& node,
-                                 const livre::VolumeInformation& info )
-        const
+                                 const livre::VolumeInformation& info ) const
     {
         ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
         const uint32_t frame = node.getNodeId().getFrame();
         if( !loader->load( frame ))
             return livre::MemoryUnitPtr();
-
-        FieldFunctorPtr fieldFunctor =
-            std::dynamic_pointer_cast< VolumeFieldFunctor >( source->getFunctor() );
-        if( fieldFunctor )
-            fieldFunctor->computeCutOffDistance( params.getMaxError() );
 
         // Alloc voxels
         const vmml::Vector3i& voxels = info.maximumBlockSize;

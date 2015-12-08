@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE( fivox_source )
 {
     // Compartement report 'allvoltage' (binary) contains timestamps
     // between 0 and 1000 with a Dt=0.1 => data range is 0.0 to 100.0 ms
-    testSource( "fivox://", 3.017578125, 0.0127238630805806,
+    testSource( "fivox://", 4.421875f, 0.01856544390573589f,
                 vmml::Vector2ui( 0, 1000 ));
 }
 
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE( fivoxSomas_source )
 {
     // Soma report 'voltage' (binary) contains timestamps
     // between 0 and 1000 with a Dt=0.1 => data range is 0.0 to 100.0 ms
-    testSource( "fivoxSomas://", 0.521484375f, 0.0034715187880252074f,
+    testSource( "fivoxSomas://", 0.455078125f, 0.0030322455124291992f,
                 vmml::Vector2ui( 0, 1000 ));
 }
 

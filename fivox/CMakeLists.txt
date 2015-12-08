@@ -28,37 +28,27 @@ set(FIVOX_PUBLIC_HEADERS
 set(FIVOX_HEADERS)
 
 set(FIVOX_SOURCES
+  compartmentLoader.cpp
   eventSource.cpp
   progressObserver.cpp
+  somaLoader.cpp
+  spikeLoader.cpp
+  synapseLoader.cpp
   uriHandler.cpp
+  vsdLoader.cpp
 )
 
 set(FIVOX_LINK_LIBRARIES
   PUBLIC ${ITK_LIBRARIES} Lunchbox vmmlib
-  PRIVATE ${Boost_LIBRARIES})
+  PRIVATE ${Boost_LIBRARIES} Brion Brain Monsteer)
 
 # Optionally enable rtree from boost_geometry, if found
 if(EXISTS "${Boost_INCLUDE_DIR}/boost/geometry.hpp")
   add_definitions(-DUSE_BOOST_GEOMETRY)
 endif()
 
-if(BRION_FOUND)
-  list(APPEND FIVOX_SOURCES
-    compartmentLoader.cpp
-    somaLoader.cpp
-    synapseLoader.cpp
-    vsdLoader.cpp)
-  list(APPEND FIVOX_LINK_LIBRARIES PRIVATE Brion Brain)
-endif()
-
 if(BBPTESTDATA_FOUND)
   list(APPEND FIVOX_LINK_LIBRARIES PRIVATE BBPTestData)
-endif()
-
-if(MONSTEER_FOUND)
-  list(APPEND FIVOX_SOURCES
-    spikeLoader.cpp )
-  list(APPEND FIVOX_LINK_LIBRARIES PRIVATE Monsteer)
 endif()
 
 common_library(Fivox)
