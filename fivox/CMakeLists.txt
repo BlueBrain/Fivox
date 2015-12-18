@@ -25,7 +25,9 @@ set(FIVOX_PUBLIC_HEADERS
   vsdLoader.h
 )
 
-set(FIVOX_HEADERS)
+set(FIVOX_HEADERS
+  itk/beerLambertProjectionImageFilter.h
+)
 
 set(FIVOX_SOURCES
   compartmentLoader.cpp

@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [20241](https://bbpcode.epfl.ch/code/#/c/20241/)
+  Add --projection option in voxelize tool. When enabled, generate a 2D
+  projection of the resulting volume, emulating the output of a VSD imaging
+  process. It uses the newly added ITK projection filter
+  BeerLambertProjectionImageFilter.
 * [19753](https://bbpcode.epfl.ch/code/#/c/19753/)
   Fix [ISC-139]. Make sure the requested end time is inside the available time
   range when streaming spikes.

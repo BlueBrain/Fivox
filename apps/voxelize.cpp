@@ -6,8 +6,10 @@
  */
 
 #include <fivox/fivox.h>
+#include <fivox/itk/beerLambertProjectionImageFilter.h>
 
 #include <itkImageFileWriter.h>
+
 #include <lunchbox/file.h>
 #include <lunchbox/log.h>
 #include <lunchbox/uri.h>
@@ -20,6 +22,11 @@ typedef fivox::FieldFunctor< Volume > FieldFunctor;
 typedef std::shared_ptr< FieldFunctor > FieldFunctorPtr;
 typedef fivox::ImageSource< Volume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
+
+typedef float FloatPixelType;
+typedef itk::Image< FloatPixelType, 2 > FloatImageType;
+
+const double sigmaVSDProjection =  0.00045; // units per um (0.45 per mm)
 }
 
 namespace vmml
@@ -128,7 +135,9 @@ int main( int argc, char* argv[] )
           "Frame range [start end) to load in the report" )
         ( "output,o", po::value< std::string >()->default_value( outputFile ),
           "Name of the output volume file (mhd and raw); contains frame number "
-          "if --frames or --times" );
+          "if --frames or --times" )
+        ( "projection,p", "Generate the corresponding projected 2D image "
+          "(only for VSD volumes)" );
 
     po::store( po::parse_command_line( argc, argv, desc ), vm );
     po::notify( vm );
@@ -217,16 +226,41 @@ int main( int argc, char* argv[] )
         {
             std::ostringstream fileStream;
             fileStream << outputFile << std::setfill('0')
-                       << std::setw( numDigits ) << i << ".mhd";
+                       << std::setw( numDigits ) << i;
             filename = fileStream.str();
         }
         else
-            filename = outputFile + ".mhd";
+            filename = outputFile;
 
         loader->load( i );
-        writer->SetFileName( filename );
+
+        const std::string& volumeName = filename + ".mhd";
+        writer->SetFileName( volumeName );
         source->Modified();
         writer->Update(); // Run pipeline to write volume
-        LBINFO << "Volume written as " << filename << std::endl;
+        LBINFO << "Volume written as " << volumeName << std::endl;
+
+        if( params.getType() != fivox::TYPE_VSD || !vm.count( "projection" ))
+            continue;
+
+        // The projection filter computes the output using the real value of
+        // the data, i.e. not limited by the precision of the final image
+        typedef fivox::BeerLambertProjectionImageFilter
+                < Volume, FloatImageType > FilterType;
+        FilterType::Pointer projection = FilterType::New();
+        projection->SetInput( output );
+        projection->SetProjectionDimension( 1 ); // projection along Y-axis
+        projection->SetPixelSize( 1.0 / params.getResolution( ));
+        projection->SetSigma( sigmaVSDProjection );
+
+        // Write output image
+        typedef itk::ImageFileWriter< FloatImageType > ImageWriter;
+        ImageWriter::Pointer imageWriter = ImageWriter::New();
+        imageWriter->SetInput( projection->GetOutput( ));
+
+        const std::string& imageFile = filename + ".vtk";
+        imageWriter->SetFileName( imageFile );
+        imageWriter->Update();
+        LBINFO << "VSD projection written as " << imageFile << std::endl;
     }
 }

@@ -49,17 +49,18 @@ public:
                                            brion::SECTION_DENDRITE,
                                            brion::SECTION_APICAL_DENDRITE });
 
+            const auto& counts = _areaReport.getCompartmentCounts()[i];
+
             for( auto sectionId : _circuitSectionIDs[i] )
             {
-                const auto& counts =
-                    _areaReport.getCompartmentCounts()[i];
                 assert( sectionId < counts.size( ));
                 const size_t nCompartments = counts[sectionId];
                 assert( nCompartments );
 
                 const float length = 1.f / float( nCompartments );
                 brion::floats samples;
-                samples.reserve(nCompartments);
+                samples.reserve( nCompartments );
+                // a sample per compartment, covering the whole section
                 for( float k = length * .5f; k < 1.0; k += length )
                     samples.push_back( k );
 
