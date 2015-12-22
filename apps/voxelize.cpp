@@ -9,6 +9,7 @@
 #include <fivox/itk/beerLambertProjectionImageFilter.h>
 
 #include <itkImageFileWriter.h>
+#include <itkRescaleIntensityImageFilter.h>
 
 #include <lunchbox/file.h>
 #include <lunchbox/log.h>
@@ -27,6 +28,108 @@ typedef float FloatPixelType;
 typedef itk::Image< FloatPixelType, 2 > FloatImageType;
 
 const double sigmaVSDProjection =  0.00045; // units per um (0.45 per mm)
+
+template< typename T >
+class VolumeWriter
+{
+    typedef itk::RescaleIntensityImageFilter
+                < Volume, itk::Image< T, 3 >> RescaleFilterType;
+    typedef itk::ImageFileWriter< itk::Image< T, 3 >> Writer;
+
+public:
+    VolumeWriter( VolumePtr input )
+        : _rescaleFilter( RescaleFilterType::New( ))
+        , _writer( Writer::New( ))
+    {
+        _rescaleFilter->SetInput( input );
+        _writer->SetInput( _rescaleFilter->GetOutput( ));
+    }
+
+    typename Writer::Pointer operator->()
+    {
+        return _writer;
+    }
+
+private:
+    typename RescaleFilterType::Pointer _rescaleFilter;
+    typename Writer::Pointer _writer;
+};
+
+template<>
+class VolumeWriter< float >
+{
+    typedef itk::ImageFileWriter< Volume > Writer;
+
+public:
+    VolumeWriter( VolumePtr input )
+        : _writer( Writer::New( ))
+    {
+        _writer->SetInput( input );
+    }
+
+    typename Writer::Pointer operator->()
+    {
+        return _writer;
+    }
+
+private:
+    typename Writer::Pointer _writer;
+};
+
+template< typename T >
+void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
+              const bool vsdProjection, const float volumeResolution,
+              const std::string& outputFile )
+{
+    VolumePtr input = source->GetOutput();
+    VolumeWriter< T > writer( input );
+
+    const size_t numDigits = std::to_string( frameRange.y( )).length( );
+    for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
+    {
+        std::string filename;
+        if( frameRange.y() - frameRange.x() > 1 )
+        {
+            std::ostringstream fileStream;
+            fileStream << outputFile << std::setfill('0')
+                       << std::setw( numDigits ) << i;
+            filename = fileStream.str();
+        }
+        else
+            filename = outputFile;
+
+        source->getFunctor()->getSource()->load( i );
+
+        const std::string& volumeName = filename + ".mhd";
+        writer->SetFileName( volumeName );
+        source->Modified();
+        writer->Update(); // Run pipeline to write volume
+        LBINFO << "Volume written as " << volumeName << std::endl;
+
+        if( !vsdProjection )
+            continue;
+
+        // The projection filter computes the output using the real value of
+        // the data, i.e. not limited by the precision of the final image
+        typedef fivox::BeerLambertProjectionImageFilter
+                < Volume, FloatImageType > FilterType;
+        FilterType::Pointer projection = FilterType::New();
+        projection->SetInput( input );
+        projection->SetProjectionDimension( 1 ); // projection along Y-axis
+        projection->SetPixelSize( 1.0 / volumeResolution );
+        projection->SetSigma( sigmaVSDProjection );
+
+        // Write output image
+        typedef itk::ImageFileWriter< FloatImageType > ImageWriter;
+        ImageWriter::Pointer imageWriter = ImageWriter::New();
+        imageWriter->SetInput( projection->GetOutput( ));
+
+        const std::string& imageFile = filename + ".vtk";
+        imageWriter->SetFileName( imageFile );
+        imageWriter->Update();
+        LBINFO << "VSD projection written as " << imageFile << std::endl;
+    }
+}
 }
 
 namespace vmml
@@ -123,13 +226,16 @@ int main( int argc, char* argv[] )
           "            (default: no file; attenuation of 1.0)\n"
 //! [Usage]
           )
+        ( "datatype,d", po::value< std::string >()->default_value( "float" ),
+          "Type of the data in the output volume "
+          "[float (default), int, short, char]" )
         ( "size,s", po::value< size_t >()->default_value( size ),
           "Size of the output volume" )
-        ( "time", po::value< float >(),
+        ( "time,t", po::value< float >(),
           "Timestamp to load in the report" )
         ( "times", po::value< fivox::Vector2f >(),
           "Time range [start end) to load in the report" )
-        ( "frame", po::value< unsigned >(),
+        ( "frame,f", po::value< unsigned >(),
           "Frame to load in the report" )
         ( "frames", po::value< fivox::Vector2ui >(),
           "Frame range [start end) to load in the report" )
@@ -167,10 +273,9 @@ int main( int argc, char* argv[] )
 
     ::fivox::URIHandler params( uri );
 
-    ImageSourcePtr source = params.newImageSource< uint8_t >();
-    FunctorPtr functor = source->getFunctor();
+    ImageSourcePtr source = params.newImageSource< float >();
 
-    ::fivox::EventSourcePtr loader = functor->getSource();
+    ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
     const fivox::AABBf& bbox = loader->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getDimension().find_max();
@@ -194,11 +299,7 @@ int main( int argc, char* argv[] )
     origin[2] = position[2];
     output->SetOrigin( origin );
 
-    typedef itk::ImageFileWriter< Volume > Writer;
-    typename Writer::Pointer writer = Writer::New();
-    writer->SetInput( output );
-
-    fivox::Vector2ui frameRange;
+    fivox::Vector2ui frameRange( 0, 1 ); // just frame 0 by default
     if( vm.count( "time" ))
     {
         const size_t frame = vm["time"].as< float >() / loader->getDt();
@@ -218,49 +319,32 @@ int main( int argc, char* argv[] )
     if( vm.count( "frames" ))
         frameRange = vm["frames"].as< fivox::Vector2ui >();
 
-    const size_t numDigits = std::to_string( frameRange.y( )).length( );
-    for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
+    const bool vsdProjection(
+            params.getType() == fivox::TYPE_VSD && vm.count( "projection" ));
+
+    const std::string& datatype( vm["datatype"].as< std::string >( ));
+    if( datatype == "char" )
     {
-        std::string filename;
-        if( frameRange.y() - frameRange.x() > 1 )
-        {
-            std::ostringstream fileStream;
-            fileStream << outputFile << std::setfill('0')
-                       << std::setw( numDigits ) << i;
-            filename = fileStream.str();
-        }
-        else
-            filename = outputFile;
-
-        loader->load( i );
-
-        const std::string& volumeName = filename + ".mhd";
-        writer->SetFileName( volumeName );
-        source->Modified();
-        writer->Update(); // Run pipeline to write volume
-        LBINFO << "Volume written as " << volumeName << std::endl;
-
-        if( params.getType() != fivox::TYPE_VSD || !vm.count( "projection" ))
-            continue;
-
-        // The projection filter computes the output using the real value of
-        // the data, i.e. not limited by the precision of the final image
-        typedef fivox::BeerLambertProjectionImageFilter
-                < Volume, FloatImageType > FilterType;
-        FilterType::Pointer projection = FilterType::New();
-        projection->SetInput( output );
-        projection->SetProjectionDimension( 1 ); // projection along Y-axis
-        projection->SetPixelSize( 1.0 / params.getResolution( ));
-        projection->SetSigma( sigmaVSDProjection );
-
-        // Write output image
-        typedef itk::ImageFileWriter< FloatImageType > ImageWriter;
-        ImageWriter::Pointer imageWriter = ImageWriter::New();
-        imageWriter->SetInput( projection->GetOutput( ));
-
-        const std::string& imageFile = filename + ".vtk";
-        imageWriter->SetFileName( imageFile );
-        imageWriter->Update();
-        LBINFO << "VSD projection written as " << imageFile << std::endl;
+        LBINFO << "Sampling volume as char (uint8_t) data" << std::endl;
+        _sample< uint8_t >( source, frameRange, vsdProjection,
+                            params.getResolution(), outputFile );
+    }
+    else if( datatype == "short" )
+    {
+        LBINFO << "Sampling volume as short (uint16_t) data" << std::endl;
+        _sample< uint16_t >( source, frameRange, vsdProjection,
+                             params.getResolution(), outputFile );
+    }
+    else if( datatype == "int" )
+    {
+        LBINFO << "Sampling volume as int (uint32_t) data" << std::endl;
+        _sample< uint32_t >( source, frameRange, vsdProjection,
+                             params.getResolution(), outputFile );
+    }
+    else
+    {
+        LBINFO << "Sampling volume as floating point data" << std::endl;
+        _sample< float >( source, frameRange, vsdProjection,
+                          params.getResolution(), outputFile );
     }
 }

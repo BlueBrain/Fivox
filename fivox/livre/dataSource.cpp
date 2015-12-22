@@ -45,9 +45,13 @@ namespace fivox
 
 namespace
 {
-typedef Volume::Pointer VolumePtr;
-typedef ::fivox::ImageSource< Volume > ImageSource;
+// livre only supports 8-bit data at the moment
+typedef itk::Image< uint8_t, 3 > VolumeByte;
+typedef VolumeByte::Pointer VolumePtr;
+
+typedef ::fivox::ImageSource< VolumeByte > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
+
 typedef typename ImageSource::FunctorPtr FunctorPtr;
 typedef fivox::FieldFunctor< Volume > VolumeFieldFunctor;
 typedef std::shared_ptr< VolumeFieldFunctor > FieldFunctorPtr;
@@ -163,10 +167,10 @@ DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
     const size_t maxTextureSize = 2048;
     while( true )
     {
-        if( blockResolution.product() < maxBlockByteSize
-            &&  blockResolution.x( ) < maxTextureSize &&
-                blockResolution.y( ) < maxTextureSize &&
-                blockResolution.z( ) < maxTextureSize )
+        if( blockResolution.product() < maxBlockByteSize &&
+            blockResolution.x() < maxTextureSize &&
+            blockResolution.y() < maxTextureSize &&
+            blockResolution.z() < maxTextureSize )
         {
             break;
         }

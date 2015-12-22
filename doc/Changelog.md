@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [20308](https://bbpcode.epfl.ch/code/#/c/20308/)
+  Use a custom type for the output volume in the voxelize tool.
 * [20241](https://bbpcode.epfl.ch/code/#/c/20241/)
   Add --projection option in voxelize tool. When enabled, generate a 2D
   projection of the resulting volume, emulating the output of a VSD imaging

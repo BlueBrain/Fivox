@@ -68,7 +68,7 @@ template< typename > class SmartPointer;
 
 namespace
 {
-typedef itk::Image< uint8_t, 3 > Volume;
+typedef itk::Image< float, 3 > Volume;
 typedef std::shared_ptr< fivox::EventFunctor< Volume >> FunctorPtr;
 }
 
