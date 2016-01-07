@@ -32,7 +32,7 @@
  */
 
 #include <fivox/fivox.h>
-#include <fivox/itk/beerLambertProjectionImageFilter.h>
+#include <fivox/beerLambertProjectionImageFilter.h>
 
 #include <itkImageFileWriter.h>
 #include <itkRescaleIntensityImageFilter.h>
@@ -176,6 +176,7 @@ int main( int argc, char* argv[] )
     po::variables_map vm;
     po::options_description desc( "Supported options", 140 /*line len*/ );
     desc.add_options()
+//! [Parameters] @anchor parameters
         ( "help,h", "Show help message" )
         ( "version,v", "Show program name and version" )
         ( "volume", po::value< std::string >(),
@@ -262,6 +263,7 @@ int main( int argc, char* argv[] )
           "if --frames or --times" )
         ( "projection,p", "Generate the corresponding projected 2D image "
           "(only for VSD volumes)" );
+//! [Parameters]
 
     po::store( po::parse_command_line( argc, argv, desc ), vm );
     po::notify( vm );

@@ -1,6 +1,8 @@
-# Copyright (c) BBP/EPFL 2014-2015
+# Copyright (c) BBP/EPFL 2014-2016
 #               Stefan.Eilemann@epfl.ch
-# All rights reserved. Do not distribute without further notice.
+#
+# This file is part of Fivox <https://github.com/BlueBrain/Fivox>
+#
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(Fivox)
@@ -16,9 +18,11 @@ set(VERSION_PATCH "0")
 set(VERSION_ABI 3)
 
 set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
-set(FIVOX_MAINTAINER "BBP Visualization Team <bbp-dev-vizcore@groupes.epfl.ch>")
-set(FIVOX_LICENSE Proprietary)
+set(FIVOX_MAINTAINER
+  "Blue Brain Project <bbp-open-source@googlegroups.com>")
+set(FIVOX_LICENSE LGPL)
 
+set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(Common)
 
 common_package(BBPTestData)
@@ -34,7 +38,6 @@ common_package_post()
 set(FIVOX_DEPENDENT_LIBRARIES ITK vmmlib)
 
 include(${ITK_USE_FILE})
-
 # eile: For some unfathomable reason, the list of libraries contains
 # these tokens which cause the subsequent lib target to disappear from
 # the link line. Removing the tokens fixes the build, although I have
@@ -46,9 +49,6 @@ add_subdirectory(apps)
 add_subdirectory(tests)
 add_subdirectory(configs)
 
-set(GIT_DOCUMENTATION_REPO BBPDocumentation)
-set(COMMON_ORGANIZATION_NAME BBP)
-set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(CPackConfig)
 set(DOXYGEN_MAINPAGE_MD README.md)
 set(DOXYGEN_EXTRA_INPUT ${PROJECT_SOURCE_DIR}/README.md)

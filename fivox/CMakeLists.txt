@@ -25,7 +25,7 @@ set(FIVOX_PUBLIC_HEADERS
 )
 
 set(FIVOX_HEADERS
-  itk/beerLambertProjectionImageFilter.h
+  beerLambertProjectionImageFilter.h
 )
 
 set(FIVOX_SOURCES
