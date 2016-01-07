@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2015, EPFL/Blue Brain Project
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *
