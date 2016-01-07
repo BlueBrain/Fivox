@@ -24,7 +24,7 @@
 
 namespace fivox
 {
-/** Loads synapses to be sampled by an EventFunctor. */
+/** Loads BBP synapse files to be sampled by an EventFunctor. */
 class SynapseLoader : public EventSource
 {
 public:

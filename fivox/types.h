@@ -26,7 +26,13 @@
 #include <memory>
 #include <vector>
 
-/** Field Voxelization Library */
+/**
+ * Field Voxelization Library
+ *
+ * An ImageSource implements an itk::ImageSource. It uses an EventFunctor to
+ * sample Event into the configured volume. The events are loaded by an
+ * EventSource.
+ */
 namespace fivox
 {
 class EventSource;
@@ -60,9 +66,9 @@ enum VolumeType
 enum FunctorType
 {
     FUNCTOR_UNKNOWN,
-    FUNCTOR_DENSITY,
-    FUNCTOR_FIELD,
-    FUNCTOR_FREQUENCY
+    FUNCTOR_DENSITY, //!< sum( magnitude of events in voxel ) / volume of voxel
+    FUNCTOR_FIELD,   //!< quadratic falloff of magnitude in space
+    FUNCTOR_FREQUENCY //!< maximum magnitude of all events in voxel
 };
 
 /** @internal Different types of event sources which defines

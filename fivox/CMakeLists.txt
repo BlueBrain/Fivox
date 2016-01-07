@@ -1,6 +1,5 @@
-# Copyright (c) BBP/EPFL 2014-2015
+# Copyright (c) BBP/EPFL 2014-2016
 #                        Stefan.Eilemann@epfl.ch
-# All rights reserved. Do not distribute without further notice.
 
 source_group(\\ FILES CMakeLists.txt)
 

@@ -28,7 +28,7 @@
 
 namespace fivox
 {
-/** Image source using an EventFunctor on each pixel to generate the output */
+/** ITK image source using an EventFunctor on each pixel to generate the output */
 template< typename TImage >
 class ImageSource : public itk::ImageSource< TImage >
 {

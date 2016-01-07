@@ -27,7 +27,7 @@
 namespace fivox
 {
 /**
- * Loads report data for voltage sensitive dye sampling.
+ * Loads BBP report data for voltage sensitive dye sampling.
  *
  * Expects an 'area' full compartment report with a single timestep containing
  * the surface areas of each compartment, and a soma report containing the soma
@@ -50,7 +50,7 @@ public:
     * Set the attenuation curve that will be applied to the computed events
     * @param curve The attenuation curve to apply
     */
-    void setCurve( const AttenuationCurve& curve ) final;
+    void setCurve( const AttenuationCurve& curve );
 
 private:
     /** @name Abstract interface implementation */

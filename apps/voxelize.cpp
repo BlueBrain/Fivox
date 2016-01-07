@@ -187,7 +187,7 @@ int main( int argc, char* argv[] )
         ( "help,h", "Show help message" )
         ( "version,v", "Show program name and version" )
         ( "volume", po::value< std::string >(),
-//! [Usage]
+//! [Usage] @anchor voxelize
           "Volume URI with parameters in the form:\n"
           "- Compartment reports:\n"
           "    fivox[compartments]://BlueConfig?report=string,target=string[ or #target]\n"

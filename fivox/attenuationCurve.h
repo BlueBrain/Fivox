@@ -29,7 +29,7 @@
 
 namespace fivox
 {
-/** Attentuation curve access for depth-based interpolation. */
+/** Attentuation curve access for depth-based interpolation. @sa VSDLoader */
 class AttenuationCurve
 {
 public:

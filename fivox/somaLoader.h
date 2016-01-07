@@ -25,7 +25,7 @@
 
 namespace fivox
 {
-/** Loads soma report data to be sampled by an EventFunctor. */
+/** Loads BBP soma report data to be sampled by an EventFunctor. */
 class SomaLoader : public EventSource
 {
 public:

@@ -25,7 +25,7 @@
 
 namespace fivox
 {
-/** Loads compartment report data to be sampled by an EventFunctor. */
+/** Loads BBP compartment report data to be sampled by an EventFunctor. */
 class CompartmentLoader : public EventSource
 {
 public:

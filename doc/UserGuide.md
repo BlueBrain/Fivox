@@ -7,40 +7,17 @@ rendering.
 
 # Installation {#Installation}
 
-Clone Fivox:
+Build Fivox from source:
 ~~~
 git clone https://bbpcode.epfl.ch/code/viz/Fivox
-~~~
-
-Create your build folder:
-~~~
-cd Fivox
-~~~
-~~~
-mkdir Build
-~~~
-
-For debug build run cmake like that:
-~~~
-cd Build
-~~~
-~~~
+mkdir Fivox/build
+cd Fivox/build
 cmake ..
-~~~
-
-For release build run cmake like that:
-~~~
-cd Build
-~~~
-~~~
-cmake -DCMAKE_BUILD_TYPE=Release ..
-~~~
-
-Build fivox with "n" being the number of thread you want to use:
-~~~
-make -jn
+make
 ~~~
 
 # Usage {#Usage}
+
+The voxelize command line tool supports the following parameters:
 
 @snippet apps/voxelize.cpp Usage

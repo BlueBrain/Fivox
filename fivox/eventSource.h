@@ -31,9 +31,9 @@ namespace fivox
 /**
  * Base class for an Event source.
  *
- * An event source is used by an EventFunctor to sample events for a given
- * point. Subclassing or aggregation provides the events using add() and
- * update(), and the functor accesses the data using getEvents().
+ * An event source is used by an EventFunctor to sample events for a given point
+ * at a given time. Subclassing provides the events using add() and update(),
+ * and the functor accesses the data using getEvents().
  */
 class EventSource
 {
@@ -85,13 +85,6 @@ public:
      * @return true if the time stamp can be retrieved from the data source
      */
     bool load( float time );
-
-    /**
-     * Set the attenuation curve that will be applied to the computed events
-     *
-     * @param curve The attenuation curve to apply
-     */
-    virtual void setCurve( const AttenuationCurve& curve LB_UNUSED ) {}
 
     /**
      * Gets the valid frame range according to data. The valid frames are in the

@@ -30,6 +30,8 @@ namespace fivox
 
 /**
  * Process an URI to provide all the parameters specified in it.
+ *
+ * The following parameters are parsed:
  * @snippet apps/voxelize.cpp Usage
  */
 class URIHandler

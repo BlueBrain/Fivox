@@ -25,7 +25,7 @@
 
 namespace fivox
 {
-/** Loads spike report data to be sampled by an EventFunctor. */
+/** Loads BBP or NEST spike report data to be sampled by an EventFunctor. */
 class SpikeLoader : public EventSource
 {
 public:
