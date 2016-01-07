@@ -3,6 +3,10 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [20428](https://bbpcode.epfl.ch/code/#/c/20428/)
+  Fix several bugs in the VSD loader, which crashed the application when
+  loading events.
+  Update the reference BlueConfigVSD to point to existing data.
 * [20308](https://bbpcode.epfl.ch/code/#/c/20308/)
   Use a custom type for the output volume in the voxelize tool.
 * [20241](https://bbpcode.epfl.ch/code/#/c/20241/)

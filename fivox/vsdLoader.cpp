@@ -59,10 +59,12 @@ public:
         for( size_t i = 0; i != morphologies.size(); ++i )
         {
             const brain::Morphology& morphology = *morphologies[i];
-            _circuitSectionIDs[i] =
+            const auto sections =
                 morphology.getSectionIDs({ brion::SECTION_SOMA,
                                            brion::SECTION_DENDRITE,
                                            brion::SECTION_APICAL_DENDRITE });
+
+            _circuitSectionIDs.push_back( sections );
 
             const auto& counts = _areaReport.getCompartmentCounts()[i];
 
@@ -84,7 +86,6 @@ public:
                 for( const auto& point : points )
                     output.add( Event( point.get_sub_vector< 3 >(), 0.f ));
             }
-            ++i;
         }
 
         const float thickness = _output.getBoundingBox().getDimension()[1];
