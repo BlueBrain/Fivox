@@ -55,8 +55,7 @@ typedef itk::Image< FloatPixelType, 2 > FloatImageType;
 
 const double sigmaVSDProjection =  0.00045; // units per um (0.45 per mm)
 
-template< typename T >
-class VolumeWriter
+template< typename T > class VolumeWriter
 {
     typedef itk::RescaleIntensityImageFilter
                 < Volume, itk::Image< T, 3 >> RescaleFilterType;
@@ -71,18 +70,14 @@ public:
         _writer->SetInput( _rescaleFilter->GetOutput( ));
     }
 
-    typename Writer::Pointer operator->()
-    {
-        return _writer;
-    }
+    typename Writer::Pointer operator->() { return _writer; }
 
 private:
     typename RescaleFilterType::Pointer _rescaleFilter;
     typename Writer::Pointer _writer;
 };
 
-template<>
-class VolumeWriter< float >
+template<> class VolumeWriter< float >
 {
     typedef itk::ImageFileWriter< Volume > Writer;
 
@@ -93,10 +88,7 @@ public:
         _writer->SetInput( input );
     }
 
-    typename Writer::Pointer operator->()
-    {
-        return _writer;
-    }
+    typename Writer::Pointer operator->() { return _writer; }
 
 private:
     typename Writer::Pointer _writer;
