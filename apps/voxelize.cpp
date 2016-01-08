@@ -53,8 +53,6 @@ typedef ImageSource::Pointer ImageSourcePtr;
 typedef float FloatPixelType;
 typedef itk::Image< FloatPixelType, 2 > FloatImageType;
 
-const double sigmaVSDProjection =  0.00045; // units per um (0.45 per mm)
-
 template< typename T > class VolumeWriter
 {
     typedef itk::RescaleIntensityImageFilter
@@ -96,7 +94,7 @@ private:
 
 template< typename T >
 void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
-              const bool vsdProjection, const float volumeResolution,
+              const double sigmaVSDProjection, const float volumeResolution,
               const std::string& outputFile )
 {
     VolumePtr input = source->GetOutput();
@@ -124,7 +122,7 @@ void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
         writer->Update(); // Run pipeline to write volume
         LBINFO << "Volume written as " << volumeName << std::endl;
 
-        if( !vsdProjection )
+        if( sigmaVSDProjection < 0.0 )
             continue;
 
         // The projection filter computes the output using the real value of
@@ -261,8 +259,10 @@ int main( int argc, char* argv[] )
         ( "output,o", po::value< std::string >()->default_value( outputFile ),
           "Name of the output volume file (mhd and raw); contains frame number "
           "if --frames or --times" )
-        ( "projection,p", "Generate the corresponding projected 2D image "
-          "(only for VSD volumes)" );
+        ( "projection,p", po::value< double >(), "Generate the corresponding "
+          "projected 2D image (only for VSD volumes), using the specified "
+          "value as the absorption + scattering coefficient (units per "
+          "micrometer) in the Beer-Lambert law. Must be a positive value." );
 //! [Parameters]
 
     po::store( po::parse_command_line( argc, argv, desc ), vm );
@@ -339,32 +339,33 @@ int main( int argc, char* argv[] )
     if( vm.count( "frames" ))
         frameRange = vm["frames"].as< fivox::Vector2ui >();
 
-    const bool vsdProjection(
-            params.getType() == fivox::TYPE_VSD && vm.count( "projection" ));
+    const double sigmaVSDProjection =
+            params.getType() == fivox::TYPE_VSD && vm.count( "projection" ) ?
+                vm["projection"].as< double >() : -1.0;
 
     const std::string& datatype( vm["datatype"].as< std::string >( ));
     if( datatype == "char" )
     {
         LBINFO << "Sampling volume as char (uint8_t) data" << std::endl;
-        _sample< uint8_t >( source, frameRange, vsdProjection,
+        _sample< uint8_t >( source, frameRange, sigmaVSDProjection,
                             params.getResolution(), outputFile );
     }
     else if( datatype == "short" )
     {
         LBINFO << "Sampling volume as short (uint16_t) data" << std::endl;
-        _sample< uint16_t >( source, frameRange, vsdProjection,
+        _sample< uint16_t >( source, frameRange, sigmaVSDProjection,
                              params.getResolution(), outputFile );
     }
     else if( datatype == "int" )
     {
         LBINFO << "Sampling volume as int (uint32_t) data" << std::endl;
-        _sample< uint32_t >( source, frameRange, vsdProjection,
+        _sample< uint32_t >( source, frameRange, sigmaVSDProjection,
                              params.getResolution(), outputFile );
     }
     else
     {
         LBINFO << "Sampling volume as floating point data" << std::endl;
-        _sample< float >( source, frameRange, vsdProjection,
+        _sample< float >( source, frameRange, sigmaVSDProjection,
                           params.getResolution(), outputFile );
     }
 }

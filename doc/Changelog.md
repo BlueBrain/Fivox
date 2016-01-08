@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [20437](https://bbpcode.epfl.ch/code/#/c/20437/)
+  Expose the VSD projection attenuation coefficient (absorption + scattering)
+  in the voxelize command line tool.
 * [20428](https://bbpcode.epfl.ch/code/#/c/20428/)
   Fix several bugs in the VSD loader, which crashed the application when
   loading events.
