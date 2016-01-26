@@ -26,7 +26,9 @@
 
 #include <brion/brion.h>
 #include <brain/circuit.h>
-#include <brain/morphology.h>
+#include <brain/neuron/morphology.h>
+#include <brain/neuron/section.h>
+#include <brain/neuron/soma.h>
 
 namespace fivox
 {
@@ -64,14 +66,20 @@ public:
 
         for( size_t i = 0; i < morphologies.size(); ++i )
         {
-            const brain::Morphology& morphology = *morphologies[i];
+            const brain::neuron::Morphology& morphology = *morphologies[i];
 
-            // The voltage reports typically include the soma, dendrites and
-            // first two axon sections. Here we will ignore the axon sections.
+            // Adding the soma to the output.
+            output.add( Event( morphology.getSoma().getCentroid(), 0.f ));
+            // There's only one soma "section"
+            const auto somaID =
+                morphology.getSectionIDs({ brion::SECTION_SOMA })[0];
+            _sections.push_back(
+                SectionInfo( 1, _report.getOffsets()[i][somaID] ));
+
             const auto sections =
-                morphology.getSectionIDs({ brion::SECTION_SOMA,
-                                           brion::SECTION_DENDRITE,
+                morphology.getSectionIDs({ brion::SECTION_DENDRITE,
                                            brion::SECTION_APICAL_DENDRITE });
+
             for( auto section : sections )
             {
                 const auto& counts = _report.getCompartmentCounts()[i];
@@ -88,7 +96,7 @@ public:
                     samples.push_back( k );
 
                 const auto points =
-                    morphology.getSectionSamples( section, samples );
+                    morphology.getSection( section ).getSamples( samples );
                 for( const auto& point : points )
                     output.add( Event( point.get_sub_vector< 3 >(), 0.f ));
 
