@@ -1,7 +1,7 @@
 Fivox Documentation
 ===================
 
-# Introduction {#Introduction}
+# Introduction
 
 Fivox (Field Voxelization) is a library to generate volumetric images of
 3d scalar fields (Local Field Potential, spike densities, voltage
@@ -33,7 +33,7 @@ Fivox provides the following major features:
 * Converting compartment and surface area reports to volumetric data
 * Time and animation support
 
-# Installation {#Installation}
+# Installation
 
 Build Fivox from source:
 ~~~
@@ -44,13 +44,13 @@ cmake ..
 make
 ~~~
 
-# Usage {#Usage}
+# Usage
 
 The voxelize command line tool supports the following parameters:
 
 @snippet apps/voxelize.cpp Parameters
 
-# About {#About}
+# About
 
 Fivox uses CMake to create a platform-specific build environment. The following
 platforms and build environments are tested:
