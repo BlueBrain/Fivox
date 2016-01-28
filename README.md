@@ -33,6 +33,23 @@ Fivox provides the following major features:
 * Converting compartment and surface area reports to volumetric data
 * Time and animation support
 
+# Installation {#Installation}
+
+Build Fivox from source:
+~~~
+git clone https://github.com/BlueBrain/Fivox
+mkdir Fivox/build
+cd Fivox/build
+cmake ..
+make
+~~~
+
+# Usage {#Usage}
+
+The voxelize command line tool supports the following parameters:
+
+@snippet apps/voxelize.cpp Parameters
+
 # About {#About}
 
 Fivox uses CMake to create a platform-specific build environment. The following

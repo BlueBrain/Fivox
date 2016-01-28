@@ -17,7 +17,7 @@ set(VERSION_MINOR "3")
 set(VERSION_PATCH "0")
 set(VERSION_ABI 3)
 
-set(FIVOX_DESCRIPTION "Library to sample fields into regular volumes")
+set(FIVOX_DESCRIPTION "ITK library to sample events into regular volumes")
 set(FIVOX_MAINTAINER
   "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(FIVOX_LICENSE LGPL)
