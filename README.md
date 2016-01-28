@@ -21,8 +21,8 @@ automatically and selected through one of the volume URI schemes.
 To use the ImageSource programmatically, please refer to the @ref fivox
 namespace documentation and voxelize command line tool.
 
-![](3m_spikes_scaled.jpg "Fivox spike densities rendered in Livre")
-![](paraview.jpg "Using a Fivox volume in ParaView")
+![](doc/images/3m_spikes_scaled.jpg "Fivox spike densities rendered in Livre")
+![](doc/images/paraview.jpg "Using a Fivox volume in ParaView")
 
 ## Features
 
