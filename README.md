@@ -24,7 +24,7 @@ namespace documentation and voxelize command line tool.
 ![](3m_spikes_scaled.jpg "Fivox spike densities rendered in Livre")
 ![](paraview.jpg "Using a Fivox volume in ParaView")
 
-## Features {#Features}
+## Features
 
 Fivox provides the following major features:
 
