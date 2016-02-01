@@ -50,7 +50,7 @@ public:
         brain::Vector3fs positions = circuit.getPositions( gids );
 
         for( size_t i = 0; i < gids.size(); ++i )
-            output.add( Event( positions[i], 0.f ));
+            output.add( Event( positions[i], VALUE_UNSET ));
     }
 
     ssize_t load( const float time )
@@ -66,8 +66,8 @@ public:
         for( size_t i = 0; i < gids.size(); ++i )
         {
             // This code assumes that section 0 is the soma.
-            const float v = voltages[offsets[i][0]] - brion::MINIMUM_VOLTAGE;
-            _output.update( i, v );
+            const float v = voltages[offsets[i][0]];
+            _output[i].value = v;
         }
         return gids.size();
     }

@@ -44,6 +44,14 @@ public:
     const Events& getEvents() const;
 
     /**
+     * Get a reference to an event contained in the EventSource by its index.
+     *
+     * @param index Index of the event that will be returned
+     * @return event stored in the EventSource with the specified index.
+     */
+    Event& operator[]( const size_t index );
+
+    /**
      * Find all events in the given area.
      *
      * Returns a conservative set of events, may contain events outside of the
@@ -62,9 +70,6 @@ public:
 
     /** Add a new event and update the bounding box. Not thread safe. */
     void add( const Event& event );
-
-    /** Update the value of an existing event. */
-    void update( const size_t index, const float value );
 
     /** @internal Called before data is read. Not thread safe.  */
     void beforeGenerate();

@@ -26,16 +26,20 @@
 
 namespace fivox
 {
-/** A positional event with a value to be sampled. */
+/** A positional event with a value to be sampled and optionally a radius of
+ *  influence (0 by default)
+*/
 struct Event
 {
-  Event( const Vector3f& pos, const float val )
+  Event( const Vector3f& pos, const float val, const float rad = 0.f )
       : position( pos )
       , value( val )
+      , radius( rad )
   {}
 
-  Vector3f position;
+  const Vector3f position;
   float value;
+  float radius;
 };
 } // end namespace fivox
 

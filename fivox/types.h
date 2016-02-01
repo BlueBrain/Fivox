@@ -56,6 +56,7 @@ enum VolumeType
 {
     TYPE_UNKNOWN,      //!< Unknown URI scheme
     TYPE_COMPARTMENTS, //!< BBP compartment simulation reports
+    TYPE_LFP,          //!< BBP Local Field Potential computation
     TYPE_SOMAS,        //!< BBP soma simulation reports
     TYPE_SPIKES,       //!< BBP spike simulation reports
     TYPE_SYNAPSES,     //!< BBP synapse positions
@@ -67,6 +68,7 @@ enum FunctorType
 {
     FUNCTOR_UNKNOWN,
     FUNCTOR_DENSITY, //!< sum( magnitude of events in voxel ) / volume of voxel
+    FUNCTOR_LFP,     //!< LFP computation
     FUNCTOR_FIELD,   //!< quadratic falloff of magnitude in space
     FUNCTOR_FREQUENCY //!< maximum magnitude of all events in voxel
 };
@@ -79,6 +81,8 @@ enum SourceType
     SOURCE_FRAME //!< e.g. compartment reports
 };
 
+/** Used to mark a value as "unset" */
+const float VALUE_UNSET = std::numeric_limits< float >::max();
 }
 
 // ITK forward decls

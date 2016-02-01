@@ -22,6 +22,7 @@
 #define FIVOX_FIELDFUNCTOR_H
 
 #include <fivox/eventFunctor.h> // base class
+#include <brion/types.h>
 
 namespace fivox
 {
@@ -34,8 +35,9 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor( const float maxError )
+    FieldFunctor( const float magnitude, const float maxError )
         : _cutOffDistance( 50. )
+        , _magnitude( magnitude )
         , _maxError( maxError )
     {}
     virtual ~FieldFunctor() {}
@@ -43,9 +45,16 @@ public:
     void beforeGenerate() override
     {
         Super::beforeGenerate();
-        float max = 0.0f;
-        for( const Event& event : Super::_source->getEvents())
-            max = std::max( max, event.value );
+        float max = brion::MINIMUM_VOLTAGE;
+        for( const Event& event : Super::_source->getEvents( ))
+        {
+            if( event.value == VALUE_UNSET )
+                continue;
+
+            const float eventValue =
+                    ( event.value - brion::MINIMUM_VOLTAGE ) * _magnitude;
+            max = std::max( max, eventValue );
+        }
 
         const float distance = std::sqrt( max / _maxError );
         if( _cutOffDistance != distance )
@@ -61,6 +70,7 @@ public:
 
 private:
     float _cutOffDistance;
+    const float _magnitude;
     const float _maxError;
 };
 
@@ -82,6 +92,9 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
     float sum = 0.f;
     for( const Event& event : events )
     {
+        const float eventValue =
+                ( event.value - brion::MINIMUM_VOLTAGE ) * _magnitude;
+
         // OPT: do 'manual' operator- and squared_length(), vtune says it's
         // faster than using vmml vector functions
         const Vector3f distance( base.array[0] - event.position.array[0],
@@ -90,10 +103,11 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
         const float distance2( distance.array[0] * distance.array[0] +
                                distance.array[1] * distance.array[1] +
                                distance.array[2] * distance.array[2] );
+
         if( distance2 > 1. )
-            sum += event.value / distance2;
+            sum += eventValue / distance2;
         else
-            sum += event.value;
+            sum += eventValue;
     }
 
     return Super::_scale( sum );

@@ -3,6 +3,12 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#4](https://github.com/BlueBrain/Fivox/pull/4)
+  Add LFP functor from separate repo. Move all the voltage-specific logic to
+  the FieldFunctor, so CompartmentLoader can be used with other type of reports
+  (e.g. currents in LFP).
+  Add radius attribute in Event, used in the CompartmentLoader.
+  Adapt tests and default values to latest TestData (370ebee).
 * [7](https://github.com/BlueBrain/Fivox/pull/7):
   Add data decomposition in voxelize tool
 * [20437](https://bbpcode.epfl.ch/code/#/c/20437/)

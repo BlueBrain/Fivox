@@ -71,7 +71,7 @@ public:
             const Vector3f position( lexical_cast< float >( matrix[i][0] ),
                                      lexical_cast< float >( matrix[i][1] ),
                                      lexical_cast< float >( matrix[i][2] ));
-            _output.add( Event( position, 0.f ));
+            _output.add( Event( position, VALUE_UNSET ));
             _gidIndex[gid] = i++;
         }
         _spikesPerNeuron.resize( gids.size( ));
@@ -144,7 +144,8 @@ public:
                                              : _loadSpikesSlow( start, end );
 
         for( size_t i = 0; i < _spikesPerNeuron.size(); ++i )
-            _output.update( i, _spikesPerNeuron[i] );
+            _output[i].value = _spikesPerNeuron[i] ? _spikesPerNeuron[i]
+                                                   : VALUE_UNSET;
 
         return numSpikes;
     }
