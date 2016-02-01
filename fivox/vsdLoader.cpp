@@ -26,7 +26,9 @@
 
 #include <brion/brion.h>
 #include <brain/circuit.h>
-#include <brain/morphology.h>
+#include <brain/neuron/morphology.h>
+#include <brain/neuron/section.h>
+#include <brain/neuron/soma.h>
 
 namespace fivox
 {
@@ -54,24 +56,30 @@ public:
         if( !_areas )
             LBTHROW( std::runtime_error( "Can't load 'area' vsd report" ));
 
-        _circuitSectionIDs.reserve( _target.size( ));
+        _circuitSectionIDs.resize( _target.size( ));
 
         for( size_t i = 0; i != morphologies.size(); ++i )
         {
-            const brain::Morphology& morphology = *morphologies[i];
-            const auto sections =
-                morphology.getSectionIDs({ brion::SECTION_SOMA,
-                                           brion::SECTION_DENDRITE,
+            const auto& morphology = *morphologies[i];
+            const auto dendrites =
+                morphology.getSectionIDs({ brion::SECTION_DENDRITE,
                                            brion::SECTION_APICAL_DENDRITE });
+            _circuitSectionIDs[i].reserve( dendrites.size() + 1 );
 
-            _circuitSectionIDs.push_back( sections );
-
+            const auto somaID =
+                morphology.getSectionIDs({ brion::SECTION_SOMA })[0];
+            _circuitSectionIDs[i].push_back( somaID );
+            const auto centroid = morphology.getSoma().getCentroid();
             const auto& counts = _areaReport.getCompartmentCounts()[i];
+            for( size_t j = 0; j != counts[somaID]; ++j)
+                output.add( Event( centroid, 0.f ));
 
-            for( auto sectionId : _circuitSectionIDs[i] )
+            for( auto sectionID : _circuitSectionIDs[i] )
             {
-                assert( sectionId < counts.size( ));
-                const size_t nCompartments = counts[sectionId];
+                _circuitSectionIDs[i].push_back( sectionID );
+
+                assert( sectionID < counts.size( ));
+                const size_t nCompartments = counts[sectionID];
                 assert( nCompartments );
 
                 const float length = 1.f / float( nCompartments );
@@ -82,7 +90,7 @@ public:
                     samples.push_back( k );
 
                 const auto points =
-                    morphology.getSectionSamples( sectionId, samples );
+                    morphology.getSection( sectionID ).getSamples( samples );
                 for( const auto& point : points )
                     output.add( Event( point.get_sub_vector< 3 >(), 0.f ));
             }
