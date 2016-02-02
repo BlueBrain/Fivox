@@ -25,6 +25,8 @@ set(FIVOX_LICENSE LGPL)
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(Common)
 
+set(FIVOX_DEPENDENT_LIBRARIES Lunchbox ITK vmmlib)
+
 common_package(BBPTestData)
 common_package(Boost REQUIRED COMPONENTS unit_test_framework
                                          program_options system)
@@ -34,8 +36,6 @@ common_package(Livre)
 common_package(Monsteer REQUIRED)
 common_package(vmmlib REQUIRED)
 common_package_post()
-
-set(FIVOX_DEPENDENT_LIBRARIES ITK vmmlib)
 
 include(${ITK_USE_FILE})
 # eile: For some unfathomable reason, the list of libraries contains
