@@ -21,7 +21,9 @@
  */
 
 #include "vsdLoader.h"
+
 #include "event.h"
+#include "helpers.h"
 #include "uriHandler.h"
 
 #include <brion/brion.h>
@@ -29,6 +31,8 @@
 #include <brain/neuron/morphology.h>
 #include <brain/neuron/section.h>
 #include <brain/neuron/soma.h>
+
+#include <cassert>
 
 namespace fivox
 {
@@ -56,45 +60,7 @@ public:
         if( !_areas )
             LBTHROW( std::runtime_error( "Can't load 'area' vsd report" ));
 
-        _circuitSectionIDs.resize( _target.size( ));
-
-        for( size_t i = 0; i != morphologies.size(); ++i )
-        {
-            const auto& morphology = *morphologies[i];
-            const auto dendrites =
-                morphology.getSectionIDs({ brion::SECTION_DENDRITE,
-                                           brion::SECTION_APICAL_DENDRITE });
-            _circuitSectionIDs[i].reserve( dendrites.size() + 1 );
-
-            const auto somaID =
-                morphology.getSectionIDs({ brion::SECTION_SOMA })[0];
-            _circuitSectionIDs[i].push_back( somaID );
-            const auto centroid = morphology.getSoma().getCentroid();
-            const auto& counts = _areaReport.getCompartmentCounts()[i];
-            for( size_t j = 0; j != counts[somaID]; ++j)
-                output.add( Event( centroid, 0.f ));
-
-            for( auto sectionID : _circuitSectionIDs[i] )
-            {
-                _circuitSectionIDs[i].push_back( sectionID );
-
-                assert( sectionID < counts.size( ));
-                const size_t nCompartments = counts[sectionID];
-                assert( nCompartments );
-
-                const float length = 1.f / float( nCompartments );
-                brion::floats samples;
-                samples.reserve( nCompartments );
-                // a sample per compartment, covering the whole section
-                for( float k = length * .5f; k < 1.0; k += length )
-                    samples.push_back( k );
-
-                const auto points =
-                    morphology.getSection( sectionID ).getSamples( samples );
-                for( const auto& point : points )
-                    output.add( Event( point.get_sub_vector< 3 >(), 0.f ));
-            }
-        }
+        helpers::addCompartmentEvents( morphologies, _voltageReport, output );
 
         const float thickness = _output.getBoundingBox().getDimension()[1];
         setCurve( fivox::AttenuationCurve( params.getDyeCurve(), thickness ));
@@ -106,29 +72,13 @@ public:
         if( !voltages )
             return -1;
 
-        size_t eventIndex = 0;
         const float yMax = _output.getBoundingBox().getMax()[1];
-        for( size_t n = 0; n != _target.size(); ++n)
-        {
-            for( auto id : _circuitSectionIDs[n] )
-            {
-                const size_t nCompartments =
-                    _areaReport.getCompartmentCounts()[n][id];
-                assert( nCompartments ==
-                        _voltageReport.getCompartmentCounts()[n][id] );
-                uint64_t voltageOffset = _voltageReport.getOffsets()[n][id];
-                uint64_t areaOffset = _areaReport.getOffsets()[n][id];
 
-                for( size_t k = 0; k < nCompartments;
-                     ++k, ++eventIndex, ++voltageOffset, ++areaOffset )
-                {
-                    const float voltage = ( *voltages )[voltageOffset];
-                    const float area = ( *_areas )[areaOffset];
-                    _updateEventValue( eventIndex, voltage, area, yMax );
-                }
-            }
-        }
-        return eventIndex;
+        assert( voltages->size() == _areas->size( ));
+        for( size_t i = 0; i != voltages->size( ); ++i )
+            _updateEventValue( i, ( *voltages )[i], ( *_areas )[i], yMax );
+
+        return voltages->size();
     }
 
     void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
@@ -137,7 +87,6 @@ public:
 
     brion::BlueConfig _config;
     brion::GIDSet _target;
-    std::vector< std::vector< uint32_t >> _circuitSectionIDs;
 
     brion::CompartmentReport _voltageReport;
     brion::CompartmentReport _areaReport;

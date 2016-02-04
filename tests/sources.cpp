@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE( fivox_source )
 {
     // Compartement report 'allvoltage' (binary) contains timestamps
     // between 0 and 1000 with a Dt=0.1 => data range is 0.0 to 100.0 ms
-    testSource( "fivox://", 4.421875f, 0.01856544390573589f,
+    testSource( "fivox://", 4.513671875f, 0.0189120417f,
                 vmml::Vector2ui( 0, 1000 ));
 }
 
