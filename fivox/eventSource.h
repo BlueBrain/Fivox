@@ -57,14 +57,17 @@ public:
     /** @return the bounding box of all events. */
     const AABBf& getBoundingBox() const;
 
-    /** Clear all stored events and bounding box. */
+    /** Clear all stored events and bounding box. Not thread safe. */
     void clear();
 
-    /** Add a new event and update the bounding box. */
+    /** Add a new event and update the bounding box. Not thread safe. */
     void add( const Event& event );
 
     /** Update the value of an existing event. */
     void update( const size_t index, const float value );
+
+    /** @internal Called before data is read. Not thread safe.  */
+    void beforeGenerate();
 
     /**
      * Given a frame number, update the event source with new events to be
