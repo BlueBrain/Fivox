@@ -225,7 +225,7 @@ livre::MemoryUnitPtr DataSource::getData( const livre::LODNode& node )
 }
 
 void DataSource::internalNodeToLODNode(
-    const livre::NodeId internalNode, livre::LODNode& lodNode ) const
+    const livre::NodeId& internalNode, livre::LODNode& lodNode ) const
 {
     const uint32_t refLevel = internalNode.getLevel();
     const vmml::Vector3ui& bricksInRefLevel =
