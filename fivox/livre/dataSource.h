@@ -59,7 +59,7 @@ public:
 private:
     class Impl;
     std::unique_ptr< Impl > _impl;
-    void internalNodeToLODNode( const livre::NodeId internalNode,
+    void internalNodeToLODNode( const livre::NodeId& internalNode,
                                 livre::LODNode& lodNode ) const final;
 };
 
