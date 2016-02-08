@@ -262,7 +262,9 @@ int main( int argc, char* argv[] )
         ( "projection,p", po::value< double >(), "Generate the corresponding "
           "projected 2D image (only for VSD volumes), using the specified "
           "value as the absorption + scattering coefficient (units per "
-          "micrometer) in the Beer-Lambert law. Must be a positive value." );
+          "micrometer) in the Beer-Lambert law. Must be a positive value." )
+        ( "decompose", po::value< fivox::Vector2ui >(),
+          "'rank size' data-decomposition for parallel job submission" );
 //! [Parameters]
 
     po::store( po::parse_command_line( argc, argv, desc ), vm );
@@ -291,19 +293,35 @@ int main( int argc, char* argv[] )
     if( vm.count( "output" ))
         outputFile = vm["output"].as< std::string >();
 
+    fivox::Vector2ui decompose( 0, 1 );
+    if( vm.count( "decompose" ))
+    {
+        decompose = vm["decompose"].as< fivox::Vector2ui >();
+        outputFile += "_" + std::to_string( decompose[0] ) + "_" +
+                      std::to_string( decompose[1] );
+    }
+
     ::fivox::URIHandler params( uri );
-
     ImageSourcePtr source = params.newImageSource< float >();
-
     ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
     const fivox::AABBf& bbox = loader->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getDimension().find_max();
+    const size_t begin = float( size ) / float( decompose[1] ) *
+                         float( decompose[0] );
+    const size_t end = float( size ) / float( decompose[1] ) *
+                       float( decompose[0] + 1 );
 
     Volume::SizeType vSize;
     vSize.Fill( size );
+    vSize[2] = end - begin + 1;
+
+    Volume::IndexType vIndex;
+    vIndex.Fill( 0 );
+    vIndex[2] = begin;
 
     Volume::RegionType region;
+    region.SetIndex( vIndex );
     region.SetSize( vSize );
 
     VolumePtr output = source->GetOutput();
@@ -311,6 +329,7 @@ int main( int argc, char* argv[] )
 
     typename Volume::SpacingType spacing;
     spacing.Fill( extent / float( size ));
+    spacing[2] = extent / float( vSize[2] ) / float( decompose[1] );
     output->SetSpacing( spacing );
 
     typename Volume::PointType origin;
