@@ -339,7 +339,7 @@ FunctorType URIHandler::getFunctorType() const
 template< class T > itk::SmartPointer< ImageSource< itk::Image< T, 3 >>>
 URIHandler::newImageSource() const
 {
-    LBINFO << "Start loading of events..." << std::endl;
+    LBINFO << "Loading events..." << std::endl;
 
     itk::SmartPointer< ImageSource< itk::Image< T, 3 >>> source =
         ImageSource< itk::Image< T, 3 >>::New();
@@ -347,11 +347,8 @@ URIHandler::newImageSource() const
         _newFunctor< T >( *this );
     EventSourcePtr loader = _newLoader( *this );
 
-    LBINFO << "Finished loading of " << loader->getEvents().size() << " events"
-           << std::endl;
-
-    LBINFO << "Ready to voxelize " << *this << ", dt = " << loader->getDt()
-           << std::endl;
+    LBINFO << loader->getEvents().size() << " events " << *this << ", dt = "
+           << loader->getDt() << " ready to voxelize" << std::endl;
 
     if( _impl->showProgress( ))
         source->showProgress();

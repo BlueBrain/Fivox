@@ -62,17 +62,16 @@ public:
     float currentTime;
     Events events;
     AABBf boundingBox;
-#if USE_BOOST_GEOMETRY
+#ifdef USE_BOOST_GEOMETRY
     typedef bgi::rtree< Value, bgi::rstar< maxElemInNode, minElemInNode > > RTree;
     RTree rtree;
 
     void rebuildRTree()
     {
-        lunchbox::ScopedWrite mutex( _rtreeLock );
         if( !rtree.empty( ))
             return;
 
-        LBINFO << "Start building rtree for " << events.size() << " events"
+        LBINFO << "Building rtree for " << events.size() << " events"
                << std::endl;
         Values values;
         values.reserve( events.size( ));
@@ -87,11 +86,8 @@ public:
 
         RTree rt( values.begin(), values.end( ));
         rtree = boost::move( rt );
-        LBINFO << "Finished building rtree" << std::endl;
+        LBINFO << " done" << std::endl;
     }
-
-private:
-    lunchbox::Lock _rtreeLock;
 #endif
 };
 
@@ -110,39 +106,39 @@ const Events& EventSource::getEvents() const
 Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
 {
 #ifdef USE_BOOST_GEOMETRY
-    if( _impl->rtree.empty( ))
-        _impl->rebuildRTree();
-
-    const Vector3f& p1 = area.getMin();
-    const Vector3f& p2 = area.getMax();
-    const Box query( Point( p1[0], p1[1], p1[2] ),
-                     Point( p2[0], p2[1], p2[2] ));
-
-    static lunchbox::a_ssize_t maxHits( 0 );
-    std::vector< Value > hits;
-    hits.reserve( maxHits );
-    _impl->rtree.query( bgi::intersects( query ), std::back_inserter( hits ));
-    maxHits = std::max( size_t(maxHits), hits.size( ));
-
-    Events events;
-    events.reserve( hits.size( ));
-    for( const Value& value : hits )
+    if( !_impl->rtree.empty( ))
     {
-        const Event& val = _impl->events[ value.second ];
-        if( val.value )
-            events.push_back( val );
+        const Vector3f& p1 = area.getMin();
+        const Vector3f& p2 = area.getMax();
+        const Box query( Point( p1[0], p1[1], p1[2] ),
+                         Point( p2[0], p2[1], p2[2] ));
+
+        static lunchbox::a_ssize_t maxHits( 0 );
+        std::vector< Value > hits;
+        hits.reserve( maxHits );
+        _impl->rtree.query( bgi::intersects( query ), std::back_inserter( hits ));
+        maxHits = std::max( size_t(maxHits), hits.size( ));
+
+        Events events;
+        events.reserve( hits.size( ));
+        for( const Value& value : hits )
+        {
+            const Event& val = _impl->events[ value.second ];
+            if( val.value )
+                events.push_back( val );
+        }
+        return events;
     }
-    return events;
-#else
+#endif
+
     static bool first = true;
     if( first )
     {
-        LBWARN << "slow path: boost/geometry not available for findEvents"
+        LBWARN << "slow path: rtree acceleration not available for findEvents"
                << std::endl;
         first = false;
     }
     return _impl->events;
-#endif
 }
 
 const AABBf& EventSource::getBoundingBox() const
@@ -178,6 +174,13 @@ void EventSource::update( const size_t index, float value )
     }
 
     _impl->events[ index ].value = std::max( value, 0.f );
+}
+
+void EventSource::beforeGenerate()
+{
+#if USE_BOOST_GEOMETRY
+    _impl->rebuildRTree();
+#endif
 }
 
 bool EventSource::load( const uint32_t frame )

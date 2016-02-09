@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [7](https://github.com/BlueBrain/Fivox/pull/7):
+  Add data decomposition in voxelize tool
 * [20437](https://bbpcode.epfl.ch/code/#/c/20437/)
   Expose the VSD projection attenuation coefficient (absorption + scattering)
   in the voxelize command line tool.

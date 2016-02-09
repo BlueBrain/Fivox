@@ -42,6 +42,7 @@ public:
 
     void beforeGenerate() override
     {
+        Super::beforeGenerate();
         float max = 0.0f;
         for( const Event& event : Super::_source->getEvents())
             max = std::max( max, event.value );
