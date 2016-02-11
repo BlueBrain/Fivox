@@ -303,6 +303,10 @@ int main( int argc, char* argv[] )
            << decompose[0] << "_" << decompose[1];
         outputFile += os.str();
     }
+    const size_t begin = float( size ) / float( decompose[1] ) *
+                         float( decompose[0] );
+    const size_t end = size_t( float( size ) / float( decompose[1] ) *
+                               float( decompose[0] + 1 )) - 1;
 
     ::fivox::URIHandler params( uri );
     ImageSourcePtr source = params.newImageSource< float >();
@@ -310,10 +314,6 @@ int main( int argc, char* argv[] )
     const fivox::AABBf& bbox = loader->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getDimension().find_max();
-    const size_t begin = float( size ) / float( decompose[1] ) *
-                         float( decompose[0] );
-    const size_t end = float( size ) / float( decompose[1] ) *
-                       float( decompose[0] + 1 );
 
     Volume::SizeType vSize;
     vSize.Fill( size );
