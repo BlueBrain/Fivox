@@ -42,18 +42,15 @@ extern "C" bool LunchboxPluginRegister()
 
 namespace fivox
 {
-
 namespace
 {
-// livre only supports 8-bit data at the moment
-typedef itk::Image< uint8_t, 3 > VolumeByte;
-typedef VolumeByte::Pointer VolumePtr;
+typedef ByteVolume::Pointer VolumePtr;
 
-typedef ::fivox::ImageSource< VolumeByte > ImageSource;
+typedef ::fivox::ImageSource< ByteVolume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 
 typedef typename ImageSource::FunctorPtr FunctorPtr;
-typedef fivox::FieldFunctor< Volume > VolumeFieldFunctor;
+typedef fivox::FieldFunctor< ByteVolume > VolumeFieldFunctor;
 typedef std::shared_ptr< VolumeFieldFunctor > FieldFunctorPtr;
 }
 
@@ -76,12 +73,12 @@ public:
 
         // Alloc voxels
         const vmml::Vector3i& voxels = info.maximumBlockSize;
-        Volume::SizeType vSize;
+        ByteVolume::SizeType vSize;
         vSize[0] = voxels[0];
         vSize[1] = voxels[1];
         vSize[2] = voxels[2];
 
-        Volume::RegionType region;
+        ByteVolume::RegionType region;
         region.SetSize( vSize );
 
         // Real-world coordinate setup
@@ -92,7 +89,7 @@ public:
                                         node.getRefLevel();
         const float spacingFactor = 1 << levelFromBottom;
 
-        Volume::SpacingType spacing;
+        ByteVolume::SpacingType spacing;
         spacing[0] = baseSpacing.find_max() * spacingFactor;
         spacing[1] = spacing[0];
         spacing[2] = spacing[0];
@@ -101,7 +98,7 @@ public:
             ( bbox.getMin() - _borders / 2.0f ) + node.getRelativePosition() *
             Vector3f( bbox.getDimension() + _borders );
 
-        Volume::PointType origin;
+        ByteVolume::PointType origin;
         origin[0] = offset[0];
         origin[1] = offset[1];
         origin[2] = offset[2];
@@ -224,8 +221,8 @@ livre::MemoryUnitPtr DataSource::getData( const livre::LODNode& node )
     }
 }
 
-void DataSource::internalNodeToLODNode(
-    const livre::NodeId& internalNode, livre::LODNode& lodNode ) const
+void DataSource::internalNodeToLODNode( const livre::NodeId& internalNode,
+                                        livre::LODNode& lodNode ) const
 {
     const uint32_t refLevel = internalNode.getLevel();
     const vmml::Vector3ui& bricksInRefLevel =
