@@ -100,16 +100,15 @@ void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
     VolumePtr input = source->GetOutput();
     VolumeWriter< T > writer( input );
 
-    const size_t numDigits = std::to_string( frameRange.y( )).length( );
+    const size_t numDigits = std::to_string( frameRange.y( )).length();
     for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
     {
         std::string filename;
         if( frameRange.y() - frameRange.x() > 1 )
         {
-            std::ostringstream fileStream;
-            fileStream << outputFile << std::setfill('0')
-                       << std::setw( numDigits ) << i;
-            filename = fileStream.str();
+            std::ostringstream os;
+            os << outputFile << std::setfill('0') << std::setw(numDigits) << i;
+            filename = os.str();
         }
         else
             filename = outputFile;
@@ -297,8 +296,12 @@ int main( int argc, char* argv[] )
     if( vm.count( "decompose" ))
     {
         decompose = vm["decompose"].as< fivox::Vector2ui >();
-        outputFile += "_" + std::to_string( decompose[0] ) + "_" +
-                      std::to_string( decompose[1] );
+
+        const size_t numDigits = std::to_string( decompose[1] ).length();
+        std::ostringstream os;
+        os << "_" << std::setfill('0') << std::setw( numDigits )
+           << decompose[0] << "_" << decompose[1];
+        outputFile += os.str();
     }
 
     ::fivox::URIHandler params( uri );
