@@ -19,6 +19,7 @@ set(FIVOX_PUBLIC_HEADERS
   somaLoader.h
   spikeLoader.h
   synapseLoader.h
+  testLoader.h
   types.h
   uriHandler.h
   vsdLoader.h
@@ -39,6 +40,7 @@ set(FIVOX_SOURCES
   somaLoader.cpp
   spikeLoader.cpp
   synapseLoader.cpp
+  testLoader.cpp
   uriHandler.cpp
   vsdLoader.cpp
 )

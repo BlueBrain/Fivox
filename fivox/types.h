@@ -67,6 +67,8 @@ using vmml::AABBf;
 enum VolumeType
 {
     TYPE_UNKNOWN,      //!< Unknown URI scheme
+    TYPE_TEST,         /*!< Test type that creates fixed events
+                            (e.g. for validation of different functors */
     TYPE_COMPARTMENTS, //!< BBP compartment simulation reports
     TYPE_LFP,          //!< BBP Local Field Potential computation
     TYPE_SOMAS,        //!< BBP soma simulation reports
