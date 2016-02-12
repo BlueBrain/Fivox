@@ -65,7 +65,11 @@ protected:
             LBINFO << "Clamping sampled value " << value << " to 1"
                    << std::endl;
         }
-        return std::min( value, 1.0f ) * std::numeric_limits< TPixel >::max();
+        else if( value < 0.f )
+            LBINFO << "Clamping sampled value " << value << " to 0"
+                   << std::endl;
+        return std::min( std::max( value, 0.f ), 1.f ) *
+               std::numeric_limits< TPixel >::max();
     }
 
     EventSourcePtr _source;

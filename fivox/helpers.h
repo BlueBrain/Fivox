@@ -104,23 +104,30 @@ inline void addCompartmentEvents(
 
         if( sectionId == 0 )
         {
-            const auto event = Event( morphology.getSoma().getCentroid(), 0.f );
+            const auto& soma = morphology.getSoma();
+            const auto event = Event( soma.getCentroid(), VALUE_UNSET,
+                                      soma.getMeanRadius( ));
             for( size_t k = 0; k != compartments; ++k)
                 output.add( event );
             continue;
         }
 
-        const auto section = morphology.getSection(sectionId);
-
-        const float length = 1.f / float( compartments );
         brion::floats samples;
         samples.reserve( compartments );
-        for( float k = length * .5f; k < 1.0; k += length )
+        // normalized compartment length
+        const float normLength = 1.f / float( compartments );
+        for( float k = normLength * .5f; k < 1.0; k += normLength )
             samples.push_back( k );
 
-        const auto points = section.getSamples( samples );
+        const auto& neuronSection = morphology.getSection( sectionId );
+
+        // actual compartment length
+        const float compartmentLength = normLength * neuronSection.getLength();
+
+        const auto& points = neuronSection.getSamples( samples );
         for( const auto& point : points )
-            output.add( Event( point.get_sub_vector< 3 >(), 0.f ));
+            output.add( Event( point.get_sub_vector< 3 >(), VALUE_UNSET,
+                               compartmentLength * .2f ));
     }
 }
 

@@ -49,15 +49,12 @@ public:
         , _report( _config.getReportSource( params.getReport( )),
                    brion::MODE_READ, _target)
     {
-        _report.updateMapping( _target );
-
         brain::Circuit circuit( _config );
         const auto morphologies = circuit.loadMorphologies(
             _target, brain::Circuit::COORDINATES_GLOBAL );
 
         helpers::addCompartmentEvents( morphologies, _report, output );
     }
-
 
     ssize_t load( const float time )
     {
@@ -66,7 +63,7 @@ public:
             return -1;
 
         for( size_t i = 0; i != values->size( ); ++i )
-            _output.update( i, ( *values )[i] - brion::MINIMUM_VOLTAGE );
+            _output[i].value = ( *values )[i];
 
         return values->size();
     }

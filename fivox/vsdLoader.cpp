@@ -102,7 +102,7 @@ public:
         const float depth = yMax - event.position[1];
         const float eventValue =
             normVoltage * area * _curve.getAttenuation( depth );
-        _output.update( index, eventValue );
+        _output[index].value = eventValue;
     }
 };
 

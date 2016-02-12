@@ -24,6 +24,9 @@
 #include <fivox/densityFunctor.h>
 #include <fivox/fieldFunctor.h>
 #include <fivox/frequencyFunctor.h>
+#ifdef FIVOX_USE_LFP
+#  include <fivox/lfp/lfpFunctor.h>
+#endif
 #include <fivox/imageSource.h>
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
@@ -54,11 +57,12 @@ EventSourcePtr _newLoader( const URIHandler& data )
     switch( data.getType( ))
     {
     case TYPE_SOMAS:        return std::make_shared< SomaLoader >( data );
-    case TYPE_COMPARTMENTS: return std::make_shared< CompartmentLoader >( data );
+    case TYPE_COMPARTMENTS:
+    case TYPE_LFP:          return std::make_shared< CompartmentLoader >( data );
     case TYPE_VSD:          return std::make_shared< VSDLoader >( data );
     case TYPE_SPIKES:       return std::make_shared< SpikeLoader >( data );
     case TYPE_SYNAPSES:     return std::make_shared< SynapseLoader >( data );
-    default:           return nullptr;
+    default:                return nullptr;
     }
 }
 
@@ -71,9 +75,15 @@ _newFunctor( const URIHandler& data )
         return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
     case FUNCTOR_FIELD:
         return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>
-                                                         ( data.getMaxError( ));
+                                                         ( data.getMagnitude(),
+                                                           data.getMaxError( ));
     case FUNCTOR_FREQUENCY:
-        return std::make_shared< FrequencyFunctor< itk::Image< T, 3  >>>();
+        return std::make_shared< FrequencyFunctor< itk::Image< T, 3  >>>
+                                                        ( data.getMagnitude( ));
+#ifdef FIVOX_USE_LFP
+    case FUNCTOR_LFP:
+        return std::make_shared< LFPFunctor< itk::Image< T, 3  >>>();
+#endif
     case FUNCTOR_UNKNOWN:
     default:
         return nullptr;
@@ -116,9 +126,9 @@ public:
         {
             if( defaultTarget.empty() && useTestData )
             {
-                if( getType() == TYPE_SPIKES || getType() == TYPE_SYNAPSES )
+                if( getType() == TYPE_SPIKES )
                     return "Column";
-                return "Layer1";
+                return "mini50";
             }
             return defaultTarget;
         }
@@ -132,11 +142,12 @@ public:
         {
             switch( getType( ))
             {
+            case TYPE_LFP:
+                return "currents";
             case TYPE_SOMAS:
-            case TYPE_VSD:
-                return useTestData ? "voltage" : "soma";
+                return "somas";
             default:
-                return useTestData ? "allvoltage" : "voltage";
+                return "voltages";
             }
         }
         return report;
@@ -146,7 +157,7 @@ public:
 
     std::string getSpikes() const { return _get( "spikes" ); }
 
-    float getDuration() const { return _get( "duration",  _duration ); }
+    float getDuration() const { return _get( "duration", _duration ); }
 
     float getMagnitude() const
     {
@@ -163,6 +174,7 @@ public:
         case TYPE_SYNAPSES:
             defaultValue = 10.0f;
             break;
+        case TYPE_LFP:
         case TYPE_VSD:
         default:
             break;
@@ -188,6 +200,10 @@ public:
     VolumeType getType() const
     {
         const std::string& scheme = uri.getScheme();
+#ifdef FIVOX_USE_LFP
+        if( scheme == "fivoxlfp" )
+            return TYPE_LFP;
+#endif
         if( scheme == "fivoxsomas" )
             return TYPE_SOMAS;
         if( scheme == "fivoxspikes" )
@@ -219,6 +235,10 @@ public:
             return FUNCTOR_FREQUENCY;
         case TYPE_SYNAPSES:
             return FUNCTOR_DENSITY;
+#ifdef FIVOX_USE_LFP
+        case TYPE_LFP:
+            return FUNCTOR_LFP;
+#endif
         case TYPE_COMPARTMENTS:
         case TYPE_SOMAS:
         case TYPE_VSD:
@@ -365,6 +385,9 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
     case TYPE_COMPARTMENTS:
         os << "compartment voltages from " << params.getReport();
         break;
+    case TYPE_LFP:
+        os << "LFP (Local Field Potential) from " << params.getReport();
+        break;
     case TYPE_SOMAS:
         os << "soma voltages from " << params.getReport();
         break;
@@ -377,7 +400,7 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         os << "synapse positions from " << params.getConfig();
         break;
     case TYPE_VSD:
-        os << "VSD from " << params.getReport();
+        os << "VSD (Voltage-Sensitive Dye) from " << params.getReport();
         break;
     case TYPE_UNKNOWN:
     default:
@@ -397,6 +420,9 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     case FUNCTOR_FREQUENCY:
         os << "frequency functor";
+        break;
+    case FUNCTOR_LFP:
+        os << "LFP functor";
         break;
     case FUNCTOR_UNKNOWN:
     default:

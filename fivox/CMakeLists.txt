@@ -24,6 +24,10 @@ set(FIVOX_PUBLIC_HEADERS
   vsdLoader.h
 )
 
+if(FIVOX_USE_LFP)
+  list(APPEND FIVOX_PUBLIC_HEADERS lfp/lfpFunctor.h)
+endif()
+
 set(FIVOX_HEADERS
   beerLambertProjectionImageFilter.h
 )
@@ -40,8 +44,8 @@ set(FIVOX_SOURCES
 )
 
 set(FIVOX_LINK_LIBRARIES
-  PUBLIC ${ITK_LIBRARIES} Lunchbox vmmlib
-  PRIVATE ${Boost_LIBRARIES} Brion Brain Monsteer)
+  PUBLIC ${ITK_LIBRARIES} Brion Lunchbox vmmlib
+  PRIVATE ${Boost_LIBRARIES} Brain Monsteer)
 
 # Optionally enable rtree from boost_geometry, if found
 if(EXISTS "${Boost_INCLUDE_DIR}/boost/geometry.hpp")

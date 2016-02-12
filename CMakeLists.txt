@@ -31,7 +31,7 @@ common_package(BBPTestData)
 common_package(Boost REQUIRED COMPONENTS unit_test_framework
                                          program_options system)
 common_package(Brion REQUIRED)
-common_package(ITK REQUIRED)
+common_package(ITK REQUIRED SYSTEM)
 common_package(Livre)
 common_package(Monsteer REQUIRED)
 common_package(vmmlib REQUIRED)
@@ -43,6 +43,16 @@ include(${ITK_USE_FILE})
 # the link line. Removing the tokens fixes the build, although I have
 # not fully understood the issue.
 list(REMOVE_ITEM ITK_LIBRARIES optimized debug)
+
+# Try cloning lfpFivox into the 'fivox' folder
+set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
+git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox master OPTIONAL)
+
+# Add LFP-related headers and definitions if found
+if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
+  set(FIVOX_USE_LFP ON)
+  add_definitions(-DFIVOX_USE_LFP)
+endif()
 
 add_subdirectory(fivox)
 add_subdirectory(apps)

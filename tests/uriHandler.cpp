@@ -45,12 +45,11 @@ BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_COMPARTMENTS );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Layer1" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "allvoltage" );
+    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
 #endif
+    BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
     BOOST_CHECK_EQUAL( handler.getTarget( "foo" ), "foo" );
     BOOST_CHECK_EQUAL( handler.getDt(), -1.f );
     BOOST_CHECK_EQUAL( handler.getDuration(), 10.0f );
@@ -81,12 +80,11 @@ BOOST_AUTO_TEST_CASE(URIHandlerSoma)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SOMAS );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Layer1" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
+    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "soma" );
 #endif
+    BOOST_CHECK_EQUAL( handler.getReport(), "somas" );
 }
 
 BOOST_AUTO_TEST_CASE(URIHandlerSpikes)
@@ -96,11 +94,10 @@ BOOST_AUTO_TEST_CASE(URIHandlerSpikes)
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Column" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "allvoltage" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
 #endif
+    BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
 BOOST_AUTO_TEST_CASE(URIHandlerSynapses)
@@ -109,12 +106,11 @@ BOOST_AUTO_TEST_CASE(URIHandlerSynapses)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SYNAPSES );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Column" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "allvoltage" );
+    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
 #endif
+    BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
 BOOST_AUTO_TEST_CASE(URIHandlerVSD)
@@ -126,10 +122,9 @@ BOOST_AUTO_TEST_CASE(URIHandlerVSD)
                        + "/../share/Fivox/configs/BlueConfigVSD" );
 #endif
 #ifdef FIVOX_USE_BBPTESTDATA
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Layer1" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "voltage" );
+    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-    BOOST_CHECK_EQUAL( handler.getReport(), "soma" );
 #endif
+    BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }

@@ -103,6 +103,12 @@ const Events& EventSource::getEvents() const
     return _impl->events;
 }
 
+Event& EventSource::operator[]( const size_t index )
+{
+    assert( index < _impl->events.size( ));
+    return _impl->events[index];
+}
+
 Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
 {
 #ifdef USE_BOOST_GEOMETRY
@@ -124,7 +130,7 @@ Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
         for( const Value& value : hits )
         {
             const Event& val = _impl->events[ value.second ];
-            if( val.value )
+            if( val.value != VALUE_UNSET )
                 events.push_back( val );
         }
         return events;
@@ -160,20 +166,6 @@ void EventSource::add( const Event& event )
 
     _impl->boundingBox.merge( event.position );
     _impl->events.push_back( event );
-}
-
-void EventSource::update( const size_t index, float value )
-{
-    assert( index < _impl->events.size( ));
-    static float clamped = 0.f;
-    value *= _impl->magnitude;
-    if( value < clamped )
-    {
-        clamped = value;
-        LBINFO << "Clamping event " << value << " to 0" << std::endl;
-    }
-
-    _impl->events[ index ].value = std::max( value, 0.f );
 }
 
 void EventSource::beforeGenerate()
