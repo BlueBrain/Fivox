@@ -26,6 +26,13 @@
 #include <memory>
 #include <vector>
 
+// ITK forward decls
+namespace itk
+{
+template< typename, unsigned > class Image;
+template< typename > class SmartPointer;
+}
+
 /**
  * Field Voxelization Library
  *
@@ -43,6 +50,11 @@ template< typename TImage > class ImageSource;
 
 typedef std::shared_ptr< EventSource > EventSourcePtr;
 typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
+
+typedef itk::Image< uint8_t, 3 > ByteVolume;
+typedef itk::Image< float, 3 > FloatVolume;
+typedef std::shared_ptr< fivox::EventFunctor< ByteVolume >> ByteFunctorPtr;
+typedef std::shared_ptr< fivox::EventFunctor< FloatVolume >> FloatFunctorPtr;
 
 typedef std::vector< Event > Events;
 
@@ -83,19 +95,6 @@ enum SourceType
 
 /** Used to mark a value as "unset" */
 const float VALUE_UNSET = std::numeric_limits< float >::max();
-}
-
-// ITK forward decls
-namespace itk
-{
-template< typename, unsigned > class Image;
-template< typename > class SmartPointer;
-}
-
-namespace
-{
-typedef itk::Image< float, 3 > Volume;
-typedef std::shared_ptr< fivox::EventFunctor< Volume >> FunctorPtr;
 }
 
 #endif
