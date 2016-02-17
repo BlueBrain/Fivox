@@ -47,7 +47,7 @@ public:
         , _config( params.getConfig( ))
         , _target( _config.parseTarget( params.getTarget( )))
         , _report( _config.getReportSource( params.getReport( )),
-                   brion::MODE_READ, _target)
+                   brion::MODE_READ, _target )
     {
         brain::Circuit circuit( _config );
         const auto morphologies = circuit.loadMorphologies(
@@ -62,7 +62,7 @@ public:
         if( !values )
             return -1;
 
-        for( size_t i = 0; i != values->size( ); ++i )
+        for( size_t i = 0; i != values->size(); ++i )
             _output[i].value = ( *values )[i];
 
         return values->size();

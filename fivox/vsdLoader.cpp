@@ -46,7 +46,7 @@ public:
         , _target( _config.parseTarget( params.getTarget( )))
         , _voltageReport( _config.getReportSource( params.getReport( )),
                           brion::MODE_READ, _target)
-        , _areaReport( _config.getReportSource( "area" ),
+        , _areaReport( _config.getReportSource( "areas" ),
                        brion::MODE_READ, _target )
     {
         _areaReport.updateMapping( _target );
@@ -58,7 +58,7 @@ public:
 
         _areas = _areaReport.loadFrame( 0.f );
         if( !_areas )
-            LBTHROW( std::runtime_error( "Can't load 'area' vsd report" ));
+            LBTHROW( std::runtime_error( "Can't load 'areas' vsd report" ));
 
         helpers::addCompartmentEvents( morphologies, _voltageReport, output );
 
@@ -97,11 +97,10 @@ public:
     void _updateEventValue( const size_t index, const float voltage,
                             const float area, const float yMax )
     {
-        const float normVoltage = voltage - brion::MINIMUM_VOLTAGE;
         const Event& event = _output.getEvents()[index];
         const float depth = yMax - event.position[1];
-        const float eventValue =
-            normVoltage * area * _curve.getAttenuation( depth );
+        const float eventValue = voltage * area *
+                                 _curve.getAttenuation( depth );
         _output[index].value = eventValue;
     }
 };

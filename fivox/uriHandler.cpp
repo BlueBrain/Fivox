@@ -74,17 +74,15 @@ _newFunctor( const URIHandler& data )
     switch( data.getFunctorType( ))
     {
     case FUNCTOR_DENSITY:
-        return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
+        return std::make_shared< DensityFunctor< itk::Image< T, 3 >>>();
     case FUNCTOR_FIELD:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>
-                                                         ( data.getMagnitude(),
-                                                           data.getMaxError( ));
+        return std::make_shared< FieldFunctor< itk::Image< T, 3 >>>
+                                                         ( data.getMaxError( ));
     case FUNCTOR_FREQUENCY:
-        return std::make_shared< FrequencyFunctor< itk::Image< T, 3  >>>
-                                                        ( data.getMagnitude( ));
+        return std::make_shared< FrequencyFunctor< itk::Image< T, 3 >>>();
 #ifdef FIVOX_USE_LFP
     case FUNCTOR_LFP:
-        return std::make_shared< LFPFunctor< itk::Image< T, 3  >>>();
+        return std::make_shared< LFPFunctor< itk::Image< T, 3 >>>();
 #endif
     case FUNCTOR_UNKNOWN:
     default:
@@ -110,15 +108,12 @@ public:
 
     std::string getConfig() const
     {
+#ifdef FIVOX_USE_BBPTESTDATA
         if( useTestData )
         {
-            if( getType() == TYPE_VSD )
-                return lunchbox::getExecutablePath() +
-                           "/../share/Fivox/configs/BlueConfigVSD";
-#ifdef FIVOX_USE_BBPTESTDATA
             return BBP_TEST_BLUECONFIG;
-#endif
         }
+#endif
         return config;
     }
 
@@ -184,6 +179,40 @@ public:
         }
 
         return _get( "magnitude", defaultValue );
+    }
+
+    Vector2f getInputWindow() const
+    {
+        Vector2f defaultValue( 0.f, 10.f );
+        switch( getType( ))
+        {
+        case TYPE_COMPARTMENTS:
+            defaultValue =
+                    useTestData ? Vector2f( -190.f, 0.f )
+                                : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
+            break;
+        case TYPE_SOMAS:
+            defaultValue =
+                    useTestData ? Vector2f( -15.f, 0.f )
+                                : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
+            break;
+        case TYPE_LFP:
+            defaultValue = useTestData ? Vector2f( -1.47e-05f, 2.25e-03f )
+                                       : Vector2f( -10.f, 10.f ); // mV
+            break;
+        case TYPE_VSD:
+            defaultValue = Vector2f( -100000.f, 300.f );
+            break;
+        case TYPE_SPIKES:
+        case TYPE_SYNAPSES:
+            defaultValue = Vector2f( 0.f, 2.f );
+            break;
+        default:
+            break;
+        }
+
+        return Vector2f( _get( "inputMin", defaultValue[0] ),
+                         _get( "inputMax", defaultValue[1] ));
     }
 
     std::string getDyeCurve() const { return _get( "dyecurve" ); }
@@ -334,6 +363,11 @@ float URIHandler::getMagnitude() const
     return _impl->getMagnitude();
 }
 
+Vector2f URIHandler::getInputWindow() const
+{
+    return _impl->getInputWindow();
+}
+
 std::string URIHandler::getDyeCurve() const
 {
     return _impl->getDyeCurve();
@@ -420,7 +454,6 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
     }
 
     os << ", using ";
-
     switch( params.getFunctorType( ))
     {
     case FUNCTOR_DENSITY:
@@ -441,7 +474,8 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     }
 
-    return os << ", magnitude = " << params.getMagnitude();
+    return os << ", input data range = " << params.getInputWindow()
+              << ", magnitude = " << params.getMagnitude();
 }
 
 }

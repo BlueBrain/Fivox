@@ -35,9 +35,8 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor( const float magnitude, const float maxError )
+    FieldFunctor( const float maxError )
         : _cutOffDistance( 50. )
-        , _magnitude( magnitude )
         , _maxError( maxError )
     {}
     virtual ~FieldFunctor() {}
@@ -51,12 +50,10 @@ public:
             if( event.value == VALUE_UNSET )
                 continue;
 
-            const float eventValue =
-                    ( event.value - brion::MINIMUM_VOLTAGE ) * _magnitude;
-            max = std::max( max, eventValue );
+            max = std::max( max, event.value );
         }
 
-        const float distance = std::sqrt( max / _maxError );
+        const float distance = std::sqrt( std::abs( max ) / _maxError );
         if( _cutOffDistance != distance )
         {
             LBINFO << "Computed cutoff distance: " << distance
@@ -70,7 +67,6 @@ public:
 
 private:
     float _cutOffDistance;
-    const float _magnitude;
     const float _maxError;
 };
 
@@ -89,12 +85,10 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
                         base + Vector3f( _cutOffDistance ));
     const Events& events = Super::_source->findEvents( region );
 
-    float sum = 0.f;
+    const float squaredCutoff = _cutOffDistance * _cutOffDistance;
+    float sum = 0;
     for( const Event& event : events )
     {
-        const float eventValue =
-                ( event.value - brion::MINIMUM_VOLTAGE ) * _magnitude;
-
         // OPT: do 'manual' operator- and squared_length(), vtune says it's
         // faster than using vmml vector functions
         const Vector3f distance( base.array[0] - event.position.array[0],
@@ -104,13 +98,17 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
                                distance.array[1] * distance.array[1] +
                                distance.array[2] * distance.array[2] );
 
-        if( distance2 > 1. )
-            sum += eventValue / distance2;
-        else
-            sum += eventValue;
-    }
+        if( distance2 > squaredCutoff )
+            continue;
 
-    return Super::_scale( sum );
+        // If center of the voxel within the event radius, use the
+        // voltage at the surface of the compartment (at 'radius' distance)
+        const float contribution =
+                distance2 < event.radius * event.radius ? 1.f / event.radius
+                                                        : 1.f / distance2;
+        sum += contribution * event.value;
+    }
+    return sum;
 }
 
 }

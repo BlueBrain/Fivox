@@ -3,6 +3,13 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#10](https://github.com/BlueBrain/Fivox/pull/10)
+  Rescale to output type range: when writing into disk (voxelize tool) and the
+  output data type is different than float, rescale according to output data
+  type. The same rescale operation is applied in the Livre data source, to
+  rescale from float to uint8_t.
+  All the rescale/cast operations are done at the end of the workflow, not in
+  the loaders/functors. Tests adapted accordingly.
 * [#9](https://github.com/BlueBrain/Fivox/pull/9)
   Add testLoader for validation purposes.
 * [#4](https://github.com/BlueBrain/Fivox/pull/4)

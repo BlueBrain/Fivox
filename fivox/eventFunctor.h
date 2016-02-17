@@ -54,24 +54,6 @@ public:
         const = 0;
 
 protected:
-    TPixel _scale( const float value ) const
-    {
-        if( std::is_floating_point< TPixel >::value )
-            return value;
-        static float clamped = 1.f;
-        if( value > clamped )
-        {
-            clamped = value;
-            LBINFO << "Clamping sampled value " << value << " to 1"
-                   << std::endl;
-        }
-        else if( value < 0.f )
-            LBINFO << "Clamping sampled value " << value << " to 0"
-                   << std::endl;
-        return std::min( std::max( value, 0.f ), 1.f ) *
-               std::numeric_limits< TPixel >::max();
-    }
-
     EventSourcePtr _source;
 };
 

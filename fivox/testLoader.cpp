@@ -63,7 +63,10 @@ public:
 TestLoader::TestLoader( const URIHandler& params )
     : EventSource( params )
     , _impl( new TestLoader::Impl( *this, params ))
-{}
+{
+    if( getDt() < 0.f )
+        setDt( 1.f );
+}
 
 TestLoader::~TestLoader()
 {}

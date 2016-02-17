@@ -1,4 +1,5 @@
 /* Copyright (c) 2014-2016, EPFL/Blue Brain Project
+ *                          Jafet.VillafrancaDiaz@epfl.ch
  *                          Juan.Hernando@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
@@ -19,6 +20,9 @@
 
 #ifndef FIVOX_HELPERS_H
 #define FIVOX_HELPERS_H
+
+#include <fivox/event.h>
+#include <fivox/eventSource.h>
 
 #include <brain/neuron/morphology.h>
 #include <brain/neuron/section.h>
@@ -74,7 +78,6 @@ inline FlatInverseMapping computeInverseMapping(
     return mapping;
 }
 
-
 /**
  * Add one event per simulation compartment to the given event source.
  * The compartment counts are obtained from the report mapping. The event
@@ -83,13 +86,16 @@ inline FlatInverseMapping computeInverseMapping(
  * @param morphologies The list of morphologies. The morphology present at each
  *        index must correspond to the cell at the same index in the report
  *        mapping.
- * @param The report from which the compartments per section are obtained
+ * @param report The report from which the compartments per section are obtained
  * @param output The output event source. Events are added in the morphology
  *        iteration order, starting with the soma and then all the dendrites.
+ * @param somasOnly Specify whether the events will be created for the somas
+ *        only or for all the compartments. False by default (load all).
  */
 inline void addCompartmentEvents(
     const brain::neuron::Morphologies& morphologies,
-    const brion::CompartmentReport& report, EventSource& output )
+    const brion::CompartmentReport& report, EventSource& output,
+    const bool somasOnly = false )
 {
     const auto& mapping = computeInverseMapping( report );
     for( const auto& i : mapping )
@@ -107,10 +113,13 @@ inline void addCompartmentEvents(
             const auto& soma = morphology.getSoma();
             const auto event = Event( soma.getCentroid(), VALUE_UNSET,
                                       soma.getMeanRadius( ));
-            for( size_t k = 0; k != compartments; ++k)
+            for( size_t k = 0; k != compartments; ++k )
                 output.add( event );
             continue;
         }
+
+        if( somasOnly )
+            continue;
 
         brion::floats samples;
         samples.reserve( compartments );

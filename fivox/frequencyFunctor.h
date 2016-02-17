@@ -37,16 +37,11 @@ class FrequencyFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FrequencyFunctor( const float magnitude )
-        : _magnitude( magnitude )
-    {}
+    FrequencyFunctor() {}
     virtual ~FrequencyFunctor() {}
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const override;
-
-private:
-    const float _magnitude;
 };
 
 template< class TImage > inline typename FrequencyFunctor< TImage >::TPixel
@@ -70,8 +65,9 @@ FrequencyFunctor< TImage >::operator()( const TPoint& itkPoint,
 
     float sum = 0.f;
     for( const Event& event : events )
-        sum = std::max( sum, event.value * _magnitude );
-    return Super::_scale( sum );
+        sum = std::max( sum, event.value );
+
+    return sum;
 }
 
 }

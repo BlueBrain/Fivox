@@ -22,6 +22,7 @@
 
 #include "somaLoader.h"
 #include "event.h"
+#include "helpers.h"
 #include "uriHandler.h"
 
 #include <brion/brion.h>
@@ -42,15 +43,16 @@ public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
         , _config( params.getConfig( ))
+        , _target( _config.parseTarget( params.getTarget( )))
         , _report( _config.getReportSource( params.getReport( )),
-                   brion::MODE_READ, _config.parseTarget( params.getTarget( )))
+                   brion::MODE_READ, _target )
     {
-        const brion::GIDSet& gids = _report.getGIDs();
         brain::Circuit circuit( _config );
-        brain::Vector3fs positions = circuit.getPositions( gids );
+        const auto morphologies = circuit.loadMorphologies(
+            _target, brain::Circuit::COORDINATES_GLOBAL );
 
-        for( size_t i = 0; i < gids.size(); ++i )
-            output.add( Event( positions[i], VALUE_UNSET ));
+        // add soma events only
+        helpers::addCompartmentEvents( morphologies, _report, output, true );
     }
 
     ssize_t load( const float time )
@@ -74,6 +76,7 @@ public:
 
     fivox::EventSource& _output;
     brion::BlueConfig _config;
+    brion::GIDSet _target;
     brion::CompartmentReport _report;
 };
 

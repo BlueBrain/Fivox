@@ -20,10 +20,9 @@
 
 #include "dataSource.h"
 
-#include <fivox/fieldFunctor.h>
-#include <fivox/eventFunctor.h>
+#include <fivox/helpers.h>
 #include <fivox/imageSource.h>
-#include <fivox/synapseLoader.h>
+#include <fivox/rescaleFilter.h>
 #include <fivox/uriHandler.h>
 
 #include <livre/core/data/LODNode.h>
@@ -44,14 +43,12 @@ namespace fivox
 {
 namespace
 {
-typedef ByteVolume::Pointer VolumePtr;
+typedef FloatVolume::Pointer VolumePtr;
 
-typedef ::fivox::ImageSource< ByteVolume > ImageSource;
+typedef ::fivox::ImageSource< FloatVolume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 
 typedef typename ImageSource::FunctorPtr FunctorPtr;
-typedef fivox::FieldFunctor< ByteVolume > VolumeFieldFunctor;
-typedef std::shared_ptr< VolumeFieldFunctor > FieldFunctorPtr;
 }
 
 class DataSource::Impl
@@ -59,9 +56,8 @@ class DataSource::Impl
 public:
     explicit Impl( const livre::VolumeDataSourcePluginData& pluginData )
         : params( std::to_string( pluginData.getURI( )))
-        , source( params.newImageSource< uint8_t >( ))
-    {
-    }
+        , source( params.newImageSource< float >( ))
+    {}
 
     livre::MemoryUnitPtr sample( const livre::LODNode& node,
                                  const livre::VolumeInformation& info ) const
@@ -117,13 +113,17 @@ public:
                   << baseSpacing * spacingFactor * voxels << ")"
                   << std::endl;
 #endif
+
+        fivox::Rescaler< uint8_t > rescaler( source->GetOutput(),
+                                             params.getInputWindow( ));
         source->Modified();
-        source->Update();
+        rescaler->Update();
 
         livre::AllocMemoryUnitPtr memoryUnit( new livre::AllocMemoryUnit );
         const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
-        memoryUnit->allocAndSetData( output->GetBufferPointer(), size );
+        memoryUnit->allocAndSetData( rescaler->GetOutput()->GetBufferPointer(),
+                                     size );
         return memoryUnit;
     }
 

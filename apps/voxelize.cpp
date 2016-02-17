@@ -33,11 +33,9 @@
 
 #include <fivox/fivox.h>
 #include <fivox/beerLambertProjectionImageFilter.h>
+#include <fivox/rescaleFilter.h>
 
-#include <itkCastImageFilter.h>
 #include <itkImageFileWriter.h>
-#include <itkRescaleIntensityImageFilter.h>
-#include <itkShiftScaleImageFilter.h>
 
 #include <lunchbox/file.h>
 #include <lunchbox/log.h>
@@ -55,46 +53,27 @@ typedef itk::Image< FloatPixelType, 2 > FloatImageType;
 
 template< typename T > class VolumeWriter
 {
-    typedef itk::RescaleIntensityImageFilter< fivox::FloatVolume,
-                                              itk::Image< T, 3 >> RescaleFilter;
-    typedef itk::ShiftScaleImageFilter< fivox::FloatVolume,
-                                        fivox::FloatVolume > ScaleFilter;
-    typedef itk::CastImageFilter< fivox::FloatVolume,
-                                  itk::Image< T, 3 >> CastFilter;
     typedef itk::ImageFileWriter< itk::Image< T, 3 >> Writer;
+    typedef fivox::Rescaler< T > RescaleFilter;
 
 public:
-    VolumeWriter( VolumePtr input, const bool rescale )
-        : _writer( Writer::New( ))
+    VolumeWriter( VolumePtr input, const vmml::Vector2f& dataWindow )
+        : _rescaler( input, dataWindow )
+        , _writer( Writer::New( ))
     {
-        if( rescale )
-        {
-            _rescale = RescaleFilter::New();
-            _rescale->SetInput( input );
-            _writer->SetInput( _rescale->GetOutput( ));
-        }
-        else
-        {
-            _scale = ScaleFilter::New();
-            _cast = CastFilter::New();
-
-            _scale->SetInput( input );
-            _scale->SetScale( std::numeric_limits< T >::max( ));
-            _cast->SetInput( _scale->GetOutput( ));
-            _writer->SetInput( _cast->GetOutput( ));
-        }
+        _rescaler->SetInput( input );
+        _writer->SetInput( _rescaler->GetOutput( ));
     }
 
     typename Writer::Pointer operator->() { return _writer; }
 
 private:
-    typename RescaleFilter::Pointer _rescale;
-    typename ScaleFilter::Pointer _scale;
-    typename CastFilter::Pointer _cast;
+    RescaleFilter _rescaler;
     typename Writer::Pointer _writer;
 };
 
-template<> VolumeWriter< float >::VolumeWriter( VolumePtr input, bool )
+template<> VolumeWriter< float >::VolumeWriter( VolumePtr input,
+                                                const vmml::Vector2f& )
     : _writer( Writer::New( ))
 {
     _writer->SetInput( input );
@@ -102,11 +81,11 @@ template<> VolumeWriter< float >::VolumeWriter( VolumePtr input, bool )
 
 template< typename T >
 void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
-              const double sigmaVSDProjection, const float volumeResolution,
-              const std::string& outputFile, const bool rescale )
+              const double sigmaVSDProjection, const fivox::URIHandler& params,
+              const std::string& outputFile )
 {
     VolumePtr input = source->GetOutput();
-    VolumeWriter< T > writer( input, rescale );
+    VolumeWriter< T > writer( input, params.getInputWindow( ));
 
     const size_t numDigits = std::to_string( frameRange.y( )).length();
     for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
@@ -139,7 +118,7 @@ void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
         FilterType::Pointer projection = FilterType::New();
         projection->SetInput( input );
         projection->SetProjectionDimension( 1 ); // projection along Y-axis
-        projection->SetPixelSize( 1.0 / volumeResolution );
+        projection->SetPixelSize( 1.0 / params.getResolution( ));
         projection->SetSigma( sigmaVSDProjection );
 
         // Write output image
@@ -211,11 +190,18 @@ int main( int argc, char* argv[] )
           "             (defaults: 0.1 for Compartments and Somas,\n"
           "                        1.5 / duration for Spikes\n"
           "                        1.0 for Synapses and VSD)\n"
+          "- inputMin/inputMax: minimum and maximum input values to be\n"
+          "                     considered for rescaling\n"
+          "                     (defaults: [0.0, 2.0] for Spikes and Synapses\n"
+          "                                [-190.0, 0.0] for Compartments with TestData, [-80.0, 0.0] otherwise\n"
+          "                                [-15.0, 0.0] for Somas with TestData, [-80.0, 0.0] otherwise\n"
+          "                                [-0.0000147, 0.00225] for LFP with TestData, [-10.0, 10.0] otherwise\n"
+          "                                [-100000.0, 300.0] for VSD)\n"
           "- functor: type of functor to sample the data into the voxels\n"
           "             (defaults: \"density\" for Synapses,\n"
           "                        \"frequency\" for Spikes,\n"
           "                        \"field\" for Compartments, Somas and VSD)\n"
-          "- resolution: number of voxels per micrometer (default: 1.0)\n"
+          "- resolution: number of voxels per micrometer (default: 10.0)\n"
           "- maxBlockSize: maximum memory usage allowed for one block in bytes\n"
           "                (default: 64MB)\n"
           "- maxError: maximum error allowed (default: 0.001). If the event's\n"
@@ -372,33 +358,29 @@ int main( int argc, char* argv[] )
             params.getType() == fivox::TYPE_VSD && vm.count( "projection" ) ?
                 vm["projection"].as< double >() : -1.0;
 
-    // Only rescale/normalize float input for single, full volumes
-    const bool rescale = frameRange[1] - frameRange[0] == 1 &&
-                         decompose[1] == 1;
-
     const std::string& datatype( vm["datatype"].as< std::string >( ));
     if( datatype == "char" )
     {
         LBINFO << "Sampling volume as char (uint8_t) data" << std::endl;
         _sample< uint8_t >( source, frameRange, sigmaVSDProjection,
-                            params.getResolution(), outputFile, rescale );
+                            params, outputFile );
     }
     else if( datatype == "short" )
     {
         LBINFO << "Sampling volume as short (uint16_t) data" << std::endl;
         _sample< uint16_t >( source, frameRange, sigmaVSDProjection,
-                             params.getResolution(), outputFile, rescale );
+                             params, outputFile );
     }
     else if( datatype == "int" )
     {
         LBINFO << "Sampling volume as int (uint32_t) data" << std::endl;
         _sample< uint32_t >( source, frameRange, sigmaVSDProjection,
-                             params.getResolution(), outputFile, rescale );
+                             params, outputFile );
     }
     else
     {
         LBINFO << "Sampling volume as floating point data" << std::endl;
         _sample< float >( source, frameRange, sigmaVSDProjection,
-                          params.getResolution(), outputFile, false );
+                          params, outputFile );
     }
 }
