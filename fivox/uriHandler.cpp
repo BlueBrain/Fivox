@@ -31,6 +31,7 @@
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
 #include <fivox/synapseLoader.h>
+#include <fivox/testLoader.h>
 #include <fivox/vsdLoader.h>
 #ifdef FIVOX_USE_BBPTESTDATA
 #  include <BBP/TestDatasets.h>
@@ -62,6 +63,7 @@ EventSourcePtr _newLoader( const URIHandler& data )
     case TYPE_VSD:          return std::make_shared< VSDLoader >( data );
     case TYPE_SPIKES:       return std::make_shared< SpikeLoader >( data );
     case TYPE_SYNAPSES:     return std::make_shared< SynapseLoader >( data );
+    case TYPE_TEST:         return std::make_shared< TestLoader >( data );
     default:                return nullptr;
     }
 }
@@ -176,6 +178,7 @@ public:
             break;
         case TYPE_LFP:
         case TYPE_VSD:
+        case TYPE_TEST:
         default:
             break;
         }
@@ -214,6 +217,8 @@ public:
             return TYPE_VSD;
         if( scheme == "fivox" || scheme == "fivoxcompartments" )
             return TYPE_COMPARTMENTS;
+        if( scheme == "fivoxtest" )
+            return TYPE_TEST;
 
         LBERROR << "Unknown URI scheme: " << scheme << std::endl;
         return TYPE_UNKNOWN;
@@ -224,6 +229,8 @@ public:
         const std::string& functor = _get( "functor" );
         if( functor == "density" )
             return FUNCTOR_DENSITY;
+        if( functor == "lfp" )
+            return FUNCTOR_LFP;
         if( functor == "field" )
             return FUNCTOR_FIELD;
         if( functor == "frequency" )
@@ -242,6 +249,7 @@ public:
         case TYPE_COMPARTMENTS:
         case TYPE_SOMAS:
         case TYPE_VSD:
+        case TYPE_TEST:
         default:
             return FUNCTOR_FIELD;
         }
@@ -401,6 +409,9 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     case TYPE_VSD:
         os << "VSD (Voltage-Sensitive Dye) from " << params.getReport();
+        break;
+    case TYPE_TEST:
+        os << "test type for validation";
         break;
     case TYPE_UNKNOWN:
     default:

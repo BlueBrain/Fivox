@@ -47,8 +47,6 @@
 namespace
 {
 typedef fivox::FloatVolume::Pointer VolumePtr;
-typedef fivox::FieldFunctor< fivox::FloatVolume > FieldFunctor;
-typedef std::shared_ptr< FieldFunctor > FieldFunctorPtr;
 typedef fivox::ImageSource< fivox::FloatVolume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 
