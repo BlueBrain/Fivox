@@ -155,7 +155,7 @@ const AABBf& EventSource::getBoundingBox() const
 void EventSource::clear()
 {
     _impl->events.clear();
-    _impl->boundingBox.setEmpty();
+    _impl->boundingBox.reset();
 }
 
 void EventSource::add( const Event& event )

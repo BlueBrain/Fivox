@@ -62,7 +62,7 @@ public:
 
         helpers::addCompartmentEvents( morphologies, _voltageReport, output );
 
-        const float thickness = _output.getBoundingBox().getDimension()[1];
+        const float thickness = _output.getBoundingBox().getSize()[1];
         setCurve( fivox::AttenuationCurve( params.getDyeCurve(), thickness ));
     }
 

@@ -89,7 +89,7 @@ inline float _testKernel(
     source->load( 5.f );
     const fivox::AABBf& bbox = source->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
-    const float extent = bbox.getDimension().find_max();
+    const float extent = bbox.getSize().find_max();
     BOOST_CHECK_GT( extent, 0.f );
     BOOST_CHECK_EQUAL( source->getFrameRange(), range );
 

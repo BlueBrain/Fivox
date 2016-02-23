@@ -83,7 +83,7 @@ public:
 
         // Real-world coordinate setup
         const ::fivox::AABBf& bbox = loader->getBoundingBox();
-        const Vector3f& baseSpacing = ( bbox.getDimension() + _borders )
+        const Vector3f& baseSpacing = ( bbox.getSize() + _borders )
                                       / info.voxels;
         const int32_t levelFromBottom = info.rootNode.getDepth() - 1 -
                                         node.getRefLevel();
@@ -96,7 +96,7 @@ public:
 
         const Vector3f& offset =
             ( bbox.getMin() - _borders / 2.0f ) + node.getRelativePosition() *
-            Vector3f( bbox.getDimension() + _borders );
+            Vector3f( bbox.getSize() + _borders );
 
         ByteVolume::PointType origin;
         origin[0] = offset[0];
@@ -155,7 +155,7 @@ DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
     const Vector3f fullResolution =
-        ( bbox.getDimension() + std::sqrt( 1.0 / _impl->params.getMaxError()) * 2.0f ) * resolution;
+        ( bbox.getSize() + std::sqrt( 1.0 / _impl->params.getMaxError()) * 2.0f ) * resolution;
     Vector3f blockResolution = fullResolution;
 
     // maxTextureSize value should be retrieved from OpenGL. But at this
@@ -188,7 +188,7 @@ DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
     const size_t treeQuotient = 1 << depth;
     const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
     _impl->_borders = vmml::Vector3f( totalTreeSize ) / resolution -
-                      bbox.getDimension();
+                      bbox.getSize();
 
     _volumeInfo.voxels = totalTreeSize;
     _volumeInfo.maximumBlockSize = blockDim;
@@ -197,7 +197,8 @@ DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
         LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
     // SDK uses microns, volume information uses meters
-    _volumeInfo.boundingBox = bbox / 1000000.f;
+    _volumeInfo.boundingBox = ::fivox::AABBf( bbox.getMin() / 1000000.f,
+                                              bbox.getMax() / 1000000.f );
 }
 
 DataSource::~DataSource()
