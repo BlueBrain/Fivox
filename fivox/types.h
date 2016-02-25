@@ -22,6 +22,7 @@
 #define FIVOX_TYPES_H
 
 #include <vmmlib/aabb.hpp>
+#include <vmmlib/types.hpp>
 #include <vmmlib/vector.hpp>
 #include <memory>
 #include <vector>

@@ -1,7 +1,7 @@
 # -*- mode: cmake -*-
 git_subproject(ITK https://github.com/BlueBrain/ITK.git bbp)
-git_subproject(vmmlib https://github.com/Eyescale/vmmlib.git c779aae)
+git_subproject(vmmlib https://github.com/Eyescale/vmmlib.git 891fce2)
 git_subproject(Lunchbox https://github.com/Eyescale/Lunchbox.git d26906e)
-git_subproject(Brion https://github.com/BlueBrain/Brion.git 5c2ef23)
+git_subproject(Brion https://github.com/BlueBrain/Brion.git 2da8b31)
 git_subproject(Monsteer https://github.com/BlueBrain/Monsteer.git a7dc3be)
-git_subproject(Livre https://github.com/BlueBrain/Livre.git a167cc3)
+git_subproject(Livre https://github.com/BlueBrain/Livre.git 3bac68f)
