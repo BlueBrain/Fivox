@@ -53,11 +53,13 @@ class EventSource::Impl
 public:
     Impl( const URIHandler& params )
         : dt( params.getDt( ))
-        , currentTime( -1.0f )
+        , currentTime( -1.f )
+        , cutOffDistance( 50.f )
     {}
 
     float dt;
     float currentTime;
+    float cutOffDistance;
     Events events;
     AABBf boundingBox;
 #ifdef USE_BOOST_GEOMETRY
@@ -148,6 +150,16 @@ Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
 const AABBf& EventSource::getBoundingBox() const
 {
     return _impl->boundingBox;
+}
+
+float EventSource::getCutOffDistance() const
+{
+    return _impl->cutOffDistance;
+}
+
+void EventSource::setCutOffDistance( const float distance )
+{
+    _impl->cutOffDistance = distance;
 }
 
 void EventSource::clear()

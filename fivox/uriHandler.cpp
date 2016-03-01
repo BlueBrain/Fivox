@@ -76,8 +76,7 @@ _newFunctor( const URIHandler& data )
     case FUNCTOR_DENSITY:
         return std::make_shared< DensityFunctor< itk::Image< T, 3 >>>();
     case FUNCTOR_FIELD:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3 >>>
-                                                         ( data.getMaxError( ));
+        return std::make_shared< FieldFunctor< itk::Image< T, 3 >>>();
     case FUNCTOR_FREQUENCY:
         return std::make_shared< FrequencyFunctor< itk::Image< T, 3 >>>();
 #ifdef FIVOX_USE_LFP
@@ -460,7 +459,7 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         os << "density functor";
         break;
     case FUNCTOR_FIELD:
-        os << "field functor with max error " << params.getMaxError();
+        os << "field functor";
         break;
     case FUNCTOR_FREQUENCY:
         os << "frequency functor";

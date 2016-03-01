@@ -155,7 +155,7 @@ DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
     const ::fivox::AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
     const Vector3f fullResolution =
-        ( bbox.getSize() + std::sqrt( 1.0 / _impl->params.getMaxError()) * 2.0f ) * resolution;
+        ( bbox.getSize() + loader->getCutOffDistance() * 2.0f ) * resolution;
     Vector3f blockResolution = fullResolution;
 
     // maxTextureSize value should be retrieved from OpenGL. But at this

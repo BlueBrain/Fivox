@@ -4,6 +4,11 @@ Changelog {#changelog}
 # git master {#master}
 
 * [#10](https://github.com/BlueBrain/Fivox/pull/10)
+  The voxelize app now generates clipped volumes, limiting its extent to the
+  relevant data, being now consistent with the data source for Livre.
+  Move the calculation of the cutoff distance (still based on the maxError) to
+  the different loaders.
+* [#10](https://github.com/BlueBrain/Fivox/pull/10)
   Rescale to output type range: when writing into disk (voxelize tool) and the
   output data type is different than float, rescale according to output data
   type. The same rescale operation is applied in the Livre data source, to

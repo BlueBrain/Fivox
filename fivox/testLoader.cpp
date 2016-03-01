@@ -24,6 +24,8 @@
 #include "testLoader.h"
 #include "uriHandler.h"
 
+#include <lunchbox/log.h>
+
 #ifdef final
 #  undef final
 #endif
@@ -42,14 +44,18 @@ public:
             output.add( Event( Vector3f( 0.f, y * 10.f, 0.f ),
                                VALUE_UNSET, 1.f ));
 
-        // WAR: set the extent of the generated volume (voxelize tool)
-        output.add( Event( Vector3f( -50.f, 150.f, -50.f ), VALUE_UNSET ));
-        output.add( Event( Vector3f( 50.f, -50.f, 50.f ), VALUE_UNSET ));
+        const float max = 100.f;
+        const float distance =
+                std::sqrt( std::abs( max ) / params.getMaxError( ));
+        LBINFO << "Computed cutoff distance: " << distance
+               << " with maximum event's value: " << max << std::endl;
+
+        output.setCutOffDistance( distance );
     }
 
     ssize_t load( const float time )
     {
-        const size_t numEvents = _output.getEvents().size() - 2;
+        const size_t numEvents = _output.getEvents().size();
         for( size_t i = 0; i < numEvents; ++i )
             _output[i].value = (i + 1 + time) * _magnitude;
 

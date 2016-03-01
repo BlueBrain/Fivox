@@ -35,39 +35,11 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor( const float maxError )
-        : _cutOffDistance( 50. )
-        , _maxError( maxError )
-    {}
+    FieldFunctor() {}
     virtual ~FieldFunctor() {}
-
-    void beforeGenerate() override
-    {
-        Super::beforeGenerate();
-        float max = brion::MINIMUM_VOLTAGE;
-        for( const Event& event : Super::_source->getEvents( ))
-        {
-            if( event.value == VALUE_UNSET )
-                continue;
-
-            max = std::max( max, event.value );
-        }
-
-        const float distance = std::sqrt( std::abs( max ) / _maxError );
-        if( _cutOffDistance != distance )
-        {
-            LBINFO << "Computed cutoff distance: " << distance
-                   << " with maximum event's value: " << max << std::endl;
-            _cutOffDistance = distance;
-        }
-    }
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const override;
-
-private:
-    float _cutOffDistance;
-    const float _maxError;
 };
 
 template< class TImage > inline typename FieldFunctor< TImage >::TPixel
@@ -81,11 +53,12 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
     for( size_t i = 0; i < components; ++i )
         base[i] = point[i];
 
-    const AABBf region( base - Vector3f( _cutOffDistance ),
-                        base + Vector3f( _cutOffDistance ));
+    const float cutOffDistance = Super::_source->getCutOffDistance();
+    const AABBf region( base - Vector3f( cutOffDistance ),
+                        base + Vector3f( cutOffDistance ));
     const Events& events = Super::_source->findEvents( region );
 
-    const float squaredCutoff = _cutOffDistance * _cutOffDistance;
+    const float squaredCutoff = cutOffDistance * cutOffDistance;
     float sum = 0;
     for( const Event& event : events )
     {

@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE( fivoxSomas_source )
 {
     // Soma report 'somas' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( "fivoxlfp://", 0.f, 1.1370177737005287e-07f,
+    testSource( "fivoxSomas://", 0.f, -0.0021073255409191916f,
                 vmml::Vector2ui( 0, 100 ));
 }
 

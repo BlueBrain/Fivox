@@ -305,13 +305,16 @@ int main( int argc, char* argv[] )
     ::fivox::URIHandler params( uri );
     ImageSourcePtr source = params.newImageSource< float >();
     ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
+
     const fivox::AABBf& bbox = loader->getBoundingBox();
-    const fivox::Vector3f& position = bbox.getMin();
-    const float extent = bbox.getSize().find_max();
+    const fivox::Vector3f& extent( bbox.getSize() +
+                                   loader->getCutOffDistance() * 2.f );
+    const float maxExtent = extent.find_max();
 
     fivox::FloatVolume::SizeType vSize;
-    vSize.Fill( size );
-    vSize[2] = end - begin + 1;
+    vSize[0] = size * extent[0] / maxExtent;
+    vSize[1] = size * extent[1] / maxExtent;
+    vSize[2] = ( end - begin + 1 ) * extent[2] / maxExtent ;
 
     fivox::FloatVolume::IndexType vIndex;
     vIndex.Fill( 0 );
@@ -325,9 +328,10 @@ int main( int argc, char* argv[] )
     output->SetRegions( region );
 
     typename fivox::FloatVolume::SpacingType spacing;
-    spacing.Fill( extent / float( size ));
+    spacing.Fill( maxExtent / float( size ));
     output->SetSpacing( spacing );
 
+    const fivox::Vector3f& position( bbox.getCenter() - extent * 0.5f );
     typename fivox::FloatVolume::PointType origin;
     origin[0] = position[0];
     origin[1] = position[1];

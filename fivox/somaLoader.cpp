@@ -53,6 +53,14 @@ public:
 
         // add soma events only
         helpers::addCompartmentEvents( morphologies, _report, output, true );
+
+        const float max = -60.f;
+        const float distance =
+                std::sqrt( std::abs( max ) / params.getMaxError( ));
+        LBINFO << "Computed cutoff distance: " << distance
+               << " with maximum event's value: " << max << std::endl;
+
+        output.setCutOffDistance( distance );
     }
 
     ssize_t load( const float time )
