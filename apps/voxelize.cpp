@@ -321,7 +321,7 @@ int main( int argc, char* argv[] )
     ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
     const fivox::AABBf& bbox = loader->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
-    const float extent = bbox.getDimension().find_max();
+    const float extent = bbox.getSize().find_max();
 
     fivox::FloatVolume::SizeType vSize;
     vSize.Fill( size );

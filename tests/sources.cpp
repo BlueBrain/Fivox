@@ -89,7 +89,7 @@ inline float _testKernel(
     source->load( 5.f );
     const fivox::AABBf& bbox = source->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
-    const float extent = bbox.getDimension().find_max();
+    const float extent = bbox.getSize().find_max();
     BOOST_CHECK_GT( extent, 0.f );
     BOOST_CHECK_EQUAL( source->getFrameRange(), range );
 
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 {
     // Compartment currents report 'currents' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( "fivoxlfp://", 0.f, 1.1370177737005287e-07f,
+    testSource( "fivoxlfp://", 0.f, 6.7447619018805392e-05,
                 vmml::Vector2ui( 0, 100 ));
 }
 #endif
