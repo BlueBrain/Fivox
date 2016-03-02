@@ -31,7 +31,7 @@ endif()
 
 set(FIVOX_HEADERS
   beerLambertProjectionImageFilter.h
-  rescaleFilter.h
+  scaleFilter.h
 )
 
 set(FIVOX_SOURCES

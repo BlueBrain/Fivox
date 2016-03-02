@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef FIVOX_RESCALEFILTER_H
-#define FIVOX_RESCALEFILTER_H
+#ifndef FIVOX_SCALEFILTER_H
+#define FIVOX_SCALEFILTER_H
 
 #include <fivox/types.h>
 
@@ -29,36 +29,39 @@ namespace fivox
 {
 typedef FloatVolume::Pointer VolumePtr;
 
-template< typename T > class Rescaler
+template< typename T > class ScaleFilter
 {
     typedef itk::IntensityWindowingImageFilter
-            < FloatVolume, itk::Image< T, 3 >> RescaleFilter;
+            < FloatVolume, itk::Image< T, 3 >> IntensityWindowingImageFilter;
 
 public:
-    Rescaler() {} //!< Default constructor (used in VolumeWriter< float >)
+    ScaleFilter() {} //!< Default constructor (used in VolumeWriter< float >)
     /**
-     * Rescaler constructor that takes as parameters the volume to be rescaled
+     * ScaleFilter constructor that takes as parameters the volume to be scaled
      * and the input data range
      *
      * @param input Pointer to a floating point volume
      * @param dataWindow Vector2f containing the lower and upper limits for the
      * input data range
      */
-    Rescaler( VolumePtr input, const Vector2f& dataWindow )
+    ScaleFilter( VolumePtr input, const Vector2f& dataRange )
     {
-        _rescaler = RescaleFilter::New();
-        _rescaler->SetInput( input );
+        _scaler = IntensityWindowingImageFilter::New();
+        _scaler->SetInput( input );
 
-        _rescaler->SetWindowMinimum( dataWindow[0] );
-        _rescaler->SetWindowMaximum( dataWindow[1] );
-        _rescaler->SetOutputMinimum( std::numeric_limits< T >::min( ));
-        _rescaler->SetOutputMaximum( std::numeric_limits< T >::max( ));
+        _scaler->SetWindowMinimum( dataRange[0] );
+        _scaler->SetWindowMaximum( dataRange[1] );
+        _scaler->SetOutputMinimum( std::numeric_limits< T >::min( ));
+        _scaler->SetOutputMaximum( std::numeric_limits< T >::max( ));
     }
 
-    typename RescaleFilter::Pointer operator->() { return _rescaler; }
+    typename IntensityWindowingImageFilter::Pointer operator->()
+    {
+        return _scaler;
+    }
 
 private:
-    typename RescaleFilter::Pointer _rescaler;
+    typename IntensityWindowingImageFilter::Pointer _scaler;
 };
 
 }

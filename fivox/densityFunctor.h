@@ -65,8 +65,8 @@ DensityFunctor< TImage >::operator()( const TPoint& itkPoint,
     float sum = 0.f;
     for( const Event& event : events )
         sum += event.value;
-    sum /= std::abs( spacing_2.product() * 8.f );
-    return sum;
+
+    return sum / std::abs( spacing_2.product() * 8.f );
 }
 
 }

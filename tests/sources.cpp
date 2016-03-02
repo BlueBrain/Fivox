@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE( fivoxVoltages_source )
 {
     // Compartment report 'voltages' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( "fivox://", 12.263671875f, -0.27673634054121976f,
+    testSource( "fivox://", 12.263671875f, -0.26330676218117333f,
                 vmml::Vector2ui( 0, 100 ));
 }
 
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 {
     // Compartment currents report 'currents' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( "fivoxlfp://", 0.f, 1.4321641765596207e-05f,
+    testSource( "fivoxlfp://", 0.f, 8.9861975556847204e-06f,
                 vmml::Vector2ui( 0, 100 ));
 }
 #endif
@@ -244,7 +244,7 @@ BOOST_AUTO_TEST_CASE( fivoxSpikes_source )
 BOOST_AUTO_TEST_CASE( fivoxSynapses_source )
 {
     // Synapse reports don't have time support and return a 1-frame interval
-    testSource( "fivoxSynapses://", 0.f, 0.00017834029219887526f,
+    testSource( "fivoxSynapses://", 0.f, 1.7834029313844313e-05f,
                 vmml::Vector2ui( 0, 1 ));
 }
 

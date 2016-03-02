@@ -33,7 +33,7 @@
 
 #include <fivox/fivox.h>
 #include <fivox/beerLambertProjectionImageFilter.h>
-#include <fivox/rescaleFilter.h>
+#include <fivox/scaleFilter.h>
 
 #include <itkImageFileWriter.h>
 
@@ -54,21 +54,20 @@ typedef itk::Image< FloatPixelType, 2 > FloatImageType;
 template< typename T > class VolumeWriter
 {
     typedef itk::ImageFileWriter< itk::Image< T, 3 >> Writer;
-    typedef fivox::Rescaler< T > RescaleFilter;
+    typedef fivox::ScaleFilter< T > ScaleFilter;
 
 public:
-    VolumeWriter( VolumePtr input, const vmml::Vector2f& dataWindow )
-        : _rescaler( input, dataWindow )
+    VolumeWriter( VolumePtr input, const vmml::Vector2f& dataRange )
+        : _scaler( input, dataRange )
         , _writer( Writer::New( ))
     {
-        _rescaler->SetInput( input );
-        _writer->SetInput( _rescaler->GetOutput( ));
+        _writer->SetInput( _scaler->GetOutput( ));
     }
 
     typename Writer::Pointer operator->() { return _writer; }
 
 private:
-    RescaleFilter _rescaler;
+    ScaleFilter _scaler;
     typename Writer::Pointer _writer;
 };
 
@@ -85,7 +84,7 @@ void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
               const std::string& outputFile )
 {
     VolumePtr input = source->GetOutput();
-    VolumeWriter< T > writer( input, params.getInputWindow( ));
+    VolumeWriter< T > writer( input, params.getInputRange( ));
 
     const size_t numDigits = std::to_string( frameRange.y( )).length();
     for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
@@ -183,15 +182,9 @@ int main( int argc, char* argv[] )
           "\n"
           "Parameters for all types :\n"
           "- BlueConfig: BlueConfig file path\n"
-          "              (default: 'configs/BlueConfigVSD' for VSD reports,\n"
-          "               BBPTestData otherwise)\n"
+          "              (default: BBPTestData)\n"
           "- target: name of the BlueConfig target (default: CircuitTarget)\n"
-          "- magnitude: value multiplied to each sampled voxel value\n"
-          "             (defaults: 0.1 for Compartments and Somas,\n"
-          "                        1.5 / duration for Spikes\n"
-          "                        1.0 for Synapses and VSD)\n"
-          "- inputMin/inputMax: minimum and maximum input values to be\n"
-          "                     considered for rescaling\n"
+          "- inputMin/inputMax: minimum and maximum input values to be considered for rescaling\n"
           "                     (defaults: [0.0, 2.0] for Spikes and Synapses\n"
           "                                [-190.0, 0.0] for Compartments with TestData, [-80.0, 0.0] otherwise\n"
           "                                [-15.0, 0.0] for Somas with TestData, [-80.0, 0.0] otherwise\n"

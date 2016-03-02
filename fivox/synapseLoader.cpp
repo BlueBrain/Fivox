@@ -53,7 +53,6 @@ public:
         boost::progress_display progress( gids.size( ));
         const brion::Synapse synapses( _config.getSynapseSource().getPath() +
                                        "/nrn_positions.h5" );
-        const float magnitude = params.getMagnitude();
 
         for( const uint32_t gid : gids )
         {
@@ -63,7 +62,7 @@ public:
                                     brion::SYNAPSE_PRESYNAPTIC_SURFACE_Z );
             for( size_t i = 0; i < data.shape()[0]; ++i )
                 _output.add( Event( Vector3f( data[i][0], data[i][1],
-                                              data[i][2] ), magnitude ));
+                                              data[i][2] ), 1.f ));
             ++progress;
         }
     }

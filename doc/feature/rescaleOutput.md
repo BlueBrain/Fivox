@@ -1,5 +1,5 @@
-Rescaling the resulting volume to the output data type range
-============================================================
+Rescaling output voxel values
+=============================
 
 Since Fivox makes all the computations in floating point values, and supports
 different output types in the voxelize tool (just uint8 in the Livre
@@ -15,14 +15,15 @@ on the input data range and the output type range.
   type, converting it from float if needed.
 * The process of rescaling the volume data should always consider the output
   min and max values (known for each data type, e.g. 0-255 for uint8_t), and
-  the input window (min and max values present in the input data).
+  the data range derived from the input (min and max values present after the
+  voxelization process in floating point values).
 * The conversion should always be done at the end of the process, after all the
   events' contribution has been considered to compute each voxel's value.
-* The min and max values of the input data range should be defined from the
-  beginning, based on biological values and/or actual data. Since this is very
-  hard to know in advance, specially for time-dependent data, a way to manually
-  define this values should be provided. In any case, there should be default
-  values.
+* The min and max values of the data range derived from the input
+  should be defined from the beginning, based on biological values and/or actual
+  data. Since this is very hard to know in advance, specially for time-dependent
+  data, a way to manually define this values should be provided. In any case,
+  there should be default values.
 
 ## Implementation
 

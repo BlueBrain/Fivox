@@ -38,7 +38,6 @@ class TestLoader::Impl
 public:
     Impl( fivox::EventSource& output, const URIHandler& params )
         : _output( output )
-        , _magnitude( params.getMagnitude( ))
     {
         for( uint8_t y = 0; y < 10; ++y )
             output.add( Event( Vector3f( 0.f, y * 10.f, 0.f ),
@@ -57,13 +56,12 @@ public:
     {
         const size_t numEvents = _output.getEvents().size();
         for( size_t i = 0; i < numEvents; ++i )
-            _output[i].value = (i + 1 + time) * _magnitude;
+            _output[i].value = (i + 1 + time);
 
         return numEvents;
     }
 
     EventSource& _output;
-    const float _magnitude;
 };
 
 TestLoader::TestLoader( const URIHandler& params )

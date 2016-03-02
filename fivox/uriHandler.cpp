@@ -155,34 +155,9 @@ public:
 
     float getDuration() const { return _get( "duration", _duration ); }
 
-    float getMagnitude() const
+    Vector2f getInputRange() const
     {
-        float defaultValue = 1.f;
-        switch( getType( ))
-        {
-        case TYPE_COMPARTMENTS:
-        case TYPE_SOMAS:
-            defaultValue = 0.1f;
-            break;
-        case TYPE_SPIKES:
-            defaultValue = 1.5f / getDuration();
-            break;
-        case TYPE_SYNAPSES:
-            defaultValue = 10.0f;
-            break;
-        case TYPE_LFP:
-        case TYPE_VSD:
-        case TYPE_TEST:
-        default:
-            break;
-        }
-
-        return _get( "magnitude", defaultValue );
-    }
-
-    Vector2f getInputWindow() const
-    {
-        Vector2f defaultValue( 0.f, 10.f );
+        Vector2f defaultValue;
         switch( getType( ))
         {
         case TYPE_COMPARTMENTS:
@@ -207,6 +182,7 @@ public:
             defaultValue = Vector2f( 0.f, 2.f );
             break;
         default:
+            defaultValue = Vector2f( 0.f, 10.f );
             break;
         }
 
@@ -357,14 +333,9 @@ float URIHandler::getDuration() const
     return _impl->getDuration();
 }
 
-float URIHandler::getMagnitude() const
+Vector2f URIHandler::getInputRange() const
 {
-    return _impl->getMagnitude();
-}
-
-Vector2f URIHandler::getInputWindow() const
-{
-    return _impl->getInputWindow();
+    return _impl->getInputRange();
 }
 
 std::string URIHandler::getDyeCurve() const
@@ -473,8 +444,7 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     }
 
-    return os << ", input data range = " << params.getInputWindow()
-              << ", magnitude = " << params.getMagnitude();
+    return os << ", input data range = " << params.getInputRange();
 }
 
 }

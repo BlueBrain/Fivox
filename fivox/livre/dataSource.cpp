@@ -22,7 +22,7 @@
 
 #include <fivox/helpers.h>
 #include <fivox/imageSource.h>
-#include <fivox/rescaleFilter.h>
+#include <fivox/scaleFilter.h>
 #include <fivox/uriHandler.h>
 
 #include <livre/core/data/LODNode.h>
@@ -114,15 +114,15 @@ public:
                   << std::endl;
 #endif
 
-        fivox::Rescaler< uint8_t > rescaler( source->GetOutput(),
-                                             params.getInputWindow( ));
+        fivox::ScaleFilter< uint8_t > scaler( source->GetOutput(),
+                                              params.getInputRange( ));
         source->Modified();
-        rescaler->Update();
+        scaler->Update();
 
         livre::AllocMemoryUnitPtr memoryUnit( new livre::AllocMemoryUnit );
         const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
-        memoryUnit->allocAndSetData( rescaler->GetOutput()->GetBufferPointer(),
+        memoryUnit->allocAndSetData( scaler->GetOutput()->GetBufferPointer(),
                                      size );
         return memoryUnit;
     }
