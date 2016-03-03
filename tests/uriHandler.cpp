@@ -118,10 +118,7 @@ BOOST_AUTO_TEST_CASE(URIHandlerVSD)
     const fivox::URIHandler handler( "fivoxvsd://" );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_VSD );
 #ifdef FIVOX_USE_BBPTESTDATA
-    BOOST_CHECK_EQUAL( handler.getConfig(), lunchbox::getExecutablePath()
-                       + "/../share/Fivox/configs/BlueConfigVSD" );
-#endif
-#ifdef FIVOX_USE_BBPTESTDATA
+    BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );

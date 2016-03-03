@@ -46,8 +46,8 @@ list(REMOVE_ITEM ITK_LIBRARIES optimized debug)
 
 # Try cloning lfpFivox into the 'fivox' folder
 set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
-git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox 1c0e1ab
-  OPTIONAL)
+git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox 4444278
+             OPTIONAL)
 
 # Add LFP-related headers and definitions if found
 if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
@@ -58,7 +58,6 @@ endif()
 add_subdirectory(fivox)
 add_subdirectory(apps)
 add_subdirectory(tests)
-add_subdirectory(configs)
 
 include(CPackConfig)
 set(DOXYGEN_MAINPAGE_MD README.md)

@@ -74,17 +74,18 @@ _newFunctor( const URIHandler& data )
     switch( data.getFunctorType( ))
     {
     case FUNCTOR_DENSITY:
-        return std::make_shared< DensityFunctor< itk::Image< T, 3  >>>();
+        return std::make_shared< DensityFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
     case FUNCTOR_FIELD:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3  >>>
-                                                         ( data.getMagnitude(),
-                                                           data.getMaxError( ));
+        return std::make_shared< FieldFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
     case FUNCTOR_FREQUENCY:
-        return std::make_shared< FrequencyFunctor< itk::Image< T, 3  >>>
-                                                        ( data.getMagnitude( ));
+        return std::make_shared< FrequencyFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
 #ifdef FIVOX_USE_LFP
     case FUNCTOR_LFP:
-        return std::make_shared< LFPFunctor< itk::Image< T, 3  >>>();
+        return std::make_shared< LFPFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
 #endif
     case FUNCTOR_UNKNOWN:
     default:
@@ -110,15 +111,12 @@ public:
 
     std::string getConfig() const
     {
+#ifdef FIVOX_USE_BBPTESTDATA
         if( useTestData )
         {
-            if( getType() == TYPE_VSD )
-                return lunchbox::getExecutablePath() +
-                           "/../share/Fivox/configs/BlueConfigVSD";
-#ifdef FIVOX_USE_BBPTESTDATA
             return BBP_TEST_BLUECONFIG;
-#endif
         }
+#endif
         return config;
     }
 
@@ -161,29 +159,39 @@ public:
 
     float getDuration() const { return _get( "duration", _duration ); }
 
-    float getMagnitude() const
+    Vector2f getInputRange() const
     {
-        float defaultValue = 1.f;
+        Vector2f defaultValue;
         switch( getType( ))
         {
         case TYPE_COMPARTMENTS:
+            defaultValue =
+                    useTestData ? Vector2f( -190.f, 0.f )
+                                : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
+            break;
         case TYPE_SOMAS:
-            defaultValue = 0.1f;
-            break;
-        case TYPE_SPIKES:
-            defaultValue = 1.5f / getDuration();
-            break;
-        case TYPE_SYNAPSES:
-            defaultValue = 10.0f;
+            defaultValue =
+                    useTestData ? Vector2f( -15.f, 0.f )
+                                : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
             break;
         case TYPE_LFP:
+            defaultValue = useTestData ? Vector2f( -1.47e-05f, 2.25e-03f )
+                                       : Vector2f( -10.f, 10.f ); // mV
+            break;
         case TYPE_VSD:
-        case TYPE_TEST:
+            defaultValue = Vector2f( -100000.f, 300.f );
+            break;
+        case TYPE_SPIKES:
+        case TYPE_SYNAPSES:
+            defaultValue = Vector2f( 0.f, 2.f );
+            break;
         default:
+            defaultValue = Vector2f( 0.f, 10.f );
             break;
         }
 
-        return _get( "magnitude", defaultValue );
+        return Vector2f( _get( "inputMin", defaultValue[0] ),
+                         _get( "inputMax", defaultValue[1] ));
     }
 
     std::string getDyeCurve() const { return _get( "dyecurve" ); }
@@ -329,9 +337,9 @@ float URIHandler::getDuration() const
     return _impl->getDuration();
 }
 
-float URIHandler::getMagnitude() const
+Vector2f URIHandler::getInputRange() const
 {
-    return _impl->getMagnitude();
+    return _impl->getInputRange();
 }
 
 std::string URIHandler::getDyeCurve() const
@@ -420,14 +428,13 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
     }
 
     os << ", using ";
-
     switch( params.getFunctorType( ))
     {
     case FUNCTOR_DENSITY:
         os << "density functor";
         break;
     case FUNCTOR_FIELD:
-        os << "field functor with max error " << params.getMaxError();
+        os << "field functor";
         break;
     case FUNCTOR_FREQUENCY:
         os << "frequency functor";
@@ -441,7 +448,7 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     }
 
-    return os << ", magnitude = " << params.getMagnitude();
+    return os << ", input data range = " << params.getInputRange();
 }
 
 }

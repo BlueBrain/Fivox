@@ -51,7 +51,7 @@ class MeaningFunctor : public fivox::EventFunctor< TImage >
 {
     typedef fivox::EventFunctor< TImage > Super;
 public:
-    MeaningFunctor() {}
+    MeaningFunctor() : Super( fivox::Vector2f( )) {}
     virtual ~MeaningFunctor() {}
 
     typename Super::TPixel operator()( const typename Super::TPoint&,

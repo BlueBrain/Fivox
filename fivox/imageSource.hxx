@@ -30,7 +30,7 @@
 namespace fivox
 {
 template< typename TImage > ImageSource< TImage >::ImageSource()
-    : _functor( new DensityFunctor< TImage > )
+    : _functor( new DensityFunctor< TImage >( fivox::Vector2f( )))
 {
     itk::ImageRegionSplitterDirection::Pointer splitter =
         itk::ImageRegionSplitterDirection::New();

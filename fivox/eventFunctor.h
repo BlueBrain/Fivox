@@ -1,6 +1,7 @@
 
 /* Copyright (c) 2014-2016, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
+ *                          Jafet.VillafrancaDiaz@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -40,7 +41,9 @@ public:
     typedef typename TImage::SpacingType TSpacing;
     typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
 
-    EventFunctor(){}
+    EventFunctor( const fivox::Vector2f& inputRange )
+        : _inputRange( inputRange )
+    {}
     virtual ~EventFunctor() {}
 
     void setSource( EventSourcePtr source ) { _source = source; }
@@ -48,7 +51,7 @@ public:
     EventSourcePtr getSource() { return _source; }
 
     /** Called before threads are starting to voxelize */
-    virtual void beforeGenerate() { if( _source ) _source->beforeGenerate(); }
+    void beforeGenerate() { if( _source ) _source->beforeGenerate(); }
 
     virtual TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const = 0;
@@ -56,22 +59,18 @@ public:
 protected:
     TPixel _scale( const float value ) const
     {
+        // scale only for output integer types
         if( std::is_floating_point< TPixel >::value )
             return value;
-        static float clamped = 1.f;
-        if( value > clamped )
-        {
-            clamped = value;
-            LBINFO << "Clamping sampled value " << value << " to 1"
-                   << std::endl;
-        }
-        else if( value < 0.f )
-            LBINFO << "Clamping sampled value " << value << " to 0"
-                   << std::endl;
-        return std::min( std::max( value, 0.f ), 1.f ) *
-               std::numeric_limits< TPixel >::max();
+
+        const TPixel outputMin = std::numeric_limits< TPixel >::min();
+        const TPixel outputMax = std::numeric_limits< TPixel >::max();
+
+        return ( value - _inputRange[0] ) * ( outputMax - outputMin ) /
+               ( _inputRange[1] - _inputRange[0] ) + outputMin;
     }
 
+    const fivox::Vector2f _inputRange;
     EventSourcePtr _source;
 };
 

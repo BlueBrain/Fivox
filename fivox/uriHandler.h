@@ -93,15 +93,19 @@ public:
     float getDuration() const;
 
     /**
-     * Get the magnitude value which is mulitplied on each sampled voxel value.
-     * The default magnitude depends on VolumeType:
-     * - 0.1 for COMPARTMENTS and SOMAS
-     * - 1.5 / getDuration() for SPIKES
-     * - 1.0 for SYNAPSES and VSD
+     * Get the range of values to consider in the input data for rescaling into
+     * an output data type that is different than float.
+     * The default inputRange depends on VolumeType:
+     *   (0.0, 2.0) for SPIKES and SYNAPSES
+     *   (-190.0, 0.0) for COMPARTMENTS with TestData, (-80.0, 0.0) otherwise
+     *   (-15.0, 0.0) for SOMAS with TestData, [-80.0, 0.0] otherwise
+     *   (-0.0000147, 0.00225) for LFP with TestData, [-10.0, 10.0] otherwise
+     *   (-100000.0, 300.0) for VSD
      *
-     * @return magnitude for each voxel (multiplied on its sampled value)
+     * @return a vector containing the minimum and maximum values that the
+     * volume can take before rescaling it
      */
-    float getMagnitude() const;
+    Vector2f getInputRange() const;
 
     /**
      * Get the specified path to a dye curve file

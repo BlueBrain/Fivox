@@ -65,6 +65,19 @@ public:
     /** @return the bounding box of all events. */
     const AABBf& getBoundingBox() const;
 
+    /**
+     * @return the cutoff distance currently set (50.0 by default)
+     */
+    float getCutOffDistance() const;
+
+    /**
+     * Set the cutoff distance to be used for the evaluation of the different
+     * events.
+     *
+     * @param distance cutoff distance (in micrometers)
+     */
+    void setCutOffDistance( float distance );
+
     /** Clear all stored events and bounding box. Not thread safe. */
     void clear();
 

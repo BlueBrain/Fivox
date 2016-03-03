@@ -26,7 +26,7 @@
 #include <lunchbox/atomic.h>
 #include <lunchbox/log.h>
 
-#if USE_BOOST_GEOMETRY
+#ifdef USE_BOOST_GEOMETRY
 #  include <lunchbox/lock.h>
 #  include <lunchbox/scopedMutex.h>
 #  include <boost/geometry.hpp>
@@ -53,13 +53,13 @@ class EventSource::Impl
 public:
     Impl( const URIHandler& params )
         : dt( params.getDt( ))
-        , magnitude( params.getMagnitude( ))
-        , currentTime( -1.0f )
+        , currentTime( -1.f )
+        , cutOffDistance( 50.f )
     {}
 
     float dt;
-    const float magnitude;
     float currentTime;
+    float cutOffDistance;
     Events events;
     AABBf boundingBox;
 #ifdef USE_BOOST_GEOMETRY
@@ -152,6 +152,16 @@ const AABBf& EventSource::getBoundingBox() const
     return _impl->boundingBox;
 }
 
+float EventSource::getCutOffDistance() const
+{
+    return _impl->cutOffDistance;
+}
+
+void EventSource::setCutOffDistance( const float distance )
+{
+    _impl->cutOffDistance = distance;
+}
+
 void EventSource::clear()
 {
     _impl->events.clear();
@@ -170,7 +180,7 @@ void EventSource::add( const Event& event )
 
 void EventSource::beforeGenerate()
 {
-#if USE_BOOST_GEOMETRY
+#ifdef USE_BOOST_GEOMETRY
     _impl->rebuildRTree();
 #endif
 }
