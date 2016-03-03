@@ -36,7 +36,9 @@ class DensityFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    DensityFunctor() {}
+    DensityFunctor( const fivox::Vector2f& inputRange )
+        : Super( inputRange )
+    {}
     virtual ~DensityFunctor() {}
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
@@ -66,7 +68,8 @@ DensityFunctor< TImage >::operator()( const TPoint& itkPoint,
     for( const Event& event : events )
         sum += event.value;
 
-    return sum / std::abs( spacing_2.product() * 8.f );
+    sum /= std::abs( spacing_2.product() * 8.f );
+    return Super::_scale( sum );
 }
 
 }

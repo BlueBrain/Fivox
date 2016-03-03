@@ -74,14 +74,18 @@ _newFunctor( const URIHandler& data )
     switch( data.getFunctorType( ))
     {
     case FUNCTOR_DENSITY:
-        return std::make_shared< DensityFunctor< itk::Image< T, 3 >>>();
+        return std::make_shared< DensityFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
     case FUNCTOR_FIELD:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3 >>>();
+        return std::make_shared< FieldFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
     case FUNCTOR_FREQUENCY:
-        return std::make_shared< FrequencyFunctor< itk::Image< T, 3 >>>();
+        return std::make_shared< FrequencyFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
 #ifdef FIVOX_USE_LFP
     case FUNCTOR_LFP:
-        return std::make_shared< LFPFunctor< itk::Image< T, 3 >>>();
+        return std::make_shared< LFPFunctor< itk::Image< T, 3 >>>
+                                                       ( data.getInputRange( ));
 #endif
     case FUNCTOR_UNKNOWN:
     default:

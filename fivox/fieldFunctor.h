@@ -35,7 +35,9 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor() {}
+    FieldFunctor( const fivox::Vector2f& inputRange )
+        : Super( inputRange )
+    {}
     virtual ~FieldFunctor() {}
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
@@ -81,7 +83,7 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
                                                         : 1.f / distance2;
         sum += contribution * event.value;
     }
-    return sum;
+    return Super::_scale( sum );
 }
 
 }

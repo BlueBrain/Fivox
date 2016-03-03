@@ -35,7 +35,13 @@ template< typename T > class ScaleFilter
             < FloatVolume, itk::Image< T, 3 >> IntensityWindowingImageFilter;
 
 public:
-    ScaleFilter() {} //!< Default constructor (used in VolumeWriter< float >)
+    /**
+     * Default constructor (used in VolumeWriter< float >)
+     */
+    ScaleFilter()
+        : _scaler( IntensityWindowingImageFilter::New( ))
+    {}
+
     /**
      * ScaleFilter constructor that takes as parameters the volume to be scaled
      * and the input data range

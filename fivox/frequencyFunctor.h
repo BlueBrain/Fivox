@@ -37,7 +37,9 @@ class FrequencyFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FrequencyFunctor() {}
+    FrequencyFunctor( const fivox::Vector2f& inputRange )
+        : Super( inputRange )
+    {}
     virtual ~FrequencyFunctor() {}
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
@@ -67,7 +69,7 @@ FrequencyFunctor< TImage >::operator()( const TPoint& itkPoint,
     for( const Event& event : events )
         sum = std::max( sum, event.value );
 
-    return sum;
+    return Super::_scale( sum );
 }
 
 }

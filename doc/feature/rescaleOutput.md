@@ -77,3 +77,12 @@ full volume has been generated. ITK provides a filter that does this for us
 this rescale filter as an additional step between the generation of the float
 volume and its final use (writing in the case of the voxelize tool, or passing
 it to Livre in the case of the data source).
+
+Update: Rescale in the functor (on each voxel).
+
+After a closer review, we noticed the performance implications of using a
+FloatVolume in the Livre data source. The only acceptable solution in that case
+is to use a ByteVolume from the beginning, so the scaling needs to be done
+in the functors. In that case, the ITK filter mentioned above would only be used
+in the voxelize app, and the new solution would implement the same behavior
+inside the EventFunctor class, deriving all the functors from it.

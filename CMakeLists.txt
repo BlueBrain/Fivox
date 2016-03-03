@@ -46,7 +46,7 @@ list(REMOVE_ITEM ITK_LIBRARIES optimized debug)
 
 # Try cloning lfpFivox into the 'fivox' folder
 set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
-git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox master
+git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox 4444278
              OPTIONAL)
 
 # Add LFP-related headers and definitions if found

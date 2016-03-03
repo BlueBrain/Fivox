@@ -22,7 +22,6 @@
 
 #include <fivox/helpers.h>
 #include <fivox/imageSource.h>
-#include <fivox/scaleFilter.h>
 #include <fivox/uriHandler.h>
 
 #include <livre/core/data/LODNode.h>
@@ -43,9 +42,9 @@ namespace fivox
 {
 namespace
 {
-typedef FloatVolume::Pointer VolumePtr;
+typedef ByteVolume::Pointer VolumePtr;
 
-typedef ::fivox::ImageSource< FloatVolume > ImageSource;
+typedef ::fivox::ImageSource< ByteVolume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 
 typedef typename ImageSource::FunctorPtr FunctorPtr;
@@ -56,7 +55,7 @@ class DataSource::Impl
 public:
     explicit Impl( const livre::VolumeDataSourcePluginData& pluginData )
         : params( std::to_string( pluginData.getURI( )))
-        , source( params.newImageSource< float >( ))
+        , source( params.newImageSource< uint8_t >( ))
     {}
 
     livre::MemoryUnitPtr sample( const livre::LODNode& node,
@@ -114,16 +113,13 @@ public:
                   << std::endl;
 #endif
 
-        fivox::ScaleFilter< uint8_t > scaler( source->GetOutput(),
-                                              params.getInputRange( ));
         source->Modified();
-        scaler->Update();
+        source->Update();
 
         livre::AllocMemoryUnitPtr memoryUnit( new livre::AllocMemoryUnit );
         const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
-        memoryUnit->allocAndSetData( scaler->GetOutput()->GetBufferPointer(),
-                                     size );
+        memoryUnit->allocAndSetData( output->GetBufferPointer(), size );
         return memoryUnit;
     }
 
