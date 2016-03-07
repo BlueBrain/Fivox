@@ -23,6 +23,7 @@
 #include "event.h"
 #include "uriHandler.h"
 
+#include <brain/brain.h>
 #include <brion/brion.h>
 #include <monsteer/streaming/spikeReportReader.h>
 #include <monsteer/streaming/spikes.h>
@@ -49,29 +50,21 @@ public:
         , _spikesStart( 0.f )
         , _spikesEnd( 0.f )
     {
-        const brion::Circuit circuit( _config.getCircuitSource( ));
-        const brion::GIDSet& gids =
-            _config.parseTarget(
-                params.getTarget( _config.getCircuitTarget( )));
-
+        const brain::Circuit circuit( _config );
+        const brion::GIDSet& gids = _config.parseTarget(
+                                params.getTarget( _config.getCircuitTarget( )));
         if( gids.empty( ))
             LBTHROW( std::runtime_error(
                          "No GIDs found for default circuit target in "+
                          params.getConfig( )));
 
-        const brion::NeuronMatrix& matrix =
-            circuit.get( gids, brion::NEURON_POSITION_X |
-                               brion::NEURON_POSITION_Y |
-                               brion::NEURON_POSITION_Z );
+        const brion::Vector3fs& positions = circuit.getPositions( gids );
 
         size_t i = 0;
         _gidIndex.resize( *gids.rbegin() + 1 );
         for( const uint32_t gid: gids )
         {
-            const Vector3f position( lexical_cast< float >( matrix[i][0] ),
-                                     lexical_cast< float >( matrix[i][1] ),
-                                     lexical_cast< float >( matrix[i][2] ));
-            _output.add( Event( position, VALUE_UNSET ));
+            _output.add( Event( positions[ i ], VALUE_UNSET ));
             _gidIndex[gid] = i++;
         }
         _spikesPerNeuron.resize( gids.size( ));
