@@ -21,7 +21,7 @@
 #ifndef FIVOX_LIVRE_DATASOURCE_H
 #define FIVOX_LIVRE_DATASOURCE_H
 
-#include <livre/core/data/VolumeDataSourcePlugin.h>
+#include <livre/core/data/DataSourcePlugin.h>
 
 namespace fivox
 {
@@ -29,10 +29,10 @@ namespace fivox
 /**
 * Generate volume data sampling BBP simulation reports.
 */
-class DataSource : public livre::VolumeDataSourcePlugin
+class DataSource : public livre::DataSourcePlugin
 {
 public:
-    explicit DataSource( const livre::VolumeDataSourcePluginData& data );
+    explicit DataSource( const livre::DataSourcePluginData& data );
     virtual ~DataSource();
 
     /**
@@ -47,7 +47,7 @@ public:
      * @param data includes the URI and read mode.
      * @return true if the URI and read mode are handled.
      */
-    static bool handles( const livre::VolumeDataSourcePluginData& data );
+    static bool handles( const livre::DataSourcePluginData& data );
 
     /**
      * Updates the data source. Fivox data sources can be data streams,
@@ -59,8 +59,7 @@ public:
 private:
     class Impl;
     std::unique_ptr< Impl > _impl;
-    void internalNodeToLODNode( const livre::NodeId& internalNode,
-                                livre::LODNode& lodNode ) const final;
+    livre::LODNode internalNodeToLODNode( const livre::NodeId& internalNode ) const final;
 };
 
 }

@@ -53,7 +53,7 @@ typedef typename ImageSource::FunctorPtr FunctorPtr;
 class DataSource::Impl
 {
 public:
-    explicit Impl( const livre::VolumeDataSourcePluginData& pluginData )
+    explicit Impl( const livre::DataSourcePluginData& pluginData )
         : params( std::to_string( pluginData.getURI( )))
         , source( params.newImageSource< uint8_t >( ))
     {}
@@ -139,7 +139,7 @@ private:
     mutable lunchbox::Lock _lock;
 };
 
-DataSource::DataSource( const livre::VolumeDataSourcePluginData& pluginData )
+DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     : _impl( new DataSource::Impl( pluginData ))
 {
     const float resolution = _impl->params.getResolution();
@@ -218,8 +218,7 @@ livre::MemoryUnitPtr DataSource::getData( const livre::LODNode& node )
     }
 }
 
-void DataSource::internalNodeToLODNode( const livre::NodeId& internalNode,
-                                        livre::LODNode& lodNode ) const
+livre::LODNode DataSource::internalNodeToLODNode( const livre::NodeId& internalNode ) const
 {
     const uint32_t refLevel = internalNode.getLevel();
     const vmml::Vector3ui& bricksInRefLevel =
@@ -241,16 +240,16 @@ void DataSource::internalNodeToLODNode( const livre::NodeId& internalNode,
            << "  volume world size " << _volumeInfo.worldSize << std::endl
            << std::endl;
 
-    lodNode = livre::LODNode( internalNode,
-                                _volumeInfo.maximumBlockSize -
-                                _volumeInfo.overlap * 2,
-                                AABBf( boxCoordMin * _volumeInfo.worldSize -
-                                       _volumeInfo.worldSize * 0.5f,
-                                       boxCoordMax * _volumeInfo.worldSize -
-                                       _volumeInfo.worldSize * 0.5f ));
+    return livre::LODNode( internalNode,
+                           _volumeInfo.maximumBlockSize -
+                           _volumeInfo.overlap * 2,
+                           AABBf( boxCoordMin * _volumeInfo.worldSize -
+                                  _volumeInfo.worldSize * 0.5f,
+                                  boxCoordMax * _volumeInfo.worldSize -
+                                  _volumeInfo.worldSize * 0.5f ));
 }
 
-bool DataSource::handles( const livre::VolumeDataSourcePluginData& data )
+bool DataSource::handles( const livre::DataSourcePluginData& data )
 {
     const std::string fivox = "fivox";
     const std::string& scheme = data.getURI().getScheme();
