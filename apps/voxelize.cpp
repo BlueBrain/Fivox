@@ -51,6 +51,49 @@ typedef ImageSource::Pointer ImageSourcePtr;
 typedef float FloatPixelType;
 typedef itk::Image< FloatPixelType, 2 > FloatImageType;
 
+fivox::FloatVolume::RegionType computeVolumeRegion(
+        const size_t size,
+        const fivox::Vector3f& extent,
+        const fivox::Vector2ui& decompose )
+{
+    const float maxExtent = extent.find_max();
+    const size_t maxExtentIndex = extent.find_max_index();
+
+    const size_t begin = float( size ) / float( decompose[1] ) *
+                         float( decompose[0] );
+    const size_t end = size_t( float( size ) / float( decompose[1] ) *
+                               float( decompose[0] + 1 )) - 1;
+
+    fivox::FloatVolume::IndexType vIndex;
+    vIndex.Fill( 0 );
+    vIndex[ maxExtentIndex ] = begin - decompose[0];
+
+    fivox::FloatVolume::SizeType vSize;
+    vSize[ maxExtentIndex ] = end - begin + 1;
+    for( size_t i = 0; i < 3; ++i )
+    {
+        if( i != maxExtentIndex )
+            vSize[i] = size * extent[i] / maxExtent;
+    }
+
+    return fivox::FloatVolume::RegionType( vIndex, vSize );
+}
+
+fivox::FloatVolume::SpacingType computeVolumeSpacing(
+        const size_t size,
+        const fivox::Vector3f& extent,
+        const fivox::Vector2ui& decompose )
+{
+    const float maxExtent = extent.find_max();
+    const size_t maxExtentIndex = extent.find_max_index();
+
+    fivox::FloatVolume::SpacingType spacing;
+    spacing.Fill( maxExtent / float( size - 1 ));
+    spacing[ maxExtentIndex ] = maxExtent / float( size - decompose[1] );
+
+    return spacing;
+}
+
 template< typename T > class VolumeWriter
 {
     typedef itk::ImageFileWriter< itk::Image< T, 3 >> Writer;
@@ -290,10 +333,6 @@ int main( int argc, char* argv[] )
            << decompose[0] << "_" << decompose[1];
         outputFile += os.str();
     }
-    const size_t begin = float( size ) / float( decompose[1] ) *
-                         float( decompose[0] );
-    const size_t end = size_t( float( size ) / float( decompose[1] ) *
-                               float( decompose[0] + 1 )) - 1;
 
     ::fivox::URIHandler params( uri );
     ImageSourcePtr source = params.newImageSource< float >();
@@ -302,27 +341,10 @@ int main( int argc, char* argv[] )
     const fivox::AABBf& bbox = loader->getBoundingBox();
     const fivox::Vector3f& extent( bbox.getSize() +
                                    loader->getCutOffDistance() * 2.f );
-    const float maxExtent = extent.find_max();
-
-    fivox::FloatVolume::SizeType vSize;
-    vSize[0] = size * extent[0] / maxExtent;
-    vSize[1] = size * extent[1] / maxExtent;
-    vSize[2] = ( end - begin + 1 ) * extent[2] / maxExtent ;
-
-    fivox::FloatVolume::IndexType vIndex;
-    vIndex.Fill( 0 );
-    vIndex[2] = begin;
-
-    fivox::FloatVolume::RegionType region;
-    region.SetIndex( vIndex );
-    region.SetSize( vSize );
 
     VolumePtr output = source->GetOutput();
-    output->SetRegions( region );
-
-    typename fivox::FloatVolume::SpacingType spacing;
-    spacing.Fill( maxExtent / float( size ));
-    output->SetSpacing( spacing );
+    output->SetRegions( computeVolumeRegion( size, extent, decompose ));
+    output->SetSpacing( computeVolumeSpacing( size, extent, decompose ));
 
     const fivox::Vector3f& position( bbox.getCenter() - extent * 0.5f );
     typename fivox::FloatVolume::PointType origin;
