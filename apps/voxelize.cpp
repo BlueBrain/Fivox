@@ -31,11 +31,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fivox/fivox.h>
-#include <fivox/beerLambertProjectionImageFilter.h>
-#include <fivox/scaleFilter.h>
+#include "volumeHandler.h"
+#include "volumeWriter.h"
 
-#include <itkImageFileWriter.h>
+#include <fivox/fivox.h>
 
 #include <lunchbox/file.h>
 #include <lunchbox/log.h>
@@ -47,79 +46,6 @@ namespace
 typedef fivox::FloatVolume::Pointer VolumePtr;
 typedef fivox::ImageSource< fivox::FloatVolume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
-
-typedef float FloatPixelType;
-typedef itk::Image< FloatPixelType, 2 > FloatImageType;
-
-fivox::FloatVolume::RegionType computeVolumeRegion(
-        const size_t size,
-        const fivox::Vector3f& extent,
-        const fivox::Vector2ui& decompose )
-{
-    const float maxExtent = extent.find_max();
-    const size_t maxExtentIndex = extent.find_max_index();
-
-    const size_t begin = float( size ) / float( decompose[1] ) *
-                         float( decompose[0] );
-    const size_t end = size_t( float( size ) / float( decompose[1] ) *
-                               float( decompose[0] + 1 )) - 1;
-
-    fivox::FloatVolume::IndexType vIndex;
-    vIndex.Fill( 0 );
-    vIndex[ maxExtentIndex ] = begin - decompose[0];
-
-    fivox::FloatVolume::SizeType vSize;
-    vSize[ maxExtentIndex ] = end - begin + 1;
-    for( size_t i = 0; i < 3; ++i )
-    {
-        if( i != maxExtentIndex )
-            vSize[i] = size * extent[i] / maxExtent;
-    }
-
-    return fivox::FloatVolume::RegionType( vIndex, vSize );
-}
-
-fivox::FloatVolume::SpacingType computeVolumeSpacing(
-        const size_t size,
-        const fivox::Vector3f& extent,
-        const fivox::Vector2ui& decompose )
-{
-    const float maxExtent = extent.find_max();
-    const size_t maxExtentIndex = extent.find_max_index();
-
-    fivox::FloatVolume::SpacingType spacing;
-    spacing.Fill( maxExtent / float( size - 1 ));
-    spacing[ maxExtentIndex ] = maxExtent / float( size - decompose[1] );
-
-    return spacing;
-}
-
-template< typename T > class VolumeWriter
-{
-    typedef itk::ImageFileWriter< itk::Image< T, 3 >> Writer;
-    typedef fivox::ScaleFilter< T > ScaleFilter;
-
-public:
-    VolumeWriter( VolumePtr input, const vmml::Vector2f& dataRange )
-        : _scaler( input, dataRange )
-        , _writer( Writer::New( ))
-    {
-        _writer->SetInput( _scaler->GetOutput( ));
-    }
-
-    typename Writer::Pointer operator->() { return _writer; }
-
-private:
-    ScaleFilter _scaler;
-    typename Writer::Pointer _writer;
-};
-
-template<> VolumeWriter< float >::VolumeWriter( VolumePtr input,
-                                                const vmml::Vector2f& )
-    : _writer( Writer::New( ))
-{
-    _writer->SetInput( input );
-}
 
 template< typename T >
 void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
@@ -153,25 +79,8 @@ void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
         if( sigmaVSDProjection < 0.0 )
             continue;
 
-        // The projection filter computes the output using the real value of
-        // the data, i.e. not limited by the precision of the final image
-        typedef fivox::BeerLambertProjectionImageFilter
-            < fivox::FloatVolume, FloatImageType > FilterType;
-        FilterType::Pointer projection = FilterType::New();
-        projection->SetInput( input );
-        projection->SetProjectionDimension( 1 ); // projection along Y-axis
-        projection->SetPixelSize( 1.0 / params.getResolution( ));
-        projection->SetSigma( sigmaVSDProjection );
-
-        // Write output image
-        typedef itk::ImageFileWriter< FloatImageType > ImageWriter;
-        ImageWriter::Pointer imageWriter = ImageWriter::New();
-        imageWriter->SetInput( projection->GetOutput( ));
-
-        const std::string& imageFile = filename + ".vtk";
-        imageWriter->SetFileName( imageFile );
-        imageWriter->Update();
-        LBINFO << "VSD projection written as " << imageFile << std::endl;
+        writer.projectVSD( filename, 1.0 / params.getResolution(),
+                           sigmaVSDProjection );
     }
 }
 }
@@ -342,16 +251,12 @@ int main( int argc, char* argv[] )
     const fivox::Vector3f& extent( bbox.getSize() +
                                    loader->getCutOffDistance() * 2.f );
 
-    VolumePtr output = source->GetOutput();
-    output->SetRegions( computeVolumeRegion( size, extent, decompose ));
-    output->SetSpacing( computeVolumeSpacing( size, extent, decompose ));
+    VolumeHandler volumeHandler( size, extent );
 
-    const fivox::Vector3f& position( bbox.getCenter() - extent * 0.5f );
-    typename fivox::FloatVolume::PointType origin;
-    origin[0] = position[0];
-    origin[1] = position[1];
-    origin[2] = position[2];
-    output->SetOrigin( origin );
+    VolumePtr output = source->GetOutput();
+    output->SetRegions( volumeHandler.computeRegion( decompose ));
+    output->SetSpacing( volumeHandler.computeSpacing( ));
+    output->SetOrigin( volumeHandler.computeOrigin( bbox.getCenter( )));
 
     fivox::Vector2ui frameRange( 0, 1 ); // just frame 0 by default
     if( vm.count( "time" ))
