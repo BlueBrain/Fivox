@@ -26,8 +26,6 @@
 
 #include <fivox/types.h>
 
-namespace fivox
-{
 /**
  * Filter that uses a Beer-Lambert approach to accumulate and project the
  * values of the input image (e.g. 3D volume) as an output image
@@ -155,6 +153,4 @@ private:
     /** Absorption + scattering coefficient (units per micrometer) */
     double m_Sigma;
 };
-}
-
 #endif

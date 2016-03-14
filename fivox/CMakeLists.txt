@@ -29,11 +29,6 @@ if(FIVOX_USE_LFP)
   list(APPEND FIVOX_PUBLIC_HEADERS lfp/lfpFunctor.h)
 endif()
 
-set(FIVOX_HEADERS
-  beerLambertProjectionImageFilter.h
-  scaleFilter.h
-)
-
 set(FIVOX_SOURCES
   compartmentLoader.cpp
   eventSource.cpp
