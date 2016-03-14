@@ -51,7 +51,6 @@ public:
         : _size( size )
         , _extent( extent )
     {}
-    VolumeHandler() {}
 
     /**
      * Compute the region of interest of the volume
@@ -94,7 +93,7 @@ public:
     FloatVolume::SpacingType computeSpacing() const
     {
         fivox::FloatVolume::SpacingType spacing;
-        spacing.Fill( _extent.find_max() / float( _size - 1 ));
+        spacing.Fill( _extent.find_max() / float( _size ));
 
         return spacing;
     }
