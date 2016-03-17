@@ -63,11 +63,14 @@ protected:
         if( std::is_floating_point< TPixel >::value )
             return value;
 
-        const TPixel outputMin = std::numeric_limits< TPixel >::min();
-        const TPixel outputMax = std::numeric_limits< TPixel >::max();
+        const float outputMin = std::numeric_limits< TPixel >::min();
+        const float outputMax = std::numeric_limits< TPixel >::max();
 
-        return ( value - _inputRange[0] ) * ( outputMax - outputMin ) /
-               ( _inputRange[1] - _inputRange[0] ) + outputMin;
+        const float out = ( value - _inputRange[0] ) * ( outputMax - outputMin )
+                          / ( _inputRange[1] - _inputRange[0] ) + outputMin;
+
+        // clamp to output range
+        return std::max( std::min( out, outputMax ), outputMin );
     }
 
     const fivox::Vector2f _inputRange;
