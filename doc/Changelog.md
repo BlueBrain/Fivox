@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#21](https://github.com/BlueBrain/Fivox/pull/21)
+  New voxelize_batch.py script to generate volumes on cluster nodes.
 * [#10](https://github.com/BlueBrain/Fivox/pull/10)
   voxelize: Limit volume to area covered by events.
 * [#10](https://github.com/BlueBrain/Fivox/pull/10)

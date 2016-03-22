@@ -57,13 +57,12 @@ EventSourcePtr _newLoader( const URIHandler& data )
 {
     switch( data.getType( ))
     {
+    case TYPE_COMPARTMENTS: return std::make_shared< CompartmentLoader >( data);
     case TYPE_SOMAS:        return std::make_shared< SomaLoader >( data );
-    case TYPE_COMPARTMENTS:
-    case TYPE_LFP:          return std::make_shared< CompartmentLoader >( data );
-    case TYPE_VSD:          return std::make_shared< VSDLoader >( data );
     case TYPE_SPIKES:       return std::make_shared< SpikeLoader >( data );
     case TYPE_SYNAPSES:     return std::make_shared< SynapseLoader >( data );
     case TYPE_TEST:         return std::make_shared< TestLoader >( data );
+    case TYPE_VSD:          return std::make_shared< VSDLoader >( data );
     default:                return nullptr;
     }
 }
@@ -142,12 +141,10 @@ public:
         {
             switch( getType( ))
             {
-            case TYPE_LFP:
-                return "currents";
             case TYPE_SOMAS:
                 return "somas";
             default:
-                return "voltages";
+                return _get( "functor" ) == "lfp" ? "currents" : "voltages";
             }
         }
         return report;
@@ -165,18 +162,17 @@ public:
         switch( getType( ))
         {
         case TYPE_COMPARTMENTS:
-            defaultValue =
-                    useTestData ? Vector2f( -190.f, 0.f )
-                                : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
+            if( _get( "functor" ) == "lfp" )
+                defaultValue = Vector2f( -1.47e-05f, 2.25e-03f );
+            else
+                defaultValue =
+                        useTestData ? Vector2f( -190.f, 0.f )
+                                    : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
             break;
         case TYPE_SOMAS:
             defaultValue =
                     useTestData ? Vector2f( -15.f, 0.f )
                                 : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
-            break;
-        case TYPE_LFP:
-            defaultValue = useTestData ? Vector2f( -1.47e-05f, 2.25e-03f )
-                                       : Vector2f( -10.f, 10.f ); // mV
             break;
         case TYPE_VSD:
             defaultValue = Vector2f( -100000.f, 300.f );
@@ -211,10 +207,6 @@ public:
     VolumeType getType() const
     {
         const std::string& scheme = uri.getScheme();
-#ifdef FIVOX_USE_LFP
-        if( scheme == "fivoxlfp" )
-            return TYPE_LFP;
-#endif
         if( scheme == "fivoxsomas" )
             return TYPE_SOMAS;
         if( scheme == "fivoxspikes" )
@@ -250,10 +242,6 @@ public:
             return FUNCTOR_FREQUENCY;
         case TYPE_SYNAPSES:
             return FUNCTOR_DENSITY;
-#ifdef FIVOX_USE_LFP
-        case TYPE_LFP:
-            return FUNCTOR_LFP;
-#endif
         case TYPE_COMPARTMENTS:
         case TYPE_SOMAS:
         case TYPE_VSD:
@@ -401,9 +389,6 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
     case TYPE_COMPARTMENTS:
         os << "compartment voltages from " << params.getReport();
         break;
-    case TYPE_LFP:
-        os << "LFP (Local Field Potential) from " << params.getReport();
-        break;
     case TYPE_SOMAS:
         os << "soma voltages from " << params.getReport();
         break;
@@ -448,7 +433,8 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     }
 
-    return os << ", input data range = " << params.getInputRange();
+    return os << ", input data range = " << params.getInputRange()
+              << ", resolution = " << params.getResolution();
 }
 
 }

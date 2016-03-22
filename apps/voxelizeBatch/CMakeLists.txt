@@ -3,5 +3,4 @@
 #
 # This file is part of Fivox <https://github.com/BlueBrain/Fivox>
 
-add_subdirectory(voxelize)
-add_subdirectory(voxelizeBatch)
+install(PROGRAMS voxelize_batch.py DESTINATION bin)
