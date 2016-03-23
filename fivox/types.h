@@ -71,7 +71,6 @@ enum VolumeType
     TYPE_TEST,         /*!< Test type that creates fixed events
                             (e.g. for validation of different functors */
     TYPE_COMPARTMENTS, //!< BBP compartment simulation reports
-    TYPE_LFP,          //!< BBP Local Field Potential computation
     TYPE_SOMAS,        //!< BBP soma simulation reports
     TYPE_SPIKES,       //!< BBP spike simulation reports
     TYPE_SYNAPSES,     //!< BBP synapse positions

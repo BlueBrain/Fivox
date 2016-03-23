@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 {
     // Compartment currents report 'currents' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( "fivoxlfp://", 2.01953125f, 8.9861975556847204e-06f,
+    testSource( "fivox://?functor=lfp", 2.01953125f, 8.9861975556847204e-06f,
                 vmml::Vector2ui( 0, 100 ));
 }
 #endif

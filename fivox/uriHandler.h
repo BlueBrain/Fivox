@@ -99,7 +99,6 @@ public:
      *   (0.0, 2.0) for SPIKES and SYNAPSES
      *   (-190.0, 0.0) for COMPARTMENTS with TestData, (-80.0, 0.0) otherwise
      *   (-15.0, 0.0) for SOMAS with TestData, [-80.0, 0.0] otherwise
-     *   (-0.0000147, 0.00225) for LFP with TestData, [-10.0, 10.0] otherwise
      *   (-100000.0, 300.0) for VSD
      *
      * @return a vector containing the minimum and maximum values that the
