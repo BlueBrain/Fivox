@@ -23,11 +23,12 @@
 
 #include <fivox/itk.h>
 #include <fivox/types.h>
-
-#include <fivox/progressObserver.h>
+#include <fivox/progressObserver.h> // member
+#include <lunchbox/monitor.h> // member
 
 namespace fivox
 {
+
 /** ITK image source using an EventFunctor on each pixel to generate the output */
 template< typename TImage >
 class ImageSource : public itk::ImageSource< TImage >
@@ -96,6 +97,7 @@ private:
     FunctorPtr _functor;
     itk::ImageRegionSplitterBase::Pointer _splitter;
     ProgressObserver::Pointer _progressObserver;
+    lunchbox::Monitor< size_t > _completed;
 };
 } // end namespace fivox
 

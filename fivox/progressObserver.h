@@ -21,6 +21,7 @@
 #define FIVOX_PROGRESSOBSERVER_H
 
 #include <itkCommand.h>
+#include <memory>
 
 namespace fivox
 {

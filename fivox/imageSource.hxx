@@ -29,12 +29,14 @@
 
 namespace fivox
 {
+static const int _splitDirection = 2; // fastest in latest test
+
 template< typename TImage > ImageSource< TImage >::ImageSource()
     : _functor( new DensityFunctor< TImage >( fivox::Vector2f( )))
 {
     itk::ImageRegionSplitterDirection::Pointer splitter =
         itk::ImageRegionSplitterDirection::New();
-    splitter->SetDirection( 2 );
+    splitter->SetDirection( _splitDirection );
     _splitter = splitter;
 
     // set up default size
@@ -84,8 +86,11 @@ void ImageSource< TImage >::ThreadedGenerateData(
     i.SetDirection(0);
     i.GoToBegin();
 
-    itk::ProgressReporter progress( this, threadId,
-                                    outputRegionForThread.GetNumberOfPixels( ));
+    const size_t nLines = this->GetOutput()->GetRequestedRegion().GetSize()[1] *
+                          this->GetOutput()->GetRequestedRegion().GetSize()[2];
+    itk::ProgressReporter progress( this, threadId, nLines );
+    size_t totalLines = 0;
+
     while( !i.IsAtEnd( ))
     {
         const ImageIndexType& index = i.GetIndex();
@@ -98,14 +103,39 @@ void ImageSource< TImage >::ThreadedGenerateData(
 
         ++i;
         if( i.IsAtEndOfLine( ))
+        {
             i.NextLine();
-        progress.CompletedPixel();
+            // report progress only once per line for lower contention on
+            // monitor. Main thread reports to itk, all others to the monitor.
+            if( threadId == 0 )
+            {
+                size_t done = _completed.set( 0 ) + 1 /*self*/;
+                totalLines += done;
+                while( done-- )
+                    progress.CompletedPixel();
+            }
+            else
+                ++_completed;
+        }
+    }
+
+    if( threadId == 0 )
+    {
+        while( totalLines < nLines )
+        {
+            _completed.waitNE( 0 );
+            size_t done = _completed.set( 0 );
+            totalLines += done;
+            while( done-- )
+                progress.CompletedPixel();
+        }
     }
 }
 
 template< typename TImage >
 void ImageSource< TImage >::BeforeThreadedGenerateData()
 {
+    _completed = 0;
     _functor->beforeGenerate();
     if( _progressObserver )
         static_cast< ProgressObserver& >(*_progressObserver).reset();
