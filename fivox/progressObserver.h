@@ -1,5 +1,5 @@
-/* Copyright (c) 2015-216, EPFL/Blue Brain Project
- *                         Daniel.Nachbaur@epfl.ch
+/* Copyright (c) 2015-2016, EPFL/Blue Brain Project
+ *                          Daniel.Nachbaur@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -20,13 +20,15 @@
 #ifndef FIVOX_PROGRESSOBSERVER_H
 #define FIVOX_PROGRESSOBSERVER_H
 
-#include <boost/progress.hpp>
 #include <itkCommand.h>
 
 namespace fivox
 {
 
-/** Displays the progress of an ITK filter on std::cout. */
+/**
+ * Display the progress of an ITK filter on std::cout and emits a progress event
+ * using ZeroEQ (if available).
+ */
 class ProgressObserver : public itk::Command
 {
 public:
@@ -38,8 +40,8 @@ public:
     void reset();
 
 private:
-    boost::progress_display _progressBar;
-    size_t _previousProgress;
+    class Impl;
+    std::unique_ptr< Impl > _impl;
 
     void Execute( itk::Object* caller, const itk::EventObject& event ) override;
 

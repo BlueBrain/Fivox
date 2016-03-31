@@ -50,6 +50,11 @@ if(EXISTS "${Boost_INCLUDE_DIR}/boost/geometry.hpp")
   add_definitions(-DUSE_BOOST_GEOMETRY)
 endif()
 
+if(TARGET zeq AND TARGET ZeroBufData)
+  add_definitions(-DUSE_ZEROEQ_PROGRESS)
+  list(APPEND FIVOX_LINK_LIBRARIES PRIVATE zeq ZeroBufData)
+endif()
+
 if(BBPTESTDATA_FOUND)
   list(APPEND FIVOX_LINK_LIBRARIES PRIVATE BBPTestData)
 endif()
