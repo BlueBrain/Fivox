@@ -32,6 +32,7 @@ SECTION_VOXELIZE = 'voxelize'
 VOXELIZE_STARTFRAME = 'start_frame'
 VOXELIZE_ENDFRAME = 'end_frame'
 VOXELIZE_MAXFRAMES = 'max_frames'
+VOXELIZE_SIZE = 'size'
 VOXELIZE_VOLUME = 'volume'
 
 EXAMPLE_JSON = 'example.json'
@@ -81,6 +82,7 @@ class VoxelizeBatch(object):
                 VOXELIZE_STARTFRAME: 0,
                 VOXELIZE_ENDFRAME: 100,
                 VOXELIZE_MAXFRAMES: 20,
+                VOXELIZE_SIZE: 256,
                 VOXELIZE_VOLUME: ''}}
 
     def _build_sbatch_script(self, start, end):
@@ -88,9 +90,17 @@ class VoxelizeBatch(object):
         Build sbatch script for a certain frame range
         """
 
-        values = self.dict
+        values = dict(self.dict)
         values['start'] = start
         values['end'] = end
+
+        # zero-pad the output volume identifier based on the total number of
+        # frames and the current frame range
+        num_frames_total = values[SECTION_VOXELIZE][VOXELIZE_ENDFRAME] -\
+                           values[SECTION_VOXELIZE][VOXELIZE_STARTFRAME]
+        zero_pad = len(str(num_frames_total)) - len(str(end))
+        for i in range(zero_pad):
+            values['volume'] += '0'
 
         sbatch_script = '\n'.join((
             "#!/bin/bash",
@@ -104,7 +114,7 @@ class VoxelizeBatch(object):
             "#SBATCH --error={slurm[output_dir]}/%j_err.txt",
             "",
             "voxelize --volume {voxelize[volume]} --frames \"{start} {end}\" "\
-            "--output {volume}"
+            "--output {volume} --size {voxelize[size]}"
         )).format(**values)
 
         if self.verbose:
