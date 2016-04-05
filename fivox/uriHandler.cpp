@@ -201,8 +201,7 @@ public:
         { return std::max( _get( "maxError", _maxError ),
                            std::numeric_limits<float>::min( )); }
 
-    bool showProgress() const
-        { return _get( "showProgress", false ); }
+    bool showProgress() const;
 
     VolumeType getType() const
     {
@@ -282,6 +281,33 @@ private:
     const std::string target;
     const bool useTestData;
 };
+
+// bool specialization: param present with no value = true
+template<> bool URIHandler::Impl::_get( const std::string& param,
+                                        const bool defaultValue ) const
+{
+    lunchbox::URI::ConstKVIter i = uri.findQuery( param );
+    if( i == uri.queryEnd( ))
+        return defaultValue;
+    if( i->second.empty( ))
+        return true;
+
+    try
+    {
+        return lexical_cast< bool >( i->second );
+    }
+    catch( boost::bad_lexical_cast& )
+    {
+        LBWARN << "Invalid " << param << " specified, using " << defaultValue
+               << std::endl;
+        return defaultValue;
+    }
+}
+
+bool URIHandler::Impl::showProgress() const
+{
+    return _get( "showProgress", false );
+}
 
 URIHandler::URIHandler( const std::string& params )
     : _impl( new URIHandler::Impl( params ))

@@ -20,22 +20,48 @@
 #include "progressObserver.h"
 
 #include <itkProcessObject.h>
+#include <boost/progress.hpp>
+
+#ifdef USE_ZEROEQ_PROGRESS
+#  include <zeq/publisher.h>
+#  include <zerobuf/data/Progress.h>
+#endif
 
 namespace fivox
 {
-
 // arbitrary resolution for 0..1 range reported by ITK
-const size_t expectedCount = 1000000;
+static const size_t _expectedCount = 1000000;
+
+class ProgressObserver::Impl
+{
+public:
+    Impl()
+        : progressBar ( _expectedCount )
+        , previousProgress( 0 )
+#ifdef USE_ZEROEQ_PROGRESS
+        , progressEvent( zerobuf::data::Progress( "Fivox", _expectedCount ))
+#endif
+    {}
+
+    boost::progress_display progressBar;
+    size_t previousProgress;
+#ifdef USE_ZEROEQ_PROGRESS
+    zerobuf::data::Progress progressEvent;
+    zeq::Publisher publisher;
+#endif
+};
 
 ProgressObserver::ProgressObserver()
-    : _progressBar ( expectedCount )
-    , _previousProgress( 0 )
+    : _impl( new Impl )
 {}
 
 void ProgressObserver::reset()
 {
-    _progressBar.restart( expectedCount );
-    _previousProgress = 0;
+    _impl->progressBar.restart( _expectedCount );
+#ifdef USE_ZEROEQ_PROGRESS
+    _impl->progressEvent.restart( _expectedCount );
+#endif
+    _impl->previousProgress = 0;
 }
 
 void ProgressObserver::Execute( itk::Object* caller,
@@ -52,9 +78,13 @@ void ProgressObserver::Execute( const itk::Object* object,
     if( !itk::ProgressEvent().CheckEvent( &event ))
         return;
 
-    const size_t progress = std::floor( expectedCount * filter->GetProgress( ));
-    _progressBar +=  progress - _previousProgress;
-    _previousProgress = progress;
+    const size_t progress = std::floor(_expectedCount * filter->GetProgress( ));
+    _impl->progressBar += progress - _impl->previousProgress;
+#ifdef USE_ZEROEQ_PROGRESS
+    _impl->progressEvent += progress - _impl->previousProgress;
+    _impl->publisher.publish( _impl->progressEvent );
+#endif
+    _impl->previousProgress = progress;
 }
 
 }

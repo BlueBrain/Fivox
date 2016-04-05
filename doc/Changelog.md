@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#12](https://github.com/BlueBrain/Fivox/issue/12)
+  Fix progress report to include of all threads
 * [#21](https://github.com/BlueBrain/Fivox/pull/21)
   New voxelize_batch.py script to generate volumes on cluster nodes.
 * [#10](https://github.com/BlueBrain/Fivox/pull/10)
