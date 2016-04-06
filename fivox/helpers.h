@@ -135,7 +135,7 @@ inline void addCompartmentEvents(
 
         const auto& points = neuronSection.getSamples( samples );
         for( const auto& point : points )
-            output.add( Event( point.get_sub_vector< 3 >(), VALUE_UNSET,
+            output.add( Event( point.get_sub_vector< 3, 0 >(), VALUE_UNSET,
                                compartmentLength * .2f ));
     }
 }
