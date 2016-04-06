@@ -1,8 +1,6 @@
 # Copyright (c) BBP/EPFL 2014-2016
 #                        Stefan.Eilemann@epfl.ch
 
-source_group(\\ FILES CMakeLists.txt)
-
 set(FIVOX_PUBLIC_HEADERS
   attenuationCurve.h
   compartmentLoader.h
@@ -25,7 +23,11 @@ set(FIVOX_PUBLIC_HEADERS
   vsdLoader.h
 )
 
-if(FIVOX_USE_LFP)
+# Try cloning lfpFivox into the 'fivox' folder
+set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
+git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox 4444278
+             OPTIONAL)
+if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
   list(APPEND FIVOX_PUBLIC_HEADERS lfp/lfpFunctor.h)
 endif()
 
@@ -45,19 +47,23 @@ set(FIVOX_LINK_LIBRARIES
   PUBLIC ${ITK_LIBRARIES} Brion Lunchbox vmmlib
   PRIVATE ${Boost_LIBRARIES} Brain Monsteer)
 
-# Optionally enable rtree from boost_geometry, if found
-if(EXISTS "${Boost_INCLUDE_DIR}/boost/geometry.hpp")
-  add_definitions(-DUSE_BOOST_GEOMETRY)
-endif()
+common_library(Fivox)
 
 if(TARGET ZeroEQ AND TARGET ZeroBufData)
-  add_definitions(-DUSE_ZEROEQ_PROGRESS)
-  list(APPEND FIVOX_LINK_LIBRARIES PRIVATE ZeroEQ ZeroBufData)
+  target_compile_definitions(Fivox PRIVATE USE_ZEROEQ_PROGRESS)
+  target_link_libraries(Fivox PRIVATE ZeroEQ ZeroBufData)
 endif()
 
-if(BBPTESTDATA_FOUND)
-  list(APPEND FIVOX_LINK_LIBRARIES PRIVATE BBPTestData)
+if(TARGET BBPTestData)
+  target_link_libraries(Fivox PRIVATE BBPTestData)
 endif()
 
-common_library(Fivox)
+# Optionally enable rtree from boost_geometry, if found
+if(EXISTS "${Boost_INCLUDE_DIR}/boost/geometry.hpp")
+  target_compile_definitions(Fivox PRIVATE USE_BOOST_GEOMETRY)
+endif()
+if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
+  target_compile_definitions(Fivox PUBLIC FIVOX_USE_LFP)
+endif()
+
 add_subdirectory(livre)
