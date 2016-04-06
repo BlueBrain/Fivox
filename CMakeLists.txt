@@ -13,9 +13,9 @@ include(GitExternal)
 include(ITKSettings)
 
 set(VERSION_MAJOR "0")
-set(VERSION_MINOR "3")
+set(VERSION_MINOR "4")
 set(VERSION_PATCH "0")
-set(VERSION_ABI 3)
+set(VERSION_ABI 4)
 
 set(FIVOX_DESCRIPTION "ITK library to sample events into regular volumes")
 set(FIVOX_MAINTAINER
