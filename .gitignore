@@ -16,6 +16,7 @@ ITK/
 Livre/
 Lunchbox/
 Monsteer/
+MVDTool/
 Pression/
 RESTBridge/
 Servus/
@@ -24,6 +25,7 @@ ZeroBuf/
 build/
 codash/
 dash/
+httpxx/
 hwsd/
 vmmlib/
 zeq/

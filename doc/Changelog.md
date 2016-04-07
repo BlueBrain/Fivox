@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+# Release 0.4 (05-04-2016)
+
 * [#23](https://github.com/BlueBrain/Fivox/pull/23)
   Add resolution parameter in voxelize_batch script.
   Fix naming (zero-pad) when generating a series of volumes.
