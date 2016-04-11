@@ -47,7 +47,6 @@
 
 #if FIVOX_USE_MONSTEER
 #  include <brion/spikeReport.h>
-#  include <monsteer/plugin/spikeReport.h>
 #endif
 
 #include <BBP/TestDatasets.h>
@@ -69,11 +68,6 @@ namespace
 
 const std::string _monsteerPluginScheme( "monsteer" );
 const size_t _minResolution = 8;
-
-// Explicit registration required because for some reason the test binary is
-// not linked against the plugin library and the lib output directory is not
-// part of LD_LIBRARY_PATH in the test environment.
-lunchbox::PluginRegisterer< monsteer::plugin::SpikeReport > registerer;
 
 template< typename T >
 inline float _testKernel(
