@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#24](https://github.com/BlueBrain/Fivox/pull/24)
+  Adapt to servus::URI query separator change (replaced ',' by '&').
+
 # Release 0.4 (05-04-2016)
 
 * [#23](https://github.com/BlueBrain/Fivox/pull/23)
