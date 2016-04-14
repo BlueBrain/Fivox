@@ -57,7 +57,7 @@ start dealing with summations of voltages with different signs, for example.
 So two new parameters should be added, 'inputMin' and 'inputMax'. And
 potentially remove the 'magnitude'. Example:
 
-    voxelize --volume fivoxlfp:///path/to/BlueConfig?report=currentReport,target=targetName,inputMin=-50,inputMax=100
+    voxelize --volume fivoxlfp:///path/to/BlueConfig?report=currentReport&target=targetName&inputMin=-50&inputMax=100
 
 The operation to be performed in order to rescale a value from the input data
 range to an output data type range is as follows:

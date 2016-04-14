@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
     BOOST_CHECK_EQUAL( handler.getDuration(), 10.0f );
 
     const fivox::URIHandler params1(
-        "fivoxcompartment:///path/to/BlueConfig?report=simulation,dt=0.2,target=Column" );
+        "fivoxcompartment:///path/to/BlueConfig?report=simulation&dt=0.2&target=Column" );
     BOOST_CHECK_EQUAL( params1.getConfig(), "/path/to/BlueConfig" );
     BOOST_CHECK_EQUAL( params1.getTarget( "" ), "Column" );
     BOOST_CHECK_EQUAL( params1.getTarget( "foo" ), "Column" );

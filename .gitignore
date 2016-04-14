@@ -3,6 +3,7 @@ Release
 Makefile
 CMakeLists.txt.user*
 CMake/common/
+fivox/lfp/
 *.mhd
 *.raw
 Brion/

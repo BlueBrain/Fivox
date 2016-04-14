@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 BOOST_AUTO_TEST_CASE( fivoxSpikes_source )
 {
     // Spikes report timestamps range between 0.725 and 9.975 ms
-    testSource( "fivoxSpikes://?duration=1,dt=1",
+    testSource( "fivoxSpikes://?duration=1&dt=1",
                 0.49609375f, 0.00390625f, vmml::Vector2ui( 0, 9 ));
 }
 
@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE( fivoxSpikes_stream_source_frame_range )
     uri.setScheme( _monsteerPluginScheme );
 
     fivox::URIHandler params(
-        "fivoxspikes://?dt=0.1,duration=1,spikes=" + std::to_string( uri ));
+        "fivoxspikes://?dt=0.1&duration=1&spikes=" + std::to_string( uri ));
     auto filter = params.newImageSource< float >();
     fivox::EventSourcePtr source = filter->getFunctor()->getSource();
 
