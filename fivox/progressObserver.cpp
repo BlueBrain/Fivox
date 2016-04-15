@@ -36,14 +36,14 @@ class ProgressObserver::Impl
 {
 public:
     Impl()
-        : progressBar ( _expectedCount )
-        , previousProgress( 0 )
+        : previousProgress( 0 )
 #ifdef USE_ZEROEQ_PROGRESS
-        , progressEvent( zerobuf::data::Progress( "Fivox", _expectedCount ))
+        , progressEvent( zerobuf::data::Progress( "Sampling volume",
+                                                  _expectedCount ))
 #endif
     {}
 
-    boost::progress_display progressBar;
+    std::unique_ptr< boost::progress_display> progressBar;
     size_t previousProgress;
 #ifdef USE_ZEROEQ_PROGRESS
     zerobuf::data::Progress progressEvent;
@@ -57,11 +57,18 @@ ProgressObserver::ProgressObserver()
 
 void ProgressObserver::reset()
 {
-    _impl->progressBar.restart( _expectedCount );
+    if( _impl->progressBar )
+        _impl->progressBar->restart( _expectedCount );
 #ifdef USE_ZEROEQ_PROGRESS
     _impl->progressEvent.restart( _expectedCount );
 #endif
     _impl->previousProgress = 0;
+}
+
+void ProgressObserver::enablePrint()
+{
+    if( !_impl->progressBar )
+        _impl->progressBar.reset( new boost::progress_display( _expectedCount));
 }
 
 void ProgressObserver::Execute( itk::Object* caller,
@@ -79,7 +86,8 @@ void ProgressObserver::Execute( const itk::Object* object,
         return;
 
     const size_t progress = std::floor(_expectedCount * filter->GetProgress( ));
-    _impl->progressBar += progress - _impl->previousProgress;
+    if( _impl->progressBar )
+        *_impl->progressBar += progress - _impl->previousProgress;
 #ifdef USE_ZEROEQ_PROGRESS
     _impl->progressEvent += progress - _impl->previousProgress;
     _impl->publisher.publish( _impl->progressEvent );
