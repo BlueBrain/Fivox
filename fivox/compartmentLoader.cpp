@@ -45,7 +45,8 @@ public:
     Impl( EventSource& output, const URIHandler& params )
         : _output( output )
         , _config( params.getConfig( ))
-        , _target( _config.parseTarget( params.getTarget( )))
+        , _target( _config.parseTarget( params.getTarget(
+                                            _config.getCircuitTarget( ))))
         , _report( _config.getReportSource( params.getReport( )),
                    brion::MODE_READ, _target )
     {

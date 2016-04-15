@@ -45,7 +45,6 @@ BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_COMPARTMENTS );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
 #endif
@@ -80,7 +79,6 @@ BOOST_AUTO_TEST_CASE(URIHandlerSoma)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SOMAS );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
 #endif
@@ -93,7 +91,6 @@ BOOST_AUTO_TEST_CASE(URIHandlerSpikes)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SPIKES );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "Column" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
 #endif
@@ -106,7 +103,6 @@ BOOST_AUTO_TEST_CASE(URIHandlerSynapses)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SYNAPSES );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
 #endif
@@ -119,7 +115,6 @@ BOOST_AUTO_TEST_CASE(URIHandlerVSD)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_VSD );
 #ifdef FIVOX_USE_BBPTESTDATA
     BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "mini50" );
 #else
     BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
 #endif

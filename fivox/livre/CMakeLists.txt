@@ -4,7 +4,7 @@
 # This file is part of Fivox <https://github.com/BlueBrain/Fivox>
 #
 
-if(NOT LIVRE_FOUND)
+if(NOT TARGET LivreCore)
   return()
 endif()
 
