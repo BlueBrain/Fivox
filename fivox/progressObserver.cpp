@@ -23,7 +23,7 @@
 #include <boost/progress.hpp>
 
 #ifdef USE_ZEROEQ_PROGRESS
-#  include <zeq/publisher.h>
+#  include <zeroeq/publisher.h>
 #  include <zerobuf/data/Progress.h>
 #endif
 
@@ -47,7 +47,7 @@ public:
     size_t previousProgress;
 #ifdef USE_ZEROEQ_PROGRESS
     zerobuf::data::Progress progressEvent;
-    zeq::Publisher publisher;
+    zeroeq::Publisher publisher;
 #endif
 };
 
