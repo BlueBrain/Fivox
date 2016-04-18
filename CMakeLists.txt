@@ -30,7 +30,6 @@ common_find_package(Boost REQUIRED COMPONENTS unit_test_framework
 common_find_package(Brion REQUIRED)
 common_find_package(ITK REQUIRED SYSTEM)
 common_find_package(Livre)
-common_find_package(Monsteer REQUIRED)
 common_find_package(vmmlib REQUIRED)
 common_find_package(ZeroEQ)
 common_find_package(ZeroBuf)

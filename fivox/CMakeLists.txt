@@ -45,7 +45,7 @@ set(FIVOX_SOURCES
 
 set(FIVOX_LINK_LIBRARIES
   PUBLIC ${ITK_LIBRARIES} Brion Lunchbox vmmlib
-  PRIVATE ${Boost_LIBRARIES} Brain Monsteer)
+  PRIVATE ${Boost_LIBRARIES} Brain)
 
 common_library(Fivox)
 
