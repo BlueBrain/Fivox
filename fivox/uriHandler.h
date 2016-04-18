@@ -62,7 +62,6 @@ public:
      *         'Column' when using spikes or synapses, 'Layer1' otherwise.
      */
     std::string getTarget( const std::string& defaultTarget ) const;
-    std::string getTarget() const;
 
     /**
      * Get the specified report name.

@@ -4,18 +4,15 @@
 # This file is part of Fivox <https://github.com/BlueBrain/Fivox>
 #
 
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-project(Fivox)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+project(Fivox VERSION 0.4.0)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
   ${CMAKE_SOURCE_DIR}/CMake/common)
 
 include(GitExternal)
 include(ITKSettings)
 
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "4")
-set(VERSION_PATCH "0")
-set(VERSION_ABI 4)
+set(Fivox_VERSION_ABI 4)
 
 set(FIVOX_DESCRIPTION "ITK library to sample events into regular volumes")
 set(FIVOX_MAINTAINER
@@ -27,17 +24,17 @@ include(Common)
 
 set(FIVOX_DEPENDENT_LIBRARIES Lunchbox ITK vmmlib)
 
-common_package(BBPTestData)
-common_package(Boost REQUIRED COMPONENTS unit_test_framework
+common_find_package(BBPTestData)
+common_find_package(Boost REQUIRED COMPONENTS unit_test_framework
                                          program_options system)
-common_package(Brion REQUIRED)
-common_package(ITK REQUIRED SYSTEM)
-common_package(Livre)
-common_package(Monsteer REQUIRED)
-common_package(vmmlib REQUIRED)
-common_package(ZeroBuf)
-common_package(ZeroEQ)
-common_package_post()
+common_find_package(Brion REQUIRED)
+common_find_package(ITK REQUIRED SYSTEM)
+common_find_package(Livre)
+common_find_package(Monsteer REQUIRED)
+common_find_package(vmmlib REQUIRED)
+common_find_package(ZeroEQ)
+common_find_package(ZeroBuf)
+common_find_package_post()
 
 include(${ITK_USE_FILE})
 # eile: For some unfathomable reason, the list of libraries contains
@@ -45,17 +42,6 @@ include(${ITK_USE_FILE})
 # the link line. Removing the tokens fixes the build, although I have
 # not fully understood the issue.
 list(REMOVE_ITEM ITK_LIBRARIES optimized debug)
-
-# Try cloning lfpFivox into the 'fivox' folder
-set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
-git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox 2715344
-             OPTIONAL)
-
-# Add LFP-related headers and definitions if found
-if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
-  set(FIVOX_USE_LFP ON)
-  add_definitions(-DFIVOX_USE_LFP)
-endif()
 
 add_subdirectory(fivox)
 add_subdirectory(apps)

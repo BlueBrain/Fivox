@@ -112,9 +112,7 @@ public:
     {
 #ifdef FIVOX_USE_BBPTESTDATA
         if( useTestData )
-        {
             return BBP_TEST_BLUECONFIG;
-        }
 #endif
         return config;
     }
@@ -122,15 +120,7 @@ public:
     std::string getTarget( const std::string& defaultTarget ) const
     {
         if( target.empty( ))
-        {
-            if( defaultTarget.empty() && useTestData )
-            {
-                if( getType() == TYPE_SPIKES )
-                    return "Column";
-                return "mini50";
-            }
             return defaultTarget;
-        }
         return target;
     }
 
@@ -324,11 +314,6 @@ std::string URIHandler::getConfig() const
 std::string URIHandler::getTarget( const std::string& defaultTarget ) const
 {
     return _impl->getTarget( defaultTarget );
-}
-
-std::string URIHandler::getTarget() const
-{
-    return _impl->getTarget( std::string( ));
 }
 
 std::string URIHandler::getReport() const
