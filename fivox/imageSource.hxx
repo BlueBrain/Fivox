@@ -33,6 +33,7 @@ static const int _splitDirection = 2; // fastest in latest test
 
 template< typename TImage > ImageSource< TImage >::ImageSource()
     : _functor( new DensityFunctor< TImage >( fivox::Vector2f( )))
+    , _progressObserver( ProgressObserver::New( ))
 {
     itk::ImageRegionSplitterDirection::Pointer splitter =
         itk::ImageRegionSplitterDirection::New();
@@ -48,6 +49,8 @@ template< typename TImage > ImageSource< TImage >::ImageSource()
 
     typename TImage::Pointer output = Superclass::GetOutput();
     output->SetRequestedRegion( region );
+
+    Superclass::AddObserver( itk::ProgressEvent(), _progressObserver );
 }
 
 template< typename TImage >
@@ -62,11 +65,9 @@ void ImageSource< TImage >::setFunctor( FunctorPtr functor )
     _functor = functor;
 }
 
-template< typename TImage >
-void ImageSource< TImage >::showProgress()
+template< typename TImage > void ImageSource< TImage >::showProgress()
 {
-    _progressObserver = ProgressObserver::New();
-    Superclass::AddObserver( itk::ProgressEvent(), _progressObserver );
+    _progressObserver->enablePrint();
 }
 
 template< typename TImage >
@@ -137,8 +138,7 @@ void ImageSource< TImage >::BeforeThreadedGenerateData()
 {
     _completed = 0;
     _functor->beforeGenerate();
-    if( _progressObserver )
-        static_cast< ProgressObserver& >(*_progressObserver).reset();
+    _progressObserver->reset();
 }
 
 } // end namespace fivox

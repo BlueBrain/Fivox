@@ -33,12 +33,17 @@ namespace fivox
 class ProgressObserver : public itk::Command
 {
 public:
+    typedef itk::SmartPointer< ProgressObserver > Pointer;
+
     itkNewMacro( ProgressObserver );
 
     ProgressObserver();
 
     /** Resets the progress display for a new iteration. */
     void reset();
+
+    /** Enables cout printing of progress */
+    void enablePrint();
 
 private:
     class Impl;
