@@ -24,11 +24,13 @@ set(FIVOX_PUBLIC_HEADERS
 )
 
 # Try cloning lfpFivox into the 'fivox' folder
-set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
-git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox 4444278
-             OPTIONAL)
-if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
-  list(APPEND FIVOX_PUBLIC_HEADERS lfp/lfpFunctor.h)
+if(NOT TRAVIS)
+  set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
+  git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox 4444278
+               OPTIONAL)
+  if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
+    list(APPEND FIVOX_PUBLIC_HEADERS lfp/lfpFunctor.h)
+  endif()
 endif()
 
 set(FIVOX_SOURCES

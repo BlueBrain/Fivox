@@ -1,0 +1,30 @@
+notifications:
+  email:
+    on_success: never
+language: cpp
+cache: ccache
+os:
+  - osx
+env:
+  - BUILD_TYPE=Debug
+  - BUILD_TYPE=Release
+before_install:
+  - brew update
+  - brew outdated cmake || brew upgrade cmake
+  - brew install cppcheck doxygen ninja
+  - brew install homebrew/science/hdf5
+  - brew install python boost-python
+  - brew install zeromq
+  - brew install qt5
+  - brew install homebrew/science/insighttoolkit
+  - brew install homebrew/science/vtk
+  - pip install pyparsing
+script:
+  - mkdir $BUILD_TYPE
+  - cd $BUILD_TYPE
+  - export TRAVIS=1
+  - export CMAKE_PREFIX_PATH=/usr/local/opt/qt5:$CMAKE_PREFIX_PATH
+  - export NINJA_STATUS="[%p %u/%t@%o %r]"
+  - cmake -GNinja -DCMAKE_INSTALL_PREFIX=$PWD/install -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+  - ninja all && ninja Fivox-tests && ninja install
+
