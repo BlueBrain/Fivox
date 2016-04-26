@@ -25,8 +25,8 @@
 
 #include <brain/brain.h>
 #include <brion/brion.h>
-#include <monsteer/streaming/spikeReportReader.h>
-#include <monsteer/streaming/spikes.h>
+#include <brain/spikeReportReader.h>
+#include <brain/spikes.h>
 #include <lunchbox/os.h>
 #include <lunchbox/lock.h>
 #include <lunchbox/scopedMutex.h>
@@ -80,7 +80,7 @@ public:
         if( _spikesReader && !_spikesReader->hasEnded( ))
         {
             lunchbox::ScopedWrite mutex( _getSpikesLock );
-            const monsteer::Spikes& spikes = _spikesReader->getSpikes();
+            const brain::Spikes& spikes = _spikesReader->getSpikes();
             if( !spikes.empty( ))
                 // don't update _spikesStart to calculate absolute frame numbers
                 // see https://bbpcode.epfl.ch/code/#/c/19337
@@ -95,7 +95,7 @@ public:
 
         LBINFO << "No valid binary .spikes file found, loading from .dat..."
                << std::endl;
-        _spikesReader.reset( new monsteer::SpikeReportReader( spikes ));
+        _spikesReader.reset( new brain::SpikeReportReader( spikes ));
         _spikesStart = _spikesReader->isStream() ? 0.f :
                                                 _spikesReader->getStartTime();
         _spikesEnd = _spikesReader->isStream() ? 0.f :
@@ -187,7 +187,7 @@ public:
     {
         size_t numSpikes = 0;
         lunchbox::ScopedWrite mutex( _getSpikesLock );
-        const monsteer::Spikes& spikes = _spikesReader->getSpikes( start, end );
+        const brain::Spikes& spikes = _spikesReader->getSpikes( start, end );
         for( const brion::Spike& spike : spikes )
         {
             if( spike.second >= _gidIndex.size( ))
@@ -221,7 +221,7 @@ public:
     std::pair< float, size_t > _previousStart;
 
     // for _loadSpikesSlow
-    std::unique_ptr< monsteer::SpikeReportReader > _spikesReader;
+    std::unique_ptr< brain::SpikeReportReader > _spikesReader;
     mutable lunchbox::Lock _getSpikesLock;
 };
 
