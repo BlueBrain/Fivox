@@ -5,14 +5,14 @@
 #
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(Fivox VERSION 0.4.0)
+project(Fivox VERSION 0.5.0)
+set(Fivox_VERSION_ABI 5)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
-  ${CMAKE_SOURCE_DIR}/CMake/common)
+                              ${CMAKE_SOURCE_DIR}/CMake/common)
 
 include(GitExternal)
 include(ITKSettings)
-
-set(Fivox_VERSION_ABI 4)
 
 set(FIVOX_DESCRIPTION "ITK library to sample events into regular volumes")
 set(FIVOX_MAINTAINER
