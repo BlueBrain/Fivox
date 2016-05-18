@@ -29,10 +29,10 @@ common_find_package(Boost REQUIRED COMPONENTS unit_test_framework
                                          program_options system)
 common_find_package(Brion REQUIRED)
 common_find_package(ITK REQUIRED SYSTEM)
+common_find_package(Lexis)
 common_find_package(Livre)
 common_find_package(vmmlib REQUIRED)
 common_find_package(ZeroEQ)
-common_find_package(ZeroBuf)
 common_find_package_post()
 
 include(${ITK_USE_FILE})

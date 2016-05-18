@@ -23,8 +23,8 @@
 #include <boost/progress.hpp>
 
 #ifdef USE_ZEROEQ_PROGRESS
+#  include <lexis/data/Progress.h>
 #  include <zeroeq/publisher.h>
-#  include <zerobuf/data/Progress.h>
 #endif
 
 namespace fivox
@@ -38,7 +38,7 @@ public:
     Impl()
         : previousProgress( 0 )
 #ifdef USE_ZEROEQ_PROGRESS
-        , progressEvent( zerobuf::data::Progress( "Sampling volume",
+        , progressEvent( lexis::data::Progress( "Sampling volume",
                                                   _expectedCount ))
 #endif
     {}
@@ -46,7 +46,7 @@ public:
     std::unique_ptr< boost::progress_display> progressBar;
     size_t previousProgress;
 #ifdef USE_ZEROEQ_PROGRESS
-    zerobuf::data::Progress progressEvent;
+    lexis::data::Progress progressEvent;
     zeroeq::Publisher publisher;
 #endif
 };
