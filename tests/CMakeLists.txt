@@ -13,7 +13,7 @@ if(TARGET BrionMonsteerSpikeReport)
   list(APPEND TEST_LIBRARIES BrionMonsteerSpikeReport)
 endif()
 
-set(TESTDATA_TESTS sources.cpp)
+set(TESTDATA_TESTS uriHandler.cpp sources.cpp)
 if(TARGET BBPTestData AND TARGET Brion)
   set(UNIT_AND_PERF_TESTS ${TESTDATA_TESTS})
   list(APPEND TEST_LIBRARIES BBPTestData)

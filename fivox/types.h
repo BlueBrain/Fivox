@@ -54,8 +54,8 @@ typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
 
 typedef itk::Image< uint8_t, 3 > ByteVolume;
 typedef itk::Image< float, 3 > FloatVolume;
-typedef std::shared_ptr< fivox::EventFunctor< ByteVolume >> ByteFunctorPtr;
-typedef std::shared_ptr< fivox::EventFunctor< FloatVolume >> FloatFunctorPtr;
+typedef std::shared_ptr< EventFunctor< ByteVolume >> ByteFunctorPtr;
+typedef std::shared_ptr< EventFunctor< FloatVolume >> FloatFunctorPtr;
 
 typedef std::vector< Event > Events;
 

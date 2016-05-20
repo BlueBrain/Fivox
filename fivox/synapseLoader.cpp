@@ -34,24 +34,15 @@ namespace fivox
 class SynapseLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const URIHandler& params )
+    Impl( EventSource& output, const URIHandler& params )
         : _output( output )
-        , _config( params.getConfig( ))
     {
-        const auto gids = _config.parseTarget(
-                                params.getTarget( _config.getCircuitTarget( )));
-
-        if( gids.empty( ))
-        {
-            LBTHROW( std::runtime_error(
-                         "No GIDs found for requested target in " +
-                         params.getConfig( )));
-        }
+        const auto& gids = params.getGIDs();
 
         LBINFO << "Loading synapses for " << gids.size() << " cells..."
                << std::endl;
         boost::progress_display progress( gids.size( ));
-        const brion::Synapse synapses( _config.getSynapseSource().getPath() +
+        const brion::Synapse synapses( params.getConfig().getSynapseSource().getPath() +
                                        "/nrn_positions.h5" );
 
         for( const uint32_t gid : gids )
@@ -68,8 +59,7 @@ public:
     }
 
 private:
-    fivox::EventSource& _output;
-    brion::BlueConfig _config;
+    EventSource& _output;
 };
 
 SynapseLoader::SynapseLoader( const URIHandler& params )

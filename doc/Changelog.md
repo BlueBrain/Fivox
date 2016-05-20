@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#36](https://github.com/BlueBrain/Fivox/pull/36)
+  Speedup loading for full circuits with target=* query
 * [#29](https://github.com/BlueBrain/Fivox/pull/29)
   Adapt to the renaming of zeq to ZeroEQ.
 * [#28](https://github.com/BlueBrain/Fivox/pull/28)
