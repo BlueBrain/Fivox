@@ -49,9 +49,9 @@ set(FIVOX_LINK_LIBRARIES
 
 common_library(Fivox)
 
-if(TARGET ZeroEQ AND TARGET ZeroBufData)
+if(TARGET Lexis AND TARGET ZeroEQ)
   target_compile_definitions(Fivox PRIVATE USE_ZEROEQ_PROGRESS)
-  target_link_libraries(Fivox PRIVATE ZeroEQ ZeroBufData)
+  target_link_libraries(Fivox PRIVATE Lexis ZeroEQ)
 endif()
 
 if(TARGET BBPTestData)
