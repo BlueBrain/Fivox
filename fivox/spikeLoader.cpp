@@ -32,10 +32,6 @@
 #include <lunchbox/scopedMutex.h>
 #include <lunchbox/memoryMap.h>
 
-#ifdef final
-#  undef final
-#endif
-
 using boost::lexical_cast;
 
 namespace fivox
@@ -43,21 +39,15 @@ namespace fivox
 class SpikeLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const URIHandler& params )
+    Impl( EventSource& output, const URIHandler& params )
         : _output( output )
-        , _config( params.getConfig( ))
         , _duration( params.getDuration( ))
         , _spikesStart( 0.f )
         , _spikesEnd( 0.f )
     {
-        const brain::Circuit circuit( _config );
-        const brion::GIDSet& gids = _config.parseTarget(
-                                params.getTarget( _config.getCircuitTarget( )));
-        if( gids.empty( ))
-            LBTHROW( std::runtime_error(
-                         "No GIDs found for default circuit target in "+
-                         params.getConfig( )));
+        const brion::GIDSet& gids = params.getGIDs();
 
+        const brain::Circuit circuit( params.getConfig( ));
         const brion::Vector3fs& positions = circuit.getPositions( gids );
 
         size_t i = 0;
@@ -69,7 +59,7 @@ public:
         }
         _spikesPerNeuron.resize( gids.size( ));
         const std::string& spikePath = params.getSpikes();
-        _loadSpikes( spikePath.empty() ? _config.getSpikeSource() :
+        _loadSpikes( spikePath.empty() ? params.getConfig().getSpikeSource() :
                                          brion::URI( spikePath ));
 
     }
@@ -200,8 +190,7 @@ public:
         return numSpikes;
     }
 
-    fivox::EventSource& _output;
-    const brion::BlueConfig _config;
+    EventSource& _output;
     const float _duration;
     float _spikesStart;
     float _spikesEnd;
@@ -230,7 +219,7 @@ SpikeLoader::SpikeLoader( const URIHandler& params )
     , _impl( new Impl( *this, params ))
 {
     if( getDt() < 0.f )
-        setDt( _impl->_config.getTimestep( ));
+        setDt( params.getConfig().getTimestep( ));
 }
 
 SpikeLoader::~SpikeLoader()

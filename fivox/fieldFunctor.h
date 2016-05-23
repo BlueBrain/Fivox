@@ -35,7 +35,7 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor( const fivox::Vector2f& inputRange )
+    FieldFunctor( const Vector2f& inputRange )
         : Super( inputRange )
     {}
     virtual ~FieldFunctor() {}

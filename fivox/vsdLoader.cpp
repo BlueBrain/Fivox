@@ -40,22 +40,16 @@ namespace fivox
 class VSDLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const URIHandler& params )
+    Impl( EventSource& output, const URIHandler& params )
         : _output( output )
-        , _config( params.getConfig( ))
-        , _target( _config.parseTarget( params.getTarget(
-                                            _config.getCircuitTarget( ))))
-        , _voltageReport( _config.getReportSource( params.getReport( )),
-                          brion::MODE_READ, _target)
-        , _areaReport( _config.getReportSource( "areas" ),
-                       brion::MODE_READ, _target )
+        , _voltageReport( params.getConfig().getReportSource( params.getReport( )),
+                          brion::MODE_READ, params.getGIDs( ))
+        , _areaReport( params.getConfig().getReportSource( "areas" ),
+                       brion::MODE_READ, params.getGIDs( ))
     {
-        _areaReport.updateMapping( _target );
-        _voltageReport.updateMapping( _target );
-
-        const brain::Circuit circuit( _config );
+        const brain::Circuit circuit( params.getConfig( ));
         const auto morphologies = circuit.loadMorphologies(
-            _target, brain::Circuit::COORDINATES_GLOBAL );
+            params.getGIDs(), brain::Circuit::COORDINATES_GLOBAL );
 
         _areas = _areaReport.loadFrame( 0.f );
         if( !_areas )
@@ -64,7 +58,7 @@ public:
         helpers::addCompartmentEvents( morphologies, _voltageReport, output );
 
         const float thickness = _output.getBoundingBox().getSize()[1];
-        setCurve( fivox::AttenuationCurve( params.getDyeCurve(), thickness ));
+        setCurve( AttenuationCurve( params.getDyeCurve(), thickness ));
     }
 
     ssize_t load( const float time )
@@ -84,10 +78,7 @@ public:
 
     void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
 
-    fivox::EventSource& _output;
-
-    brion::BlueConfig _config;
-    brion::GIDSet _target;
+    EventSource& _output;
 
     brion::CompartmentReport _voltageReport;
     brion::CompartmentReport _areaReport;

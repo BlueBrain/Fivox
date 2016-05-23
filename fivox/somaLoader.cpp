@@ -40,17 +40,14 @@ using boost::lexical_cast;
 class SomaLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const URIHandler& params )
+    Impl( EventSource& output, const URIHandler& params )
         : _output( output )
-        , _config( params.getConfig( ))
-        , _target( _config.parseTarget( params.getTarget(
-                                            _config.getCircuitTarget( ))))
-        , _report( _config.getReportSource( params.getReport( )),
-                   brion::MODE_READ, _target )
+        , _report( params.getConfig().getReportSource( params.getReport( )),
+                   brion::MODE_READ, params.getGIDs( ))
     {
-        brain::Circuit circuit( _config );
+        const brain::Circuit circuit( params.getConfig( ));
         const auto morphologies = circuit.loadMorphologies(
-            _target, brain::Circuit::COORDINATES_GLOBAL );
+            params.getGIDs(), brain::Circuit::COORDINATES_GLOBAL );
 
         // add soma events only
         helpers::addCompartmentEvents( morphologies, _report, output, true );
@@ -83,9 +80,7 @@ public:
         return gids.size();
     }
 
-    fivox::EventSource& _output;
-    brion::BlueConfig _config;
-    brion::GIDSet _target;
+    EventSource& _output;
     brion::CompartmentReport _report;
 };
 

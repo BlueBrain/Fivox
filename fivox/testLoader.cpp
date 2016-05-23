@@ -36,7 +36,7 @@ namespace fivox
 class TestLoader::Impl
 {
 public:
-    Impl( fivox::EventSource& output, const URIHandler& params )
+    Impl( EventSource& output, const URIHandler& params )
         : _output( output )
     {
         for( uint8_t y = 0; y < 10; ++y )

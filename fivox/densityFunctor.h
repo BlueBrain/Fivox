@@ -36,7 +36,7 @@ class DensityFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    DensityFunctor( const fivox::Vector2f& inputRange )
+    DensityFunctor( const Vector2f& inputRange )
         : Super( inputRange )
     {}
     virtual ~DensityFunctor() {}

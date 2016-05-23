@@ -44,7 +44,7 @@ namespace
 {
 typedef ByteVolume::Pointer VolumePtr;
 
-typedef ::fivox::ImageSource< ByteVolume > ImageSource;
+typedef ImageSource< ByteVolume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 
 typedef typename ImageSource::FunctorPtr FunctorPtr;
@@ -61,7 +61,7 @@ public:
     livre::MemoryUnitPtr sample( const livre::LODNode& node,
                                  const livre::VolumeInformation& info ) const
     {
-        ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
+        EventSourcePtr loader = source->getFunctor()->getSource();
         const uint32_t frame = node.getNodeId().getFrame();
         if( !loader->load( frame ))
             return livre::MemoryUnitPtr();
@@ -77,7 +77,7 @@ public:
         region.SetSize( vSize );
 
         // Real-world coordinate setup
-        const ::fivox::AABBf& bbox = loader->getBoundingBox();
+        const AABBf& bbox = loader->getBoundingBox();
         const Vector3f& baseSpacing = ( bbox.getSize() + _borders )
                                       / info.voxels;
         const int32_t levelFromBottom = info.rootNode.getDepth() - 1 -
@@ -125,7 +125,7 @@ public:
 
     void update( livre::VolumeInformation& info )
     {
-        ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
+        EventSourcePtr loader = source->getFunctor()->getSource();
         const Vector2ui& frameRange = loader->getFrameRange();
         if( frameRange[1] > 0 ) // is any frame present
             info.frameRange = frameRange;
@@ -146,9 +146,9 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     const size_t maxBlockByteSize = _impl->params.getMaxBlockSize( );
 
     FunctorPtr functor = _impl->source->getFunctor();
-    ::fivox::EventSourcePtr loader = functor->getSource();
+    EventSourcePtr loader = functor->getSource();
 
-    const ::fivox::AABBf& bbox = loader->getBoundingBox();
+    const AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
     const Vector3f fullResolution =
         ( bbox.getSize() + loader->getCutOffDistance() * 2.0f ) * resolution;
@@ -193,8 +193,8 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
         LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
     // SDK uses microns, volume information uses meters
-    _volumeInfo.boundingBox = ::fivox::AABBf( bbox.getMin() / 1000000.f,
-                                              bbox.getMax() / 1000000.f );
+    _volumeInfo.boundingBox = AABBf( bbox.getMin() / 1000000.f,
+                                     bbox.getMax() / 1000000.f );
 }
 
 DataSource::~DataSource()

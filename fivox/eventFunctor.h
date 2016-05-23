@@ -41,7 +41,7 @@ public:
     typedef typename TImage::SpacingType TSpacing;
     typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
 
-    EventFunctor( const fivox::Vector2f& inputRange )
+    EventFunctor( const Vector2f& inputRange )
         : _inputRange( inputRange )
     {}
     virtual ~EventFunctor() {}
@@ -73,7 +73,7 @@ protected:
         return std::max( std::min( out, outputMax ), outputMin );
     }
 
-    const fivox::Vector2f _inputRange;
+    const Vector2f _inputRange;
     EventSourcePtr _source;
 };
 

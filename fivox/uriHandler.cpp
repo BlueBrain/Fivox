@@ -42,6 +42,9 @@
 #include <boost/lexical_cast.hpp>
 #include <fivox/itk.h>
 
+#include <brion/blueConfig.h>
+#include <brain/circuit.h>
+
 namespace fivox
 {
 namespace
@@ -98,30 +101,39 @@ class URIHandler::Impl
 public:
     explicit Impl( const std::string& parameters )
         : uri( parameters )
-        , config( uri.getPath( ))
-        , target( _get( "target" ).empty() ? uri.getFragment() :
-                                             _get( "target" ))
 #ifdef FIVOX_USE_BBPTESTDATA
-        , useTestData( config.empty( ))
+        , useTestData( uri.getPath().empty( ))
+        , config( useTestData ? BBP_TEST_BLUECONFIG3 : uri.getPath( ))
 #else
         , useTestData( false )
+        , config( uri.getPath( ))
 #endif
-    {}
-
-    std::string getConfig() const
     {
-#ifdef FIVOX_USE_BBPTESTDATA
-        if( useTestData )
-            return BBP_TEST_BLUECONFIG;
-#endif
+        const std::string& target = _get( "target" ).empty() ? uri.getFragment() :
+                                             _get( "target" );
+        if( target == "*" )
+        {
+            const brain::Circuit circuit( config );
+            gids = circuit.getGIDs();
+        }
+        else
+            gids = config.parseTarget( target.empty()
+                                       ? config.getCircuitTarget() : target );
+
+        if( gids.empty( ))
+            LBTHROW( std::runtime_error(
+                     "No GIDs found for requested target in " +
+                     uri.getPath( )));
+    }
+
+    const brion::BlueConfig& getConfig() const
+    {
         return config;
     }
 
-    std::string getTarget( const std::string& defaultTarget ) const
+    const brion::GIDSet& getGIDs() const
     {
-        if( target.empty( ))
-            return defaultTarget;
-        return target;
+        return gids;
     }
 
     std::string getReport() const
@@ -267,9 +279,9 @@ private:
     }
 
     const lunchbox::URI uri;
-    const std::string config;
-    const std::string target;
     const bool useTestData;
+    const brion::BlueConfig config;
+    brion::GIDSet gids;
 };
 
 // bool specialization: param present with no value = true
@@ -306,14 +318,14 @@ URIHandler::URIHandler( const std::string& params )
 URIHandler::~URIHandler()
 {}
 
-std::string URIHandler::getConfig() const
+const brion::BlueConfig& URIHandler::getConfig() const
 {
     return _impl->getConfig();
 }
 
-std::string URIHandler::getTarget( const std::string& defaultTarget ) const
+const brion::GIDSet& URIHandler::getGIDs() const
 {
-    return _impl->getTarget( defaultTarget );
+    return _impl->getGIDs();
 }
 
 std::string URIHandler::getReport() const
@@ -404,12 +416,11 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         os << "soma voltages from " << params.getReport();
         break;
     case TYPE_SPIKES:
-        os << "spikes from " << (params.getSpikes().empty() ? params.getConfig()
-                                                           : params.getSpikes())
+        os << "spikes from " << params.getConfig().getSpikeSource()
            << ", duration = " << params.getDuration();
         break;
     case TYPE_SYNAPSES:
-        os << "synapse positions from " << params.getConfig();
+        os << "synapse positions from " << params.getConfig().getSynapseSource();
         break;
     case TYPE_VSD:
         os << "VSD (Voltage-Sensitive Dye) from " << params.getReport();
@@ -419,7 +430,7 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     case TYPE_UNKNOWN:
     default:
-        os << "unknown data source " << params.getConfig();
+        os << "unknown data source";
         break;
     }
 

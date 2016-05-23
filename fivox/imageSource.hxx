@@ -32,7 +32,7 @@ namespace fivox
 static const int _splitDirection = 2; // fastest in latest test
 
 template< typename TImage > ImageSource< TImage >::ImageSource()
-    : _functor( new DensityFunctor< TImage >( fivox::Vector2f( )))
+    : _functor( new DensityFunctor< TImage >( Vector2f( )))
     , _progressObserver( ProgressObserver::New( ))
 {
     itk::ImageRegionSplitterDirection::Pointer splitter =

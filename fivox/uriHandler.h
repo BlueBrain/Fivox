@@ -22,6 +22,7 @@
 #ifndef FIVOX_URIHANDLER_H
 #define FIVOX_URIHANDLER_H
 
+#include <brion/types.h>
 #include <fivox/types.h>
 #include <memory>
 
@@ -32,7 +33,7 @@ namespace fivox
  * Process an URI to provide all the parameters specified in it.
  *
  * The following parameters are parsed:
- * @snippet apps/voxelize.cpp Usage
+ * @snippet apps/voxelize/voxelize.cpp Usage
  */
 class URIHandler
 {
@@ -46,22 +47,21 @@ public:
     virtual ~URIHandler(); //!< Destruct this parameter processor
 
     /**
-     * Get the specified BlueConfig file path.
-     *
-     * @return path to the specified BlueConfig. If empty, return the
-     * TestData's BlueConfig if available
+     * @return the BlueConfig object from the parameters. For empty parameters,
+     *         it returns the TestData's BlueConfig if available.
      */
-    std::string getConfig() const;
+    const brion::BlueConfig& getConfig() const;
 
     /**
-     * Get the specified target name.
-     *
-     * @return If no target was given at construction return the given
-     *         default target.
-     *         If this is also empty (and TestData is available), return
-     *         'Column' when using spikes or synapses, 'Layer1' otherwise.
+     * @return the GIDs from the specified target. If no target was specified,
+     *         it returns the GIDs from the BlueConfig's circuit target. If this
+     *         is empty (and TestData is available), it returns the GIDs from
+     *         the 'Column' target when using spikes or synapses, 'Layer1'
+     *         otherwise.
+     *         If the specified target was the '*' wildcard, it returns all GIDs
+     *         of the circuit and omits target parsing entirely.
      */
-    std::string getTarget( const std::string& defaultTarget ) const;
+    const brion::GIDSet& getGIDs() const;
 
     /**
      * Get the specified report name.

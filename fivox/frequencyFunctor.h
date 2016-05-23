@@ -37,7 +37,7 @@ class FrequencyFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FrequencyFunctor( const fivox::Vector2f& inputRange )
+    FrequencyFunctor( const Vector2f& inputRange )
         : Super( inputRange )
     {}
     virtual ~FrequencyFunctor() {}

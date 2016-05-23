@@ -48,7 +48,7 @@ make
 
 The voxelize command line tool supports the following parameters:
 
-@snippet apps/voxelize.cpp Parameters
+@snippet apps/voxelize/voxelize.cpp Parameters
 
 # About
 

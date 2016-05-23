@@ -33,90 +33,85 @@
 
 #include "test.h"
 #include <fivox/uriHandler.h>
+#include <brion/blueConfig.h>
 
-#ifdef FIVOX_USE_BBPTESTDATA
-#  include <BBP/TestDatasets.h>
-#  include <lunchbox/file.h>
-#endif
+#include <BBP/TestDatasets.h>
 
-BOOST_AUTO_TEST_CASE(URIHandlerCompartments)
+BOOST_AUTO_TEST_CASE(compartment_defaults)
 {
     const fivox::URIHandler handler( "fivox://" );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_COMPARTMENTS );
-#ifdef FIVOX_USE_BBPTESTDATA
-    BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-#else
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-#endif
+    BOOST_CHECK_EQUAL( handler.getConfig().getCircuitSource(),
+                 brion::BlueConfig( BBP_TEST_BLUECONFIG3 ).getCircuitSource( ));
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
-    BOOST_CHECK_EQUAL( handler.getTarget( "foo" ), "foo" );
+    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
     BOOST_CHECK_EQUAL( handler.getDt(), -1.f );
     BOOST_CHECK_EQUAL( handler.getDuration(), 10.0f );
-
-    const fivox::URIHandler params1(
-        "fivoxcompartment:///path/to/BlueConfig?report=simulation&dt=0.2&target=Column" );
-    BOOST_CHECK_EQUAL( params1.getConfig(), "/path/to/BlueConfig" );
-    BOOST_CHECK_EQUAL( params1.getTarget( "" ), "Column" );
-    BOOST_CHECK_EQUAL( params1.getTarget( "foo" ), "Column" );
-    BOOST_CHECK_EQUAL( params1.getReport(), "simulation" );
-    BOOST_CHECK_EQUAL( params1.getDt(), 0.2f );
-
-    const fivox::URIHandler params2(
-        "fivoxcompartment:///path/to/BlueConfig?target=First#Second" );
-    BOOST_CHECK_EQUAL( params2.getConfig(), "/path/to/BlueConfig" );
-    BOOST_CHECK_EQUAL( params2.getTarget( "" ), "First" );
-
-    const fivox::URIHandler params3(
-        "fivoxcompartment:///path/to/BlueConfig?report=simulation#Second" );
-    BOOST_CHECK_EQUAL( params3.getConfig(), "/path/to/BlueConfig" );
-    BOOST_CHECK_EQUAL( params3.getTarget( "" ), "Second" );
-    BOOST_CHECK_EQUAL( params3.getReport(), "simulation" );
+    BOOST_CHECK_EQUAL( handler.getMaxBlockSize(), LB_64MB );
 }
 
-BOOST_AUTO_TEST_CASE(URIHandlerSoma)
+BOOST_AUTO_TEST_CASE(compartment_full_circuit)
+{
+    const fivox::URIHandler handler( "fivox://?target=*" );
+    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
+}
+
+BOOST_AUTO_TEST_CASE(compartment_empty_target)
+{
+    BOOST_CHECK_THROW(
+                fivox::URIHandler handler( "fivox://?target=EmptyTarget" ),
+                std::runtime_error );
+}
+
+BOOST_AUTO_TEST_CASE(compartment_parameters)
+{
+    const fivox::URIHandler handler(
+        "fivoxcompartment://?report=simulation&dt=0.2&target=Column" );
+    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
+    BOOST_CHECK_EQUAL( handler.getReport(), "simulation" );
+    BOOST_CHECK_EQUAL( handler.getDt(), 0.2f );
+}
+
+BOOST_AUTO_TEST_CASE(compartment_targets)
+{
+    const fivox::URIHandler handler1(
+        "fivoxcompartment://?target=mini50#Layer1" );
+    BOOST_CHECK_EQUAL( handler1.getGIDs().size(), 50 );
+
+    const fivox::URIHandler handler2(
+        "fivoxcompartment://?report=simulation#Layer1" );
+    BOOST_CHECK_EQUAL( handler2.getGIDs().size(), 20 );
+    BOOST_CHECK_EQUAL( handler2.getReport(), "simulation" );
+}
+
+BOOST_AUTO_TEST_CASE(somas)
 {
     const fivox::URIHandler handler( "fivoxsomas://" );
+    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SOMAS );
-#ifdef FIVOX_USE_BBPTESTDATA
-    BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-#else
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-#endif
     BOOST_CHECK_EQUAL( handler.getReport(), "somas" );
 }
 
-BOOST_AUTO_TEST_CASE(URIHandlerSpikes)
+BOOST_AUTO_TEST_CASE(spikes)
 {
     const fivox::URIHandler handler( "fivoxspikes://" );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SPIKES );
-#ifdef FIVOX_USE_BBPTESTDATA
-    BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-#else
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-#endif
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
-BOOST_AUTO_TEST_CASE(URIHandlerSynapses)
+BOOST_AUTO_TEST_CASE(synapses)
 {
     const fivox::URIHandler handler( "fivoxsynapses://" );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SYNAPSES );
-#ifdef FIVOX_USE_BBPTESTDATA
-    BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-#else
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-#endif
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
-BOOST_AUTO_TEST_CASE(URIHandlerVSD)
+BOOST_AUTO_TEST_CASE(vsd)
 {
     const fivox::URIHandler handler( "fivoxvsd://" );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_VSD );
-#ifdef FIVOX_USE_BBPTESTDATA
-    BOOST_CHECK_EQUAL( handler.getConfig(), BBP_TEST_BLUECONFIG );
-#else
-    BOOST_CHECK_EQUAL( handler.getTarget( "" ), "" );
-#endif
+    BOOST_CHECK_EQUAL( handler.getInputRange(),
+                       fivox::Vector2f( -100000.f, 300.f ));
+    BOOST_CHECK_EQUAL( handler.getDyeCurve(), "" );
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
