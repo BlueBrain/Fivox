@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#38](https://github.com/BlueBrain/Fivox/pull/38)
+  Replaced maxError parameter with cutoff distance and added LFP
+  validation unit test.
 * [#36](https://github.com/BlueBrain/Fivox/pull/36)
   Speedup loading for full circuits with target=* query
 * [#29](https://github.com/BlueBrain/Fivox/pull/29)

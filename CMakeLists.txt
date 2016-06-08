@@ -18,6 +18,7 @@ set(FIVOX_DESCRIPTION "ITK library to sample events into regular volumes")
 set(FIVOX_MAINTAINER
   "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(FIVOX_LICENSE LGPL)
+set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
 
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(Common)

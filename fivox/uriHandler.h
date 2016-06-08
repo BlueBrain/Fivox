@@ -127,12 +127,12 @@ public:
     size_t getMaxBlockSize() const;
 
     /**
-     * Get the specified maximum absolute error.
+     * Get the specified cutoff distance in micrometers.
      *
-     * @return the specified maximum absolute error. If invalid or empty, return
-     *         0.001
+     * @return the specified cutoff distance in micrometers. If invalid or
+     *         empty, return 100.
      */
-    float getMaxError() const;
+    float getCutoffDistance() const;
 
     /**
      * Get the type of the volume that is being loaded (present in the URI

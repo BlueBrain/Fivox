@@ -54,7 +54,7 @@ public:
     Impl( const URIHandler& params )
         : dt( params.getDt( ))
         , currentTime( -1.f )
-        , cutOffDistance( 50.f )
+        , cutOffDistance( params.getCutoffDistance( ))
     {}
 
     float dt;
@@ -155,11 +155,6 @@ const AABBf& EventSource::getBoundingBox() const
 float EventSource::getCutOffDistance() const
 {
     return _impl->cutOffDistance;
-}
-
-void EventSource::setCutOffDistance( const float distance )
-{
-    _impl->cutOffDistance = distance;
 }
 
 void EventSource::clear()

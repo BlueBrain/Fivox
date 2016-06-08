@@ -21,5 +21,9 @@ else()
   set(EXCLUDE_FROM_TESTS ${TESTDATA_TESTS})
 endif()
 
+if(NOT EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
+  list(APPEND EXCLUDE_FROM_TESTS lfpValidation.cpp)
+endif()
+
 include(CommonCTest)
 install_files(share/Fivox/tests FILES ${TEST_FILES} COMPONENT examples)

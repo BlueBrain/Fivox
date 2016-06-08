@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE( fivoxVoltages_source )
 {
     // Compartment report 'voltages' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( "fivox://?target=mini50", 254.529296875f, -0.26330676218117333f,
+    testSource( "fivox://?target=mini50", 254.529296875f, -0.062685228640475543,
                 vmml::Vector2ui( 0, 100 ));
 }
 
@@ -212,7 +212,7 @@ BOOST_AUTO_TEST_CASE( fivoxSomas_source )
     // Soma report 'somas' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
     testSource( "fivoxSomas://?target=mini50", 254.927734375f,
-                -0.0021073255409191916f, vmml::Vector2ui( 0, 100 ));
+                -0.0016181814135052264, vmml::Vector2ui( 0, 100 ));
 }
 
 #ifdef FIVOX_USE_LFP
@@ -220,8 +220,8 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 {
     // Compartment currents report 'currents' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( "fivox://?functor=lfp&target=mini50", 2.01953125f,
-                8.9861975556847204e-06f, vmml::Vector2ui( 0, 100 ));
+    testSource( "fivox://?functor=lfp&target=mini50", 1.00390625,
+                3.3634767649011466e-09f, vmml::Vector2ui( 0, 100 ));
 }
 #endif
 

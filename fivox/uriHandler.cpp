@@ -54,7 +54,7 @@ const float _duration = 10.0f;
 const float _dt = -1.0f; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
 const float _resolution = 10.0f; // voxels per unit
-const float _maxError = 0.001f;
+const float _cutoff = 100.0f; // micrometers
 
 EventSourcePtr _newLoader( const URIHandler& data )
 {
@@ -101,24 +101,29 @@ class URIHandler::Impl
 public:
     explicit Impl( const std::string& parameters )
         : uri( parameters )
-#ifdef FIVOX_USE_BBPTESTDATA
-        , useTestData( uri.getPath().empty( ))
-        , config( useTestData ? BBP_TEST_BLUECONFIG3 : uri.getPath( ))
-#else
         , useTestData( false )
-        , config( uri.getPath( ))
-#endif
     {
+        if( getType() == TYPE_TEST )
+            return;
+
+#ifdef FIVOX_USE_BBPTESTDATA
+        useTestData = uri.getPath().empty( );
+        config.reset( new brion::BlueConfig( useTestData ? BBP_TEST_BLUECONFIG3
+                                                         : uri.getPath( )));
+#else
+        config.reset( new brion::BlueConfig( uri.getPath( )));
+#endif
+
         const std::string& target = _get( "target" ).empty() ? uri.getFragment() :
                                              _get( "target" );
         if( target == "*" )
         {
-            const brain::Circuit circuit( config );
+            const brain::Circuit circuit( *config );
             gids = circuit.getGIDs();
         }
         else
-            gids = config.parseTarget( target.empty()
-                                       ? config.getCircuitTarget() : target );
+            gids = config->parseTarget( target.empty()
+                                       ? config->getCircuitTarget() : target );
 
         if( gids.empty( ))
             LBTHROW( std::runtime_error(
@@ -128,11 +133,19 @@ public:
 
     const brion::BlueConfig& getConfig() const
     {
-        return config;
+        if( !config )
+            LBTHROW( std::runtime_error(
+                     "BlueConfig was not loaded" ));
+
+        return *config;
     }
 
     const brion::GIDSet& getGIDs() const
     {
+        if( !config )
+            LBTHROW( std::runtime_error(
+                     "BlueConfig was not loaded" ));
+
         return gids;
     }
 
@@ -199,9 +212,8 @@ public:
     size_t getMaxBlockSize() const
         { return _get( "maxBlockSize", _maxBlockSize ); }
 
-    float getMaxError() const
-        { return std::max( _get( "maxError", _maxError ),
-                           std::numeric_limits<float>::min( )); }
+    float getCutoffDistance() const
+        { return std::max( _get( "cutoff", _cutoff ), 0.0f );}
 
     bool showProgress() const;
 
@@ -279,8 +291,8 @@ private:
     }
 
     const lunchbox::URI uri;
-    const bool useTestData;
-    const brion::BlueConfig config;
+    bool useTestData;
+    std::unique_ptr< brion::BlueConfig> config;
     brion::GIDSet gids;
 };
 
@@ -368,9 +380,9 @@ size_t URIHandler::getMaxBlockSize() const
     return _impl->getMaxBlockSize();
 }
 
-float URIHandler::getMaxError() const
+float URIHandler::getCutoffDistance() const
 {
-    return _impl->getMaxError();
+    return _impl->getCutoffDistance();
 }
 
 VolumeType URIHandler::getType() const

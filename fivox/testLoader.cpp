@@ -36,20 +36,18 @@ namespace fivox
 class TestLoader::Impl
 {
 public:
-    Impl( EventSource& output, const URIHandler& params )
+    Impl( EventSource& output )
         : _output( output )
     {
-        for( uint8_t y = 0; y < 10; ++y )
+        for( uint8_t y = 0; y < 5; ++y )
             output.add( Event( Vector3f( 0.f, y * 10.f, 0.f ),
                                VALUE_UNSET, 1.f ));
 
-        const float max = 100.f;
-        const float distance =
-                std::sqrt( std::abs( max ) / params.getMaxError( ));
-        LBINFO << "Computed cutoff distance: " << distance
-               << " with maximum event's value: " << max << std::endl;
+        output.add( Event( Vector3f( 3.f, 5.f, 4.f ),
+                           VALUE_UNSET, 1.f ));
 
-        output.setCutOffDistance( distance );
+        output.add( Event( Vector3f( 5.f, 2.f, 1.f ),
+                           VALUE_UNSET, 1.f ));
     }
 
     ssize_t load( const float time )
@@ -66,7 +64,7 @@ public:
 
 TestLoader::TestLoader( const URIHandler& params )
     : EventSource( params )
-    , _impl( new TestLoader::Impl( *this, params ))
+    , _impl( new TestLoader::Impl( *this ))
 {
     if( getDt() < 0.f )
         setDt( 1.f );
