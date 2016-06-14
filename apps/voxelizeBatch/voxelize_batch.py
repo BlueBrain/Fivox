@@ -103,18 +103,18 @@ class VoxelizeBatch(object):
             values['volume'] += '0'
 
         sbatch_script = '\n'.join((
-            "#!/bin/bash",
-            "#SBATCH --job-name=\"{slurm[job_name]}\"",
-            "#SBATCH --time={slurm[job_time]}",
-            "#SBATCH --partition={slurm[queue]}",
-            "#SBATCH --account={slurm[account]}",
-            "#SBATCH --nodes={slurm[nodes]}",
-            "#SBATCH --ntasks-per-node={slurm[tasks_per_node]}",
-            "#SBATCH --output={slurm[output_dir]}/%j_out.txt",
-            "#SBATCH --error={slurm[output_dir]}/%j_err.txt",
-            "",
-            "voxelize --volume {voxelize[volume]} --frames \"{start} {end}\" "\
-            "--output {volume} --size {voxelize[size]}"
+            '#!/bin/bash',
+            '#SBATCH --job-name="{slurm[job_name]}"',
+            '#SBATCH --time="{slurm[job_time]}"',
+            '#SBATCH --partition="{slurm[queue]}"',
+            '#SBATCH --account="{slurm[account]}"',
+            '#SBATCH --nodes="{slurm[nodes]}"',
+            '#SBATCH --ntasks-per-node="{slurm[tasks_per_node]}"',
+            '#SBATCH --output="{slurm[output_dir]}/%j_out.txt"',
+            '#SBATCH --error="{slurm[output_dir]}/%j_err.txt"',
+            '',
+            'voxelize --volume "{voxelize[volume]}" --frames "{start} {end}" '\
+            '--output "{volume}" --size "{voxelize[size]}"'
         )).format(**values)
 
         if self.verbose:
