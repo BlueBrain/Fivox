@@ -52,14 +52,6 @@ public:
             params.getGIDs(), brain::Circuit::COORDINATES_GLOBAL );
 
         helpers::addCompartmentEvents( morphologies, _report, output );
-
-        const float max = -60.f;
-        const float distance =
-                std::sqrt( std::abs( max ) / params.getMaxError( ));
-        LBINFO << "Computed cutoff distance: " << distance
-               << " with maximum event's value: " << max << std::endl;
-
-        output.setCutOffDistance( distance );
     }
 
     ssize_t load( const float time )

@@ -70,14 +70,6 @@ public:
      */
     float getCutOffDistance() const;
 
-    /**
-     * Set the cutoff distance to be used for the evaluation of the different
-     * events.
-     *
-     * @param distance cutoff distance (in micrometers)
-     */
-    void setCutOffDistance( float distance );
-
     /** Clear all stored events and bounding box. Not thread safe. */
     void clear();
 

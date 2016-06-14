@@ -79,8 +79,7 @@ void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
         if( sigmaVSDProjection < 0.0 )
             continue;
 
-        writer.projectVSD( filename, 1.0 / params.getResolution(),
-                           sigmaVSDProjection );
+        writer.projectVSD( filename, sigmaVSDProjection );
     }
 }
 }
@@ -149,11 +148,7 @@ int main( int argc, char* argv[] )
           "- resolution: number of voxels per micrometer (default: 10.0)\n"
           "- maxBlockSize: maximum memory usage allowed for one block in bytes\n"
           "                (default: 64MB)\n"
-          "- maxError: maximum error allowed (default: 0.001). If the event's\n"
-          "            contribution is less than the specified error, the event\n"
-          "            is discarded. The units are not defined and depend on\n"
-          "            the current data. This parameter is used only with the\n"
-          "            field functor to compute the cutoff distance.\n"
+          "- cutoff: the cutoff distance in micrometers (default: 100).\n"
           "- showProgress: display progress bar for current voxelization step\n"
           "                (default: 0/off)\n"
           "\n"
@@ -184,8 +179,9 @@ int main( int argc, char* argv[] )
         ( "datatype,d", po::value< std::string >()->default_value( "float" ),
           "Type of the data in the output volume "
           "[float (default), int, short, char]" )
-        ( "size,s", po::value< size_t >()->default_value( size ),
-          "Size of the output volume" )
+        ( "size,s", po::value< size_t >(),
+          "Size of the output volume. If specified, this parameter will "
+          "overwrite the resolution setting in the uri." )
         ( "time,t", po::value< float >(),
           "Timestamp to load in the report" )
         ( "times", po::value< fivox::Vector2f >(),
@@ -226,8 +222,6 @@ int main( int argc, char* argv[] )
     else
         LBINFO << "Using " << uri << " as volume" << std::endl;
 
-    if( vm.count( "size" ))
-        size = vm["size"].as< size_t >();
     if( vm.count( "output" ))
         outputFile = vm["output"].as< std::string >();
 
@@ -246,8 +240,18 @@ int main( int argc, char* argv[] )
     ::fivox::URIHandler params( uri );
     ImageSourcePtr source = params.newImageSource< float >();
     ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
-
     const fivox::AABBf& bbox = loader->getBoundingBox();
+
+    if( vm.count( "size" ))
+        size = vm["size"].as< size_t >();
+    else
+    {
+        const fivox::Vector3f& sizeInVoxels = ( bbox.getSize() +
+                                              loader->getCutOffDistance()
+                                              * 2.f ) * params.getResolution();
+        size = (size_t)std::ceil( sizeInVoxels.find_max( ));
+    }
+
     const fivox::Vector3f& extent( bbox.getSize() +
                                    loader->getCutOffDistance() * 2.f );
 

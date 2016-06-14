@@ -75,15 +75,14 @@ public:
      * @param pixelSize size of the input voxel/pixel (micrometers)
      * @param sigma absorption + scattering coefficient (units per micrometer)
      */
-    void projectVSD( const std::string& filename, const double pixelSize,
-                     const double sigma )
+    void projectVSD( const std::string& filename, const double sigma )
     {
         typedef BeerLambertProjectionImageFilter
             < fivox::FloatVolume, FloatImageType > FilterType;
         FilterType::Pointer projection = FilterType::New();
         projection->SetInput( _input );
         projection->SetProjectionDimension( 1 ); // projection along Y-axis
-        projection->SetPixelSize( pixelSize );
+        projection->SetPixelSize( _input->GetSpacing( ).GetElement( 0 ));
         projection->SetSigma( sigma );
 
         // Write output image
