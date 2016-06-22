@@ -32,35 +32,63 @@ namespace fivox
  * Base class for an Event source.
  *
  * An event source is used by an EventFunctor to sample events for a given point
- * at a given time. Subclassing provides the events using add() and update(),
- * and the functor accesses the data using getEvents().
+ * at a given time. Subclassing provides the events using resize() and update(),
+ * and the functor accesses the data using getter methods for each of the event
+ * fields.
  */
 class EventSource
 {
 public:
     virtual ~EventSource();
 
-    /** @return the list of events. */
-    const Events& getEvents() const;
+    /**
+     * Resize the underlying event structure to the specified size, and
+     * initialize all event attributes to 0
+     *
+     * @param numEvents the number of events that the EventSource will hold
+     */
+    void resize( size_t numEvents );
 
     /**
-     * Get a reference to an event contained in the EventSource by its index.
+     * Get a reference to the value of an event contained in the EventSource
+     * by its index.
      *
-     * @param index Index of the event that will be returned
-     * @return event stored in the EventSource with the specified index.
+     * @param index Index of the event whose value will be returned
+     * @return value of the event stored in the EventSource with the
+     * specified index.
      */
-    Event& operator[]( const size_t index );
+    float& operator[]( size_t index );
+
+    /** @return the number of events */
+    size_t getNumEvents() const;
+
+    /** @return a const pointer to the X coordinates of the event positions */
+    const float* getPositionsX() const;
+
+    /** @return a const pointer to the Y coordinates of the event positions */
+    const float* getPositionsY() const;
+
+    /** @return a const pointer to the Z coordinates of the event positions */
+    const float* getPositionsZ() const;
+
+    /** @return a const pointer to the events' inverse radii (1/radius).
+     *  This helps speeding up common computations later on, e.g. functors. */
+    const float* getRadii() const;
+
+    /** @return a const pointer to the events' values */
+    const float* getValues() const;
 
     /**
      * Find all events in the given area.
      *
-     * Returns a conservative set of events, may contain events outside of the
-     * area, depending on the implementation.
+     * Returns a vector of values corresponding to a conservative set of events,
+     * may contain events outside of the area, depending on the implementation.
      *
      * @param area The query bounding box.
-     * @return The events contained in the area.
+     * @return The values of the events contained in the area. Empty if no RTree
+     * available (depends on boost::geometry)
      */
-    Events findEvents( const AABBf& area ) const;
+    EventValues findEvents( const AABBf& area ) const;
 
     /** @return the bounding box of all events. */
     const AABBf& getBoundingBox() const;
@@ -70,14 +98,21 @@ public:
      */
     float getCutOffDistance() const;
 
-    /** Clear all stored events and bounding box. Not thread safe. */
-    void clear();
+    /**
+     * Update attributes of the event specified by the index. Update also the
+     * bounding box to include the new position. The specified index should
+     * be smaller than the size used in resize()
+     * Not thread safe.
+     */
+    void update( const size_t i, const Vector3f pos,
+                 const float rad, const float val = 0.f );
 
-    /** Add a new event and update the bounding box. Not thread safe. */
-    void add( const Event& event );
-
-    /** @internal Called before data is read. Not thread safe.  */
-    void beforeGenerate();
+    /**
+     * @internal Called before data is read. Not thread safe.
+     * Build an RTree so it can be used from findEvents() (depends
+     * on boost::geometry)
+     */
+    void buildRTree();
 
     /**
      * Given a frame number, update the event source with new events to be

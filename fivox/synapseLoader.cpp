@@ -45,6 +45,7 @@ public:
         const brion::Synapse synapses( params.getConfig().getSynapseSource().getPath() +
                                        "/nrn_positions.h5" );
 
+        std::vector< Vector3f > positions;
         for( const uint32_t gid : gids )
         {
             const brion::SynapseMatrix& data =
@@ -52,10 +53,14 @@ public:
                                     brion::SYNAPSE_PRESYNAPTIC_SURFACE_Y |
                                     brion::SYNAPSE_PRESYNAPTIC_SURFACE_Z );
             for( size_t i = 0; i < data.shape()[0]; ++i )
-                _output.add( Event( Vector3f( data[i][0], data[i][1],
-                                              data[i][2] ), 1.f ));
+                positions.push_back(
+                        Vector3f( data[i][0], data[i][1], data[i][2] ));
             ++progress;
         }
+
+        _output.resize( positions.size( ));
+        for( size_t i = 0; i < positions.size(); ++i )
+            _output.update( i, positions.data()[i], /*radius*/0.f, /*val*/ 1.f);
     }
 
 private:
