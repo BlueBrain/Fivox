@@ -61,13 +61,13 @@ public:
 
         const brion::GIDSet& gids = _report.getGIDs();
         const brion::SectionOffsets& offsets = _report.getOffsets();
-        const std::vector< float > voltages = *frame;
+        const std::vector< float > reportValues = *frame;
 
         for( size_t i = 0; i < gids.size(); ++i )
         {
             // This code assumes that section 0 is the soma.
-            const float v = voltages[offsets[i][0]];
-            _output[i].value = v;
+            const float v = reportValues[offsets[i][0]];
+            _output[i] = v;
         }
         return gids.size();
     }

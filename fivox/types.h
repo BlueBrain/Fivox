@@ -21,6 +21,7 @@
 #ifndef FIVOX_TYPES_H
 #define FIVOX_TYPES_H
 
+#include <brion/types.h>
 #include <vmmlib/aabb.hpp>
 #include <vmmlib/types.hpp>
 #include <vmmlib/vector.hpp>
@@ -57,7 +58,8 @@ typedef itk::Image< float, 3 > FloatVolume;
 typedef std::shared_ptr< EventFunctor< ByteVolume >> ByteFunctorPtr;
 typedef std::shared_ptr< EventFunctor< FloatVolume >> FloatFunctorPtr;
 
-typedef std::vector< Event > Events;
+typedef std::unique_ptr< float > Events;
+typedef brion::floats EventValues;
 
 using vmml::Vector2f;
 using vmml::Vector3f;
@@ -95,8 +97,6 @@ enum SourceType
     SOURCE_FRAME //!< e.g. compartment reports
 };
 
-/** Used to mark a value as "unset" */
-const float VALUE_UNSET = std::numeric_limits< float >::max();
 }
 
 #endif

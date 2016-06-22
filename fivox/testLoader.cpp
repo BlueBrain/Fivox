@@ -36,25 +36,23 @@ namespace fivox
 class TestLoader::Impl
 {
 public:
-    Impl( EventSource& output )
+    explicit Impl( EventSource& output )
         : _output( output )
     {
+        _output.resize( 7 );
+
         for( uint8_t y = 0; y < 5; ++y )
-            output.add( Event( Vector3f( 0.f, y * 10.f, 0.f ),
-                               VALUE_UNSET, 1.f ));
+            _output.update( y, Vector3f( 0.f, y * 10.f, 0.f ), 1.f );
 
-        output.add( Event( Vector3f( 3.f, 5.f, 4.f ),
-                           VALUE_UNSET, 1.f ));
-
-        output.add( Event( Vector3f( 5.f, 2.f, 1.f ),
-                           VALUE_UNSET, 1.f ));
+        _output.update( 5, Vector3f( 3.f, 5.f, 4.f ), 1.f );
+        _output.update( 6, Vector3f( 5.f, 2.f, 1.f ), 1.f );
     }
 
     ssize_t load( const float time )
     {
-        const size_t numEvents = _output.getEvents().size();
+        const size_t numEvents = _output.getNumEvents();
         for( size_t i = 0; i < numEvents; ++i )
-            _output[i].value = (i + 1 + time);
+            _output[i] = (i + 1 + time);
 
         return numEvents;
     }

@@ -35,7 +35,7 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor( const Vector2f& inputRange )
+    explicit FieldFunctor( const Vector2f& inputRange )
         : Super( inputRange )
     {}
     virtual ~FieldFunctor() {}
@@ -50,40 +50,53 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
     if( !Super::_source )
         return 0;
 
-    Vector3f base;
-    const size_t components = std::min( point.Size(), 3u );
-    for( size_t i = 0; i < components; ++i )
-        base[i] = point[i];
-
     const float cutOffDistance = Super::_source->getCutOffDistance();
-    const AABBf region( base - Vector3f( cutOffDistance ),
-                        base + Vector3f( cutOffDistance ));
-    const Events& events = Super::_source->findEvents( region );
 
-    const float squaredCutoff = cutOffDistance * cutOffDistance;
-    float sum = 0;
-    for( const Event& event : events )
+    const size_t size = Super::_source->getNumEvents();
+    // By using the restrict keyword, we specify that the object will only
+    // be accessed by the declared pointer, which helps for the optimization
+    const float* __restrict__ posx = Super::_source->getPositionsX();
+    const float* __restrict__ posy = Super::_source->getPositionsY();
+    const float* __restrict__ posz = Super::_source->getPositionsZ();
+    const float* __restrict__ radii = Super::_source->getRadii();
+    const float* __restrict__ values = Super::_source->getValues();
+
+    const float px( point[0] ), py( point[1] ), pz( point[2] );
+
+    // Compute directly the inverted value to gain performance in the for loop
+    const float squaredCutoff = 1.f / ( cutOffDistance * cutOffDistance );
+    float voltage1( 0.f ), voltage2( 0.f );
+
+    // Tell the compiler that memory accesses are aligned (done in
+    // EventSource::resize) so it is able to make optimizations
+    #pragma vector aligned
+    for( size_t i = 0; i < size; ++i )
     {
-        // OPT: do 'manual' operator- and squared_length(), vtune says it's
-        // faster than using vmml vector functions
-        const Vector3f distance( base.array[0] - event.position.array[0],
-                                 base.array[1] - event.position.array[1],
-                                 base.array[2] - event.position.array[2] );
-        const float distance2( distance.array[0] * distance.array[0] +
-                               distance.array[1] * distance.array[1] +
-                               distance.array[2] * distance.array[2] );
+        const float distanceX = px - posx[i];
+        const float distanceY = py - posy[i];
+        const float distanceZ = pz - posz[i];
 
-        if( distance2 > squaredCutoff )
+        const float distance2( 1.f / ( distanceX * distanceX +
+                                       distanceY * distanceY +
+                                       distanceZ * distanceZ ));
+
+        // Comparison is inverted, as we are using the reciprocal values
+        if( distance2 < squaredCutoff )
             continue;
+
+        const float value( values[i] );
 
         // If center of the voxel within the event radius, use the
         // voltage at the surface of the compartment (at 'radius' distance)
-        const float contribution =
-                distance2 < event.radius * event.radius ? 1.f / event.radius
-                                                        : 1.f / distance2;
-        sum += contribution * event.value;
+        const float radius( radii[i] );
+        // Comparison is inverted, as we are using the reciprocal values
+        // (radius is already inverted from the loader)
+        if( distance2 > radius * radius )
+            voltage1 += value * radius; // mV
+        else
+            voltage2 += value * distance2; // mV
     }
-    return Super::_scale( sum );
+    return Super::_scale( voltage1 + voltage2 );
 }
 
 }
