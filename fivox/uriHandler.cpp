@@ -121,9 +121,11 @@ public:
             const brain::Circuit circuit( *config );
             gids = circuit.getGIDs();
         }
+        else if( target.empty( ))
+            gids = config->parseTarget( useTestData ? "mini50" :
+                                                   config->getCircuitTarget( ));
         else
-            gids = config->parseTarget( target.empty()
-                                       ? config->getCircuitTarget() : target );
+            gids = config->parseTarget( target );
 
         if( gids.empty( ))
             LBTHROW( std::runtime_error(

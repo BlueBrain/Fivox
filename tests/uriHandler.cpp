@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(compartment_defaults)
     BOOST_CHECK_EQUAL( handler.getConfig().getCircuitSource(),
                  brion::BlueConfig( BBP_TEST_BLUECONFIG3 ).getCircuitSource( ));
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
-    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
+    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 50 );
     BOOST_CHECK_EQUAL( handler.getDt(), -1.f );
     BOOST_CHECK_EQUAL( handler.getDuration(), 10.0f );
     BOOST_CHECK_EQUAL( handler.getMaxBlockSize(), LB_64MB );
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(compartment_targets)
 BOOST_AUTO_TEST_CASE(somas)
 {
     const fivox::URIHandler handler( "fivoxsomas://" );
-    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
+    BOOST_CHECK_EQUAL( handler.getGIDs().size(), 50 );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SOMAS );
     BOOST_CHECK_EQUAL( handler.getReport(), "somas" );
 }
