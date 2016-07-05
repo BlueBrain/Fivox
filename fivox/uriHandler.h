@@ -135,6 +135,16 @@ public:
     float getCutoffDistance() const;
 
     /**
+     * Get the additional distance, in micrometers, by which the original data
+     * volume will be extended. By default, the volume extension matches the
+     * bounding box of the data events.
+     *
+     * @return the distance to extend the data volume, in micrometers.
+     *         If invalid or empty, return 0.
+     */
+    float getExtendDistance() const;
+
+    /**
      * Get the type of the volume that is being loaded (present in the URI
      * schema)
      * @return the type of the volume

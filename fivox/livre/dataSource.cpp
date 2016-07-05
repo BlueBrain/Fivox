@@ -150,8 +150,8 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
 
     const AABBf& bbox = loader->getBoundingBox();
     uint32_t depth = 0;
-    const Vector3f fullResolution =
-        ( bbox.getSize() + loader->getCutOffDistance() * 2.0f ) * resolution;
+    const Vector3f fullResolution = resolution *
+                  ( bbox.getSize() + _impl->params.getExtendDistance() * 2.0f );
     Vector3f blockResolution = fullResolution;
 
     // maxTextureSize value should be retrieved from OpenGL. But at this

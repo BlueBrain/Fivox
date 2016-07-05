@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#45](https://github.com/BlueBrain/Fivox/pull/45)
+  Add parameter to extend the volume size. The cutoff distance no longer grows
+  the resulting volume.
 * [#44](https://github.com/BlueBrain/Fivox/pull/44)
   Optimizations. Modify memory layout in EventSource so computations can be
   vectorized for performance.

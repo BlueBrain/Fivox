@@ -102,7 +102,6 @@ namespace po = boost::program_options;
 int main( int argc, char* argv[] )
 {
     // Default values
-    size_t size = 256;
     std::string outputFile( "volume" );
     std::string uri( "fivox://" );
 
@@ -149,6 +148,12 @@ int main( int argc, char* argv[] )
           "- maxBlockSize: maximum memory usage allowed for one block in bytes\n"
           "                (default: 64MB)\n"
           "- cutoff: the cutoff distance in micrometers (default: 100).\n"
+          "- extend: the additional distance, in micrometers, by which the\n"
+          "          original data volume will be extended in every dimension\n"
+          "          (default: 0, the volume extent matches the bounding box\n"
+          "          of the data events). Changing this parameter will result\n"
+          "          in more volumetric data, and therefore more computation\n"
+          "          time\n"
           "- showProgress: display progress bar for current voxelization step\n"
           "                (default: 0/off)\n"
           "\n"
@@ -242,18 +247,17 @@ int main( int argc, char* argv[] )
     ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
     const fivox::AABBf& bbox = loader->getBoundingBox();
 
+    const fivox::Vector3f& extent( bbox.getSize() +
+                                   params.getExtendDistance() * 2.f );
+
+    size_t size;
     if( vm.count( "size" ))
         size = vm["size"].as< size_t >();
     else
     {
-        const fivox::Vector3f& sizeInVoxels = ( bbox.getSize() +
-                                              loader->getCutOffDistance()
-                                              * 2.f ) * params.getResolution();
+        const fivox::Vector3f& sizeInVoxels = extent * params.getResolution();
         size = (size_t)std::ceil( sizeInVoxels.find_max( ));
     }
-
-    const fivox::Vector3f& extent( bbox.getSize() +
-                                   loader->getCutOffDistance() * 2.f );
 
     VolumeHandler volumeHandler( size, extent );
 

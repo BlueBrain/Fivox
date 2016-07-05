@@ -55,6 +55,7 @@ const float _dt = -1.0f; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
 const float _resolution = 10.0f; // voxels per unit
 const float _cutoff = 100.0f; // micrometers
+const float _extend = 0.f; // micrometers
 
 EventSourcePtr _newLoader( const URIHandler& data )
 {
@@ -215,7 +216,10 @@ public:
         { return _get( "maxBlockSize", _maxBlockSize ); }
 
     float getCutoffDistance() const
-        { return std::max( _get( "cutoff", _cutoff ), 0.0f );}
+        { return std::max( _get( "cutoff", _cutoff ), 0.f );}
+
+    float getExtendDistance() const
+        { return std::max( _get( "extend", _extend ), 0.f );}
 
     bool showProgress() const;
 
@@ -385,6 +389,11 @@ size_t URIHandler::getMaxBlockSize() const
 float URIHandler::getCutoffDistance() const
 {
     return _impl->getCutoffDistance();
+}
+
+float URIHandler::getExtendDistance() const
+{
+    return _impl->getExtendDistance();
 }
 
 VolumeType URIHandler::getType() const
