@@ -62,8 +62,8 @@ public:
                                  const livre::VolumeInformation& info ) const
     {
         EventSourcePtr loader = source->getFunctor()->getSource();
-        const uint32_t frame = node.getNodeId().getFrame();
-        if( !loader->load( frame ))
+        const uint32_t timeStep = node.getNodeId().getTimeStep();
+        if( !loader->load( timeStep ))
             return livre::MemoryUnitPtr();
 
         // Alloc voxels

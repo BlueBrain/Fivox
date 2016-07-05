@@ -40,7 +40,7 @@ class BeerLambertAccumulator
 public:
     typedef typename itk::NumericTraits< TInputPixel >::RealType RealType;
 
-    BeerLambertAccumulator( itk::SizeValueType size )
+    explicit BeerLambertAccumulator( itk::SizeValueType size )
     {
         m_Size = size;
         m_Values.reserve( size );

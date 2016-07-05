@@ -121,9 +121,11 @@ public:
             const brain::Circuit circuit( *config );
             gids = circuit.getGIDs();
         }
+        else if( target.empty( ))
+            gids = config->parseTarget( useTestData ? "mini50" :
+                                                   config->getCircuitTarget( ));
         else
-            gids = config->parseTarget( target.empty()
-                                       ? config->getCircuitTarget() : target );
+            gids = config->parseTarget( target );
 
         if( gids.empty( ))
             LBTHROW( std::runtime_error(
@@ -406,7 +408,7 @@ URIHandler::newImageSource() const
         _newFunctor< T >( *this );
     EventSourcePtr loader = _newLoader( *this );
 
-    LBINFO << loader->getEvents().size() << " events " << *this << ", dt = "
+    LBINFO << loader->getNumEvents() << " events " << *this << ", dt = "
            << loader->getDt() << " ready to voxelize" << std::endl;
 
     if( _impl->showProgress( ))

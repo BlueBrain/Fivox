@@ -3,6 +3,12 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#44](https://github.com/BlueBrain/Fivox/pull/44)
+  Optimizations. Modify memory layout in EventSource so computations can be
+  vectorized for performance.
+
+# Release 0.5 (30-06-2016)
+
 * [#38](https://github.com/BlueBrain/Fivox/pull/38)
   Replaced maxError parameter with cutoff distance and added LFP
   validation unit test.

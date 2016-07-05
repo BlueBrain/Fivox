@@ -80,7 +80,7 @@ public:
 
 protected:
     ImageSource();
-    ~ImageSource() {}
+    virtual ~ImageSource() {}
 
     void PrintSelf(std::ostream & os, itk::Indent indent) const override;
 

@@ -48,43 +48,100 @@ static const size_t minElemInNode = 16;
 
 namespace fivox
 {
+
 class EventSource::Impl
 {
 public:
-    Impl( const URIHandler& params )
+    enum EventOffsets
+    {
+        POSX = 0,
+        POSY,
+        POSZ,
+        RADIUS,
+        VALUE,
+        NUM_OFFSETS
+    };
+
+    explicit Impl( const URIHandler& params )
         : dt( params.getDt( ))
         , currentTime( -1.f )
         , cutOffDistance( params.getCutoffDistance( ))
+        , alignBoundary( 32 )
+        , numEvents( 0 )
     {}
+
+    void resize( const size_t numEvents_ )
+    {
+        numEvents = numEvents_;
+        const size_t size = numEvents * EventOffsets::NUM_OFFSETS;
+        void* ptr;
+        if( posix_memalign( &ptr, alignBoundary, size * sizeof(float) ))
+        {
+            LBWARN << "Memory alignment failed. "
+                   << "Trying normal allocation" << std::endl;
+            ptr = calloc( size, sizeof(float) );
+            if( !ptr )
+                LBTHROW( std::bad_alloc( ));
+        }
+        events.reset((float*) ptr );
+    }
+
+    const float* getPositionsX() const
+    {
+        return events.get() + numEvents * EventOffsets::POSX;
+    }
+
+    const float* getPositionsY() const
+    {
+        return events.get() + numEvents * EventOffsets::POSY;
+    }
+
+    const float* getPositionsZ() const
+    {
+        return events.get() + numEvents * EventOffsets::POSZ;
+    }
+
+    const float* getRadii() const
+    {
+        return events.get() + numEvents * EventOffsets::RADIUS;
+    }
+
+    const float* getValues() const
+    {
+        return events.get() + numEvents * EventOffsets::VALUE;
+    }
 
     float dt;
     float currentTime;
     float cutOffDistance;
+
+    const size_t alignBoundary;
+    size_t numEvents;
     Events events;
     AABBf boundingBox;
+
 #ifdef USE_BOOST_GEOMETRY
     typedef bgi::rtree< Value, bgi::rstar< maxElemInNode, minElemInNode > > RTree;
     RTree rtree;
 
-    void rebuildRTree()
+    void buildRTree()
     {
-        if( !rtree.empty( ))
-            return;
+        rtree.clear();
 
-        LBINFO << "Building rtree for " << events.size() << " events"
+        LBINFO << "Building rtree for " << numEvents << " events"
                << std::endl;
-        Values values;
-        values.reserve( events.size( ));
+        Values positions;
+        positions.reserve( numEvents );
 
-        size_t i = 0;
-        for( const Event& event : events )
+        for( size_t i = 0; i < numEvents; i++ )
         {
-            const Point point( event.position[0], event.position[1],
-                               event.position[2] );
-            values.push_back( std::make_pair( point, i++ ));
+            const Point point( getPositionsX()[i],
+                               getPositionsY()[i],
+                               getPositionsZ()[i] );
+            positions.push_back( std::make_pair( point, i ));
         }
 
-        RTree rt( values.begin(), values.end( ));
+        RTree rt( positions.begin(), positions.end( ));
         rtree = boost::move( rt );
         LBINFO << " done" << std::endl;
     }
@@ -98,19 +155,45 @@ EventSource::EventSource( const URIHandler& params )
 EventSource::~EventSource()
 {}
 
-const Events& EventSource::getEvents() const
+float& EventSource::operator[]( const size_t index )
 {
-    return _impl->events;
+    return _impl->events.get()[ _impl->numEvents * Impl::EventOffsets::VALUE +
+                                index ];
 }
 
-Event& EventSource::operator[]( const size_t index )
+size_t EventSource::getNumEvents() const
 {
-    assert( index < _impl->events.size( ));
-    return _impl->events[index];
+    return _impl->numEvents;
 }
 
-Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
+const float* EventSource::getPositionsX() const
 {
+    return _impl->getPositionsX();
+}
+
+const float* EventSource::getPositionsY() const
+{
+    return _impl->getPositionsY();
+}
+
+const float* EventSource::getPositionsZ() const
+{
+    return _impl->getPositionsZ();
+}
+
+const float* EventSource::getRadii() const
+{
+    return _impl->getRadii();
+}
+
+const float* EventSource::getValues() const
+{
+    return _impl->getValues();
+}
+
+EventValues EventSource::findEvents( const AABBf& area LB_UNUSED ) const
+{
+    EventValues eventValues;
 #ifdef USE_BOOST_GEOMETRY
     if( !_impl->rtree.empty( ))
     {
@@ -125,26 +208,23 @@ Events EventSource::findEvents( const AABBf& area LB_UNUSED ) const
         _impl->rtree.query( bgi::intersects( query ), std::back_inserter( hits ));
         maxHits = std::max( size_t(maxHits), hits.size( ));
 
-        Events events;
-        events.reserve( hits.size( ));
+        eventValues.reserve( hits.size( ));
         for( const Value& value : hits )
-        {
-            const Event& val = _impl->events[ value.second ];
-            if( val.value != VALUE_UNSET )
-                events.push_back( val );
-        }
-        return events;
+            eventValues.push_back( getValues()[value.second] );
     }
+    else
 #endif
-
-    static bool first = true;
-    if( first )
+    // return empty
     {
-        LBWARN << "slow path: rtree acceleration not available for findEvents"
-               << std::endl;
-        first = false;
+        static bool first = true;
+        if( first )
+        {
+            LBWARN << "RTree not available for findEvents. "
+                   << "No events will be returned" << std::endl;
+            first = false;
+        }
     }
-    return _impl->events;
+    return eventValues;
 }
 
 const AABBf& EventSource::getBoundingBox() const
@@ -157,26 +237,39 @@ float EventSource::getCutOffDistance() const
     return _impl->cutOffDistance;
 }
 
-void EventSource::clear()
+void EventSource::resize( const size_t size )
 {
-    _impl->events.clear();
-    _impl->boundingBox.reset();
+    _impl->resize( size );
 }
 
-void EventSource::add( const Event& event )
+void EventSource::update( const size_t i, const Vector3f pos,
+                          const float rad, const float val )
 {
-#ifdef USE_BOOST_GEOMETRY
-    _impl->rtree.clear();
-#endif
+    const size_t size( getNumEvents( ));
+    if( size <= i )
+    {
+        LBWARN << "The specified index is not valid. Event not added"
+               << std::endl;
+        return;
+    }
 
-    _impl->boundingBox.merge( event.position );
-    _impl->events.push_back( event );
+    _impl->boundingBox.merge( pos );
+    _impl->events.get()[ i + size * Impl::EventOffsets::POSX ] = pos[0];
+    _impl->events.get()[ i + size * Impl::EventOffsets::POSY ] = pos[1];
+    _impl->events.get()[ i + size * Impl::EventOffsets::POSZ ] = pos[2];
+
+    // radius is inverted to improve performance at computing time
+    // e.g. LFP functor
+    if( std::abs( rad ) > std::numeric_limits< float >::epsilon( )) // rad != 0
+        _impl->events.get()[i + size * Impl::EventOffsets::RADIUS] =  1.f / rad;
+
+    _impl->events.get()[ i + size * Impl::EventOffsets::VALUE ] = val;
 }
 
-void EventSource::beforeGenerate()
+void EventSource::buildRTree()
 {
 #ifdef USE_BOOST_GEOMETRY
-    _impl->rebuildRTree();
+    _impl->buildRTree();
 #endif
 }
 
@@ -217,7 +310,7 @@ Vector2ui EventSource::getFrameRange() const
     case SOURCE_EVENT:
         if( _hasEnded( ))
         {
-            if( interval.x() == interval.y() && _impl->events.empty( ))
+            if( interval.x() == interval.y() && _impl->numEvents == 0 )
                 // Do not return (0, 1) for empty sources.
                 return Vector2ui( 0, 0 );
             return Vector2ui( std::floor( interval.x() / getDt( )),
