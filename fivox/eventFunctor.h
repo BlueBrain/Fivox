@@ -41,7 +41,7 @@ public:
     typedef typename TImage::SpacingType TSpacing;
     typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
 
-    EventFunctor( const Vector2f& inputRange )
+    explicit EventFunctor( const Vector2f& inputRange )
         : _inputRange( inputRange )
     {}
     virtual ~EventFunctor() {}
@@ -51,7 +51,7 @@ public:
     EventSourcePtr getSource() { return _source; }
 
     /** Called before threads are starting to voxelize */
-    void beforeGenerate() { if( _source ) _source->beforeGenerate(); }
+    virtual void beforeGenerate() {}
 
     virtual TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const = 0;

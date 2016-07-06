@@ -61,7 +61,7 @@ public:
             return -1;
 
         for( size_t i = 0; i != values->size(); ++i )
-            _output[i].value = ( *values )[i];
+            _output[i] = ( *values )[i];
 
         return values->size();
     }

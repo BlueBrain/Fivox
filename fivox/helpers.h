@@ -97,7 +97,26 @@ inline void addCompartmentEvents(
     const brion::CompartmentReport& report, EventSource& output,
     const bool somasOnly = false )
 {
+    size_t size = 0;
     const auto& mapping = computeInverseMapping( report );
+    // first loop over the mapping to compute the number of elements
+    for( const auto& i : mapping )
+    {
+        size_t offset;
+        uint32_t cellIndex;
+        uint32_t sectionId;
+        uint16_t compartments;
+        std::tie( offset, cellIndex, sectionId, compartments ) = i;
+
+        if( somasOnly && sectionId != 0 )
+            continue;
+
+        size += compartments;
+    }
+    output.resize( size );
+
+    size_t index = 0;
+    // second loop to add the actual events
     for( const auto& i : mapping )
     {
         size_t offset;
@@ -111,10 +130,9 @@ inline void addCompartmentEvents(
         if( sectionId == 0 )
         {
             const auto& soma = morphology.getSoma();
-            const auto event = Event( soma.getCentroid(), VALUE_UNSET,
-                                      soma.getMeanRadius( ));
             for( size_t k = 0; k != compartments; ++k )
-                output.add( event );
+                output.update( index++, soma.getCentroid(),
+                               soma.getMeanRadius( ));
             continue;
         }
 
@@ -135,8 +153,8 @@ inline void addCompartmentEvents(
 
         const auto& points = neuronSection.getSamples( samples );
         for( const auto& point : points )
-            output.add( Event( point.get_sub_vector< 3, 0 >(), VALUE_UNSET,
-                               compartmentLength * .2f ));
+            output.update( index++, point.get_sub_vector< 3, 0 >(),
+                           compartmentLength * .2f );
     }
 }
 

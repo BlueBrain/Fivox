@@ -51,16 +51,18 @@ public:
         const brion::Vector3fs& positions = circuit.getPositions( gids );
 
         size_t i = 0;
+        _output.resize( gids.size( ));
+        _spikesPerNeuron.resize( gids.size( ));
         _gidIndex.resize( *gids.rbegin() + 1 );
         for( const uint32_t gid: gids )
         {
-            _output.add( Event( positions[ i ], VALUE_UNSET ));
+            _output.update( i, positions[i], /*radius*/ 0.f );
             _gidIndex[gid] = i++;
         }
-        _spikesPerNeuron.resize( gids.size( ));
+
         const std::string& spikePath = params.getSpikes();
-        _loadSpikes( spikePath.empty() ? params.getConfig().getSpikeSource() :
-                                         brion::URI( spikePath ));
+        _loadSpikes( spikePath.empty() ? params.getConfig().getSpikeSource()
+                                       : brion::URI( spikePath ));
 
     }
 
@@ -127,8 +129,7 @@ public:
                                              : _loadSpikesSlow( start, end );
 
         for( size_t i = 0; i < _spikesPerNeuron.size(); ++i )
-            _output[i].value = _spikesPerNeuron[i] ? _spikesPerNeuron[i]
-                                                   : VALUE_UNSET;
+            _output[i] = _spikesPerNeuron[i];
 
         return numSpikes;
     }

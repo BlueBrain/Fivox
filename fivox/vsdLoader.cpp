@@ -89,11 +89,9 @@ public:
     void _updateEventValue( const size_t index, const float voltage,
                             const float area, const float yMax )
     {
-        const Event& event = _output.getEvents()[index];
-        const float depth = yMax - event.position[1];
-        const float eventValue = voltage * area *
-                                 _curve.getAttenuation( depth );
-        _output[index].value = eventValue;
+        const float positionY = _output.getPositionsY()[index];
+        const float depth = yMax - positionY;
+        _output[index] = voltage * area * _curve.getAttenuation( depth );
     }
 };
 

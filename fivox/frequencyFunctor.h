@@ -37,10 +37,15 @@ class FrequencyFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FrequencyFunctor( const Vector2f& inputRange )
+    explicit FrequencyFunctor( const Vector2f& inputRange )
         : Super( inputRange )
     {}
     virtual ~FrequencyFunctor() {}
+
+    void beforeGenerate() override
+    {
+        if( Super::_source ) Super::_source->buildRTree();
+    }
 
     TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const override;
@@ -63,11 +68,11 @@ FrequencyFunctor< TImage >::operator()( const TPoint& itkPoint,
     }
 
     const AABBf region( point - spacing_2, point + spacing_2 );
-    const Events& events = Super::_source->findEvents( region );
+    const EventValues& values = Super::_source->findEvents( region );
 
     float sum = 0.f;
-    for( const Event& event : events )
-        sum = std::max( sum, event.value );
+    for( const float& value : values )
+        sum = std::max( sum, value );
 
     return Super::_scale( sum );
 }

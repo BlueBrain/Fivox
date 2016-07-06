@@ -408,7 +408,7 @@ URIHandler::newImageSource() const
         _newFunctor< T >( *this );
     EventSourcePtr loader = _newLoader( *this );
 
-    LBINFO << loader->getEvents().size() << " events " << *this << ", dt = "
+    LBINFO << loader->getNumEvents() << " events " << *this << ", dt = "
            << loader->getDt() << " ready to voxelize" << std::endl;
 
     if( _impl->showProgress( ))
