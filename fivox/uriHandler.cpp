@@ -115,8 +115,7 @@ public:
         config.reset( new brion::BlueConfig( uri.getPath( )));
 #endif
 
-        const std::string& target = _get( "target" ).empty() ? uri.getFragment() :
-                                             _get( "target" );
+        const std::string& target = _get( "target" );
         if( target == "*" )
         {
             const brain::Circuit circuit( *config );

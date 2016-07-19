@@ -3,6 +3,7 @@
 
 set(VOXELIZE_HEADERS
   beerLambertProjectionImageFilter.h
+  ../commandLineApplication.h
   scaleFilter.h
   volumeHandler.h
   volumeWriter.h

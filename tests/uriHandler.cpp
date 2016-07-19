@@ -75,11 +75,11 @@ BOOST_AUTO_TEST_CASE(compartment_parameters)
 BOOST_AUTO_TEST_CASE(compartment_targets)
 {
     const fivox::URIHandler handler1(
-        "fivoxcompartment://?target=mini50#Layer1" );
+        "fivoxcompartment://?target=mini50" );
     BOOST_CHECK_EQUAL( handler1.getGIDs().size(), 50 );
 
     const fivox::URIHandler handler2(
-        "fivoxcompartment://?report=simulation#Layer1" );
+        "fivoxcompartment://?target=Layer1&report=simulation" );
     BOOST_CHECK_EQUAL( handler2.getGIDs().size(), 20 );
     BOOST_CHECK_EQUAL( handler2.getReport(), "simulation" );
 }
