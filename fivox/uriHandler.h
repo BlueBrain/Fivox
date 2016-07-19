@@ -33,7 +33,7 @@ namespace fivox
  * Process an URI to provide all the parameters specified in it.
  *
  * The following parameters are parsed:
- * @snippet apps/voxelize/voxelize.cpp Usage
+ * @snippet apps/commandLineApplication.h VolumeParameters
  */
 class URIHandler
 {
