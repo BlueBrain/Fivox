@@ -35,12 +35,6 @@
 #include "volumeWriter.h"
 #include "../commandLineApplication.h"
 
-#include <fivox/fivox.h>
-
-#include <lunchbox/file.h>
-#include <lunchbox/log.h>
-#include <lunchbox/uri.h>
-
 namespace
 {
 
@@ -85,24 +79,28 @@ class Voxelize : public CommandLineApplication
 {
 public:
     Voxelize()
-        : _outputFile( "volume" )
+        : CommandLineApplication( "Generate volumes for offline rendering in "
+                                  "ParaView or other volume rendering "
+                                  "applications" )
+        , _outputFile( "volume" )
         , _decompose( 0, 1 )
     {
         _options.add_options()
 //! [VoxelizeParameters] @anchor Voxelize
-            ( "datatype,d", po::value< std::string >()->default_value( "float" ),
+            ( "datatype,d", po::value< std::string >()->default_value("float"),
               "Type of the data in the output volume "
               "[float (default), int, short, char]" )
             ( "size,s", po::value< size_t >(),
               "Size of the output volume. If specified, this parameter will "
               "overwrite the resolution setting in the uri." )
             ( "output,o", po::value< std::string >(),
-              "Name of the output volume file (mhd and raw); contains frame number "
-              "if --frames or --times" )
-            ( "projection,p", po::value< double >(), "Generate the corresponding "
-              "projected 2D image (only for VSD volumes), using the specified "
-              "value as the absorption + scattering coefficient (units per "
-              "micrometer) in the Beer-Lambert law. Must be a positive value." )
+              "Name of the output volume file (mhd and raw); contains frame "
+              "number if --frames or --times" )
+            ( "projection,p", po::value< double >(), "Generate the "
+              "corresponding projected 2D image (only for VSD volumes), using "
+              "the specified value as the absorption + scattering coefficient "
+              "(units per micrometer) in the Beer-Lambert law. Must be a "
+              "positive value." )
             ( "decompose", po::value< fivox::Vector2ui >(),
               "'rank size' data-decomposition for parallel job submission" );
 //! [VoxelizeParameters]
@@ -131,7 +129,7 @@ public:
 
     void sample()
     {
-        const ::fivox::URIHandler params( getFivoxParams( ));
+        const ::fivox::URIHandler params( getURI( ));
         ImageSourcePtr source = params.newImageSource< float >();
         ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
         const fivox::AABBf& bbox = loader->getBoundingBox();

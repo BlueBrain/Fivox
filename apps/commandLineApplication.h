@@ -31,13 +31,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fivox/types.h>
+#include <fivox/fivox.h>
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
 namespace vmml
 {
+std::istream& operator>>( std::istream& is, Vector3f& vec )
+{
+    return is >> std::skipws >> vec.x() >> vec.y() >> vec.z();
+}
+
 std::istream& operator>>( std::istream& is, Vector2f& vec )
 {
     return is >> std::skipws >> vec.x() >> vec.y();
@@ -66,8 +71,8 @@ typedef ImageSource::Pointer ImageSourcePtr;
 class CommandLineApplication
 {
 public:
-    CommandLineApplication()
-        : _options( "Supported options", 140 /*line len*/ )
+    CommandLineApplication( const std::string& caption )
+        : _options( caption, 140 /*line len*/ )
         , _uri( "fivox://" )
     {
         _options.add_options()
@@ -221,7 +226,7 @@ public:
      * Return the volume URI as a string
      * @return a std::string containing the volume URI
      */
-    const std::string& getFivoxParams() const
+    const std::string& getURI() const
     {
         return _uri;
     }

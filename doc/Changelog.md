@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#48](https://github.com/BlueBrain/Fivox/pull/48)
+  Add tool to compute the evolution of data at a specific point over time.
+  Remove support of deprecated #target in the volume URI.
 * [#45](https://github.com/BlueBrain/Fivox/pull/45)
   Add parameter to extend the volume size. The cutoff distance no longer grows
   the resulting volume.
