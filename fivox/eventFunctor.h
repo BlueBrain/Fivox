@@ -23,7 +23,6 @@
 #define FIVOX_EVENTFUNCTOR_H
 
 #include <fivox/defines.h>
-#include <fivox/event.h>            // used inline
 #include <fivox/eventSource.h>      // member
 #include <fivox/itk.h>
 #include <lunchbox/log.h>

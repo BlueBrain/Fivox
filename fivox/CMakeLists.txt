@@ -5,7 +5,6 @@ set(FIVOX_PUBLIC_HEADERS
   attenuationCurve.h
   compartmentLoader.h
   densityFunctor.h
-  event.h
   eventFunctor.h
   eventSource.h
   fieldFunctor.h

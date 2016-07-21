@@ -21,7 +21,6 @@
  */
 
 #include "somaLoader.h"
-#include "event.h"
 #include "helpers.h"
 #include "uriHandler.h"
 

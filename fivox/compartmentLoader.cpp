@@ -22,7 +22,6 @@
 
 #include "compartmentLoader.h"
 
-#include "event.h"
 #include "helpers.h"
 #include "uriHandler.h"
 

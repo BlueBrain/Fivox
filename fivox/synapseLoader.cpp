@@ -18,7 +18,6 @@
  */
 
 #include "synapseLoader.h"
-#include "event.h"
 #include "uriHandler.h"
 
 #include <brion/brion.h>
