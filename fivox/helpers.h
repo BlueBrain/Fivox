@@ -21,7 +21,6 @@
 #ifndef FIVOX_HELPERS_H
 #define FIVOX_HELPERS_H
 
-#include <fivox/event.h>
 #include <fivox/eventSource.h>
 
 #include <brain/neuron/morphology.h>

@@ -46,7 +46,6 @@ namespace fivox
 {
 class EventSource;
 class URIHandler;
-struct Event;
 template< class TImage > class EventFunctor;
 template< typename TImage > class ImageSource;
 

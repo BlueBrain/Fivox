@@ -20,7 +20,6 @@
  */
 
 #include "eventSource.h"
-#include "event.h"
 #include "uriHandler.h"
 
 #include <lunchbox/atomic.h>

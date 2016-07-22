@@ -20,7 +20,6 @@
  */
 
 #include "spikeLoader.h"
-#include "event.h"
 #include "uriHandler.h"
 
 #include <brain/brain.h>
