@@ -192,9 +192,22 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     if( !livre::fillRegularVolumeInfo( _volumeInfo ))
         LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
 
-    // SDK uses microns, volume information uses meters
-    _volumeInfo.boundingBox = AABBf( bbox.getMin() / 1000000.f,
-                                     bbox.getMax() / 1000000.f );
+    const float maxDim = std::max( _impl->_borders.x() + bbox.getSize().x(),
+                         std::max( _impl->_borders.y() + bbox.getSize().y(),
+                                   _impl->_borders.z() + bbox.getSize().z( )));
+    const float scale = 1.0f / maxDim;
+
+    vmml::Matrix4f dataToLivreTransform;
+    dataToLivreTransform.setTranslation( -bbox.getCenter( ));
+    dataToLivreTransform.scale( vmml::Vector3f( scale ));
+    dataToLivreTransform.scaleTranslation( vmml::Vector3f( scale ));
+
+    _volumeInfo.dataToLivreTransform = dataToLivreTransform;
+    _volumeInfo.resolution = (vmml::Vector3f)_volumeInfo.voxels / ( bbox.getSize()
+                             + _impl->_borders );
+
+    // We assume that the data's units are micrometers
+    _volumeInfo.meterToDataUnitRatio = 1e6;
 }
 
 DataSource::~DataSource()

@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#47](https://github.com/BlueBrain/Fivox/pull/47)
+  Fivox computes the data to Livre transform matrix and the meterToDataUnitRatio
+  parameter
 * [#48](https://github.com/BlueBrain/Fivox/pull/48)
   Add tool to compute the evolution of data at a specific point over time.
   Remove support of deprecated #target in the volume URI.
