@@ -57,7 +57,11 @@ typedef itk::Image< float, 3 > FloatVolume;
 typedef std::shared_ptr< EventFunctor< ByteVolume >> ByteFunctorPtr;
 typedef std::shared_ptr< EventFunctor< FloatVolume >> FloatFunctorPtr;
 
-typedef std::unique_ptr< float > Events;
+struct EventsDeleter
+{
+    void operator()( float* events ){ free( events ); }
+};
+typedef std::unique_ptr< float, EventsDeleter > Events;
 typedef brion::floats EventValues;
 
 using vmml::Vector2f;
