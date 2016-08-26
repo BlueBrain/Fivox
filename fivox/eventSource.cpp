@@ -67,11 +67,16 @@ public:
         , cutOffDistance( params.getCutoffDistance( ))
         , alignBoundary( 32 )
         , numEvents( 0 )
+        , allocSize( 0 )
     {}
 
     void resize( const size_t numEvents_ )
     {
         numEvents = numEvents_;
+        if( numEvents_ < allocSize )
+            return;
+
+        allocSize = numEvents_;
         const size_t size = numEvents * EventOffsets::NUM_OFFSETS;
         void* ptr;
         if( posix_memalign( &ptr, alignBoundary, size * sizeof(float) ))
@@ -112,10 +117,11 @@ public:
 
     float dt;
     float currentTime;
-    float cutOffDistance;
+    const float cutOffDistance;
 
     const size_t alignBoundary;
     size_t numEvents;
+    size_t allocSize;
     Events events;
     AABBf boundingBox;
 
@@ -125,7 +131,8 @@ public:
 
     void buildRTree()
     {
-        rtree.clear();
+        if( !rtree.empty( ))
+            return;
 
         LBINFO << "Building rtree for " << numEvents << " events"
                << std::endl;
@@ -263,6 +270,10 @@ void EventSource::update( const size_t i, const Vector3f& pos,
         _impl->events.get()[i + size * Impl::EventOffsets::RADIUS] =  1.f / rad;
 
     _impl->events.get()[ i + size * Impl::EventOffsets::VALUE ] = val;
+
+#ifdef USE_BOOST_GEOMETRY
+    _impl->rtree.clear();
+#endif
 }
 
 void EventSource::buildRTree()

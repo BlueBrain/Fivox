@@ -39,7 +39,7 @@
 
 BOOST_AUTO_TEST_CASE(compartment_defaults)
 {
-    const fivox::URIHandler handler( "fivox://" );
+    const fivox::URIHandler handler( fivox::URI( "fivox://" ));
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_COMPARTMENTS );
     BOOST_CHECK_EQUAL( handler.getConfig().getCircuitSource(),
                  brion::BlueConfig( BBP_TEST_BLUECONFIG3 ).getCircuitSource( ));
@@ -52,21 +52,21 @@ BOOST_AUTO_TEST_CASE(compartment_defaults)
 
 BOOST_AUTO_TEST_CASE(compartment_full_circuit)
 {
-    const fivox::URIHandler handler( "fivox://?target=*" );
+    const fivox::URIHandler handler( fivox::URI( "fivox://?target=*" ));
     BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
 }
 
 BOOST_AUTO_TEST_CASE(compartment_empty_target)
 {
     BOOST_CHECK_THROW(
-                fivox::URIHandler handler( "fivox://?target=EmptyTarget" ),
+                fivox::URIHandler handler( fivox::URI( "fivox://?target=EmptyTarget" )),
                 std::runtime_error );
 }
 
 BOOST_AUTO_TEST_CASE(compartment_parameters)
 {
     const fivox::URIHandler handler(
-        "fivoxcompartment://?report=simulation&dt=0.2&target=Column" );
+        fivox::URI( "fivoxcompartment://?report=simulation&dt=0.2&target=Column" ));
     BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
     BOOST_CHECK_EQUAL( handler.getReport(), "simulation" );
     BOOST_CHECK_EQUAL( handler.getDt(), 0.2f );
@@ -75,18 +75,18 @@ BOOST_AUTO_TEST_CASE(compartment_parameters)
 BOOST_AUTO_TEST_CASE(compartment_targets)
 {
     const fivox::URIHandler handler1(
-        "fivoxcompartment://?target=mini50" );
+        fivox::URI( "fivoxcompartment://?target=mini50" ));
     BOOST_CHECK_EQUAL( handler1.getGIDs().size(), 50 );
 
     const fivox::URIHandler handler2(
-        "fivoxcompartment://?target=Layer1&report=simulation" );
+        fivox::URI( "fivoxcompartment://?target=Layer1&report=simulation" ));
     BOOST_CHECK_EQUAL( handler2.getGIDs().size(), 20 );
     BOOST_CHECK_EQUAL( handler2.getReport(), "simulation" );
 }
 
 BOOST_AUTO_TEST_CASE(somas)
 {
-    const fivox::URIHandler handler( "fivoxsomas://" );
+    const fivox::URIHandler handler( fivox::URI( "fivoxsomas://" ));
     BOOST_CHECK_EQUAL( handler.getGIDs().size(), 50 );
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SOMAS );
     BOOST_CHECK_EQUAL( handler.getReport(), "somas" );
@@ -94,21 +94,21 @@ BOOST_AUTO_TEST_CASE(somas)
 
 BOOST_AUTO_TEST_CASE(spikes)
 {
-    const fivox::URIHandler handler( "fivoxspikes://" );
+    const fivox::URIHandler handler( fivox::URI( "fivoxspikes://" ));
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SPIKES );
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
 BOOST_AUTO_TEST_CASE(synapses)
 {
-    const fivox::URIHandler handler( "fivoxsynapses://" );
+    const fivox::URIHandler handler( fivox::URI( "fivoxsynapses://" ));
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SYNAPSES );
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
 BOOST_AUTO_TEST_CASE(vsd)
 {
-    const fivox::URIHandler handler( "fivoxvsd://" );
+    const fivox::URIHandler handler( fivox::URI( "fivoxvsd://" ));
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_VSD );
     BOOST_CHECK_EQUAL( handler.getInputRange(),
                        fivox::Vector2f( -100000.f, 300.f ));

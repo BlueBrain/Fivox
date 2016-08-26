@@ -67,7 +67,10 @@ typedef brion::floats EventValues;
 using vmml::Vector2f;
 using vmml::Vector3f;
 using vmml::Vector2ui;
+using vmml::Vector3ui;
 using vmml::AABBf;
+
+using servus::URI;
 
 /** Supported data sources */
 enum VolumeType

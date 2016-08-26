@@ -1,6 +1,7 @@
 /* Copyright (c) 2014-2016, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
+ *                          Daniel.Nachbaur@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -53,9 +54,10 @@ using boost::lexical_cast;
 const float _duration = 10.0f;
 const float _dt = -1.0f; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
-const float _resolution = 10.0f; // voxels per unit
+const float _resolution = 1.0f; // voxels per unit
 const float _cutoff = 100.0f; // micrometers
 const float _extend = 0.f; // micrometers
+const float _gidFraction = 1.f;
 
 EventSourcePtr _newLoader( const URIHandler& data )
 {
@@ -100,7 +102,7 @@ _newFunctor( const URIHandler& data )
 class URIHandler::Impl
 {
 public:
-    explicit Impl( const std::string& parameters )
+    explicit Impl( const URI& parameters )
         : uri( parameters )
         , useTestData( false )
     {
@@ -115,22 +117,24 @@ public:
         config.reset( new brion::BlueConfig( uri.getPath( )));
 #endif
 
-        const std::string& target = _get( "target" );
+        const brain::Circuit circuit( *config );
+        const std::string target = _get( "target", useTestData ? "mini50"
+                                                 : config->getCircuitTarget( ));
+        const float gidFraction = getGIDFraction();
         if( target == "*" )
         {
-            const brain::Circuit circuit( *config );
-            gids = circuit.getGIDs();
+            gids = gidFraction == 1.f ? circuit.getGIDs()
+                                      : circuit.getRandomGIDs( gidFraction );
         }
-        else if( target.empty( ))
-            gids = config->parseTarget( useTestData ? "mini50" :
-                                                   config->getCircuitTarget( ));
         else
-            gids = config->parseTarget( target );
+        {
+            gids = gidFraction == 1.f ? circuit.getGIDs( target )
+                                 : circuit.getRandomGIDs( gidFraction, target );
+        }
 
         if( gids.empty( ))
             LBTHROW( std::runtime_error(
-                     "No GIDs found for requested target in " +
-                     uri.getPath( )));
+                     "No GIDs found for requested target '" + target + "'" ));
     }
 
     const brion::BlueConfig& getConfig() const
@@ -209,16 +213,29 @@ public:
 
     std::string getDyeCurve() const { return _get( "dyecurve" ); }
 
-    float getResolution() const { return _get( "resolution", _resolution ); }
+    float getResolution() const
+    {
+        return _get( "resolution", getFunctorType() == FUNCTOR_DENSITY
+                                   ? 0.0625f : _resolution );
+    }
 
     size_t getMaxBlockSize() const
         { return _get( "maxBlockSize", _maxBlockSize ); }
 
     float getCutoffDistance() const
-        { return std::max( _get( "cutoff", _cutoff ), 0.f );}
+        { return std::max( _get( "cutoff", _cutoff ), 0.f ); }
 
     float getExtendDistance() const
-        { return std::max( _get( "extend", _extend ), 0.f );}
+        { return std::max( _get( "extend", _extend ), 0.f ); }
+
+    float getGIDFraction() const
+        { return _get( "gidFraction", _gidFraction ); }
+
+    std::string getReferenceVolume() const
+        { return _get( "reference" ); }
+
+    size_t getSizeInVoxel() const
+        { return _get( "size", 0 ); }
 
     bool showProgress() const;
 
@@ -272,7 +289,7 @@ public:
 private:
     std::string _get( const std::string& param ) const
     {
-        lunchbox::URI::ConstKVIter i = uri.findQuery( param );
+        URI::ConstKVIter i = uri.findQuery( param );
         return i == uri.queryEnd() ? std::string() : i->second;
     }
 
@@ -295,7 +312,7 @@ private:
         }
     }
 
-    const lunchbox::URI uri;
+    const URI uri;
     bool useTestData;
     std::unique_ptr< brion::BlueConfig> config;
     brion::GIDSet gids;
@@ -305,7 +322,7 @@ private:
 template<> bool URIHandler::Impl::_get( const std::string& param,
                                         const bool defaultValue ) const
 {
-    lunchbox::URI::ConstKVIter i = uri.findQuery( param );
+    URI::ConstKVIter i = uri.findQuery( param );
     if( i == uri.queryEnd( ))
         return defaultValue;
     if( i->second.empty( ))
@@ -328,7 +345,7 @@ bool URIHandler::Impl::showProgress() const
     return _get( "showProgress", false );
 }
 
-URIHandler::URIHandler( const std::string& params )
+URIHandler::URIHandler( const URI& params )
     : _impl( new URIHandler::Impl( params ))
 {}
 
@@ -405,6 +422,16 @@ FunctorType URIHandler::getFunctorType() const
     return _impl->getFunctorType();
 }
 
+std::string URIHandler::getReferenceVolume() const
+{
+    return _impl->getReferenceVolume();
+}
+
+size_t URIHandler::getSizeInVoxel() const
+{
+    return _impl->getSizeInVoxel();
+}
+
 template< class T > itk::SmartPointer< ImageSource< itk::Image< T, 3 >>>
 URIHandler::newImageSource() const
 {
@@ -414,6 +441,7 @@ URIHandler::newImageSource() const
         ImageSource< itk::Image< T, 3 >>::New();
     std::shared_ptr< EventFunctor< itk::Image< T, 3 >>> functor =
         _newFunctor< T >( *this );
+
     EventSourcePtr loader = _newLoader( *this );
 
     LBINFO << loader->getNumEvents() << " events " << *this << ", dt = "
@@ -424,6 +452,7 @@ URIHandler::newImageSource() const
 
     functor->setSource( loader );
     source->setFunctor( functor );
+    source->setup( *this );
     return source;
 }
 

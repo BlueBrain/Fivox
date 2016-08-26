@@ -52,7 +52,7 @@ const float expectedValue2 = 2.81135f;
 
 BOOST_AUTO_TEST_CASE( LfpValidation )
 {
-    const fivox::URIHandler params( "fivoxtest://?resolution=1&cutoff=100&functor=lfp" );
+    const fivox::URIHandler params( fivox::URI( "fivoxtest://?resolution=1&cutoff=100&functor=lfp" ));
     auto volumeSource = params.newImageSource< float >();
 
     typedef itk::Image< float, 3 > Image;

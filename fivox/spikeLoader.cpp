@@ -61,7 +61,7 @@ public:
 
         const std::string& spikePath = params.getSpikes();
         _loadSpikes( spikePath.empty() ? params.getConfig().getSpikeSource()
-                                       : brion::URI( spikePath ));
+                                       : URI( spikePath ));
 
     }
 
@@ -79,7 +79,7 @@ public:
         }
     }
 
-    void _loadSpikes( const brion::URI& spikes )
+    void _loadSpikes( const URI& spikes )
     {
         if( _loadBinarySpikes( spikes.getPath( )))
             return;

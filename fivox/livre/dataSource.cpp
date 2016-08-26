@@ -54,20 +54,23 @@ class DataSource::Impl
 {
 public:
     explicit Impl( const livre::DataSourcePluginData& pluginData )
-        : params( std::to_string( pluginData.getURI( )))
+        : params( pluginData.getURI( ))
         , source( params.newImageSource< uint8_t >( ))
     {}
 
     livre::MemoryUnitPtr sample( const livre::LODNode& node,
                                  const livre::VolumeInformation& info ) const
     {
+        // called from multiple render threads, only have one update running
+        lunchbox::ScopedWrite mutex( _lock );
         EventSourcePtr loader = source->getFunctor()->getSource();
         const uint32_t timeStep = node.getNodeId().getTimeStep();
         if( !loader->load( timeStep ))
             return livre::MemoryUnitPtr();
 
-        // Alloc voxels
+
         const vmml::Vector3i& voxels = info.maximumBlockSize;
+
         ByteVolume::SizeType vSize;
         vSize[0] = voxels[0];
         vSize[1] = voxels[1];
@@ -77,7 +80,7 @@ public:
         region.SetSize( vSize );
 
         // Real-world coordinate setup
-        const AABBf& bbox = loader->getBoundingBox();
+        const AABBf& bbox = source->getBoundingBox();
         const Vector3f& baseSpacing = ( bbox.getSize() + _borders )
                                       / info.voxels;
         const int32_t levelFromBottom = info.rootNode.getDepth() - 1 -
@@ -98,20 +101,10 @@ public:
         origin[1] = offset[1];
         origin[2] = offset[2];
 
-        // called from multiple render threads, only have one update running
-        lunchbox::ScopedWrite mutex( _lock );
         VolumePtr output = source->GetOutput();
         output->SetRegions( region );
         output->SetSpacing( spacing );
         output->SetOrigin( origin );
-
-#ifdef LIVRE_DEBUG_RENDERING
-        std::cout << "Sample " << node.getRefLevel() << ' '
-                  << node.getRelativePosition() << " (" << spacing << " @ "
-                  << origin << 'x'
-                  << baseSpacing * spacingFactor * voxels << ")"
-                  << std::endl;
-#endif
 
         source->Modified();
         source->Update();
@@ -142,22 +135,21 @@ private:
 DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     : _impl( new DataSource::Impl( pluginData ))
 {
-    const float resolution = _impl->params.getResolution();
-    const size_t maxBlockByteSize = _impl->params.getMaxBlockSize( );
+    // We assume that the data's units are micrometers
+    _volumeInfo.meterToDataUnitRatio = 1e6;
 
-    FunctorPtr functor = _impl->source->getFunctor();
-    EventSourcePtr loader = functor->getSource();
-
-    const AABBf& bbox = loader->getBoundingBox();
-    uint32_t depth = 0;
-    const Vector3f fullResolution = resolution *
-                  ( bbox.getSize() + _impl->params.getExtendDistance() * 2.0f );
-    Vector3f blockResolution = fullResolution;
+    const AABBf& bbox = _impl->source->getBoundingBox();
+    const Vector3f resolution = _impl->source->getResolution();
+    const Vector3f fullResolution =
+            _impl->source->getSizeInMicrometer() * resolution;
 
     // maxTextureSize value should be retrieved from OpenGL. But at this
     // point in time there may be no GL context. So a general object is
     // needed in Livre to query the OpenGL device properties.
     const size_t maxTextureSize = 2048;
+    const size_t maxBlockByteSize = _impl->params.getMaxBlockSize();
+    Vector3f blockResolution = fullResolution;
+    size_t depth = 0;
     while( true )
     {
         if( blockResolution.product() < maxBlockByteSize &&
@@ -175,11 +167,11 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
                               std::ceil( blockResolution.y( )),
                               std::ceil( blockResolution.z( )));
     if( blockDim.x() > 8 )
-        blockDim.x() -= (blockDim.x() % 8);
+        blockDim.x() -= blockDim.x() % 8;
     if( blockDim.y() > 8 )
-        blockDim.y() -= (blockDim.y() % 8);
+        blockDim.y() -= blockDim.y() % 8;
     if( blockDim.z() > 8 )
-        blockDim.z() -= (blockDim.z() % 8);
+        blockDim.z() -= blockDim.z() % 8;
 
     const size_t treeQuotient = 1 << depth;
     const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
@@ -196,18 +188,11 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
                          std::max( _impl->_borders.y() + bbox.getSize().y(),
                                    _impl->_borders.z() + bbox.getSize().z( )));
     const float scale = 1.0f / maxDim;
-
-    vmml::Matrix4f dataToLivreTransform;
-    dataToLivreTransform.setTranslation( -bbox.getCenter( ));
-    dataToLivreTransform.scale( vmml::Vector3f( scale ));
-    dataToLivreTransform.scaleTranslation( vmml::Vector3f( scale ));
-
-    _volumeInfo.dataToLivreTransform = dataToLivreTransform;
-    _volumeInfo.resolution = (vmml::Vector3f)_volumeInfo.voxels / ( bbox.getSize()
-                             + _impl->_borders );
-
-    // We assume that the data's units are micrometers
-    _volumeInfo.meterToDataUnitRatio = 1e6;
+    vmml::Matrix4f& transform = _volumeInfo.dataToLivreTransform;
+    transform.setTranslation( -bbox.getCenter( ));
+    transform.scale( vmml::Vector3f( scale ));
+    transform.scaleTranslation( vmml::Vector3f( scale ));
+    _volumeInfo.resolution = resolution;
 }
 
 DataSource::~DataSource()
