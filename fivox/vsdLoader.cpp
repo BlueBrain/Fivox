@@ -48,7 +48,7 @@ public:
     {
         const brain::Circuit circuit( params.getConfig( ));
         const auto morphologies = circuit.loadMorphologies(
-            params.getGIDs(), brain::Circuit::COORDINATES_GLOBAL );
+            params.getGIDs(), brain::Circuit::Coordinates::global );
 
         _areas = _areaReport.loadFrame( 0.f );
         if( !_areas )

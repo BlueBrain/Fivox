@@ -46,7 +46,7 @@ public:
     {
         const brain::Circuit circuit( params.getConfig( ));
         const auto morphologies = circuit.loadMorphologies(
-            params.getGIDs(), brain::Circuit::COORDINATES_GLOBAL );
+            params.getGIDs(), brain::Circuit::Coordinates::global );
 
         // add soma events only
         helpers::addCompartmentEvents( morphologies, _report, output, true );
