@@ -116,11 +116,10 @@ public:
         source->Modified();
         source->Update();
 
-        livre::AllocMemoryUnitPtr memoryUnit( new livre::AllocMemoryUnit );
         const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
-        memoryUnit->allocAndSetData( output->GetBufferPointer(), size );
-        return memoryUnit;
+        return livre::MemoryUnitPtr(
+                    new livre::AllocMemoryUnit( output->GetBufferPointer(), size ));
     }
 
     void update( livre::VolumeInformation& info )
