@@ -22,26 +22,18 @@
 #define FIVOX_IMAGESOURCE_HXX
 
 #include "imageSource.h"
-#include "densityFunctor.h"
 #include "uriHandler.h"
 
-#include <itkProgressReporter.h>
 #include <itkImageLinearIteratorWithIndex.h>
 #include <itkImageFileReader.h>
 
+#include <lunchbox/log.h>
+
 namespace fivox
 {
-static const int _splitDirection = 2; // fastest in latest test
-
 template< typename TImage > ImageSource< TImage >::ImageSource()
-    : _functor( new DensityFunctor< TImage >( Vector2f( )))
-    , _progressObserver( ProgressObserver::New( ))
+    : _progressObserver( ProgressObserver::New( ))
 {
-    itk::ImageRegionSplitterDirection::Pointer splitter =
-        itk::ImageRegionSplitterDirection::New();
-    splitter->SetDirection( _splitDirection );
-    _splitter = splitter;
-
     // set up default size
     static const size_t size = 256;
     typename TImage::SizeType vSize;
@@ -56,23 +48,6 @@ template< typename TImage > ImageSource< TImage >::ImageSource()
 }
 
 template< typename TImage >
-typename ImageSource< TImage >::FunctorPtr ImageSource< TImage >::getFunctor()
-{
-    return _functor;
-}
-
-template< typename TImage >
-void ImageSource< TImage >::setFunctor( FunctorPtr functor )
-{
-    _functor = functor;
-}
-
-template< typename TImage > void ImageSource< TImage >::showProgress()
-{
-    _progressObserver->enablePrint();
-}
-
-template< typename TImage >
 void ImageSource< TImage >::PrintSelf(std::ostream & os, itk::Indent indent )
     const
 {
@@ -82,10 +57,12 @@ void ImageSource< TImage >::PrintSelf(std::ostream & os, itk::Indent indent )
 template< typename TImage >
 void ImageSource< TImage >::setup( const URIHandler& params )
 {
+    _progressObserver->enablePrint();
+
     const std::string& refVolume = params.getReferenceVolume();
     if( refVolume.empty( ))
     {
-        _boundingBox = _functor->getSource()->getBoundingBox();
+        _boundingBox = _eventSource->getBoundingBox();
         _sizeMicrometer = _boundingBox.getSize() +
                           params.getExtendDistance() * 2.f;
 
@@ -149,70 +126,6 @@ template< typename TImage >
 const Vector3f& ImageSource< TImage >::getResolution() const
 {
     return _resolution;
-}
-
-template< typename TImage >
-void ImageSource< TImage >::ThreadedGenerateData(
-    const ImageRegionType& outputRegionForThread, itk::ThreadIdType threadId )
-{
-    ImagePointer image = Superclass::GetOutput();
-    typedef itk::ImageLinearIteratorWithIndex< TImage > ImageIterator;
-    ImageIterator i( image, outputRegionForThread );
-    i.SetDirection(0);
-    i.GoToBegin();
-
-    const size_t nLines = this->GetOutput()->GetRequestedRegion().GetSize()[1] *
-                          this->GetOutput()->GetRequestedRegion().GetSize()[2];
-    itk::ProgressReporter progress( this, threadId, nLines );
-    size_t totalLines = 0;
-
-    while( !i.IsAtEnd( ))
-    {
-        const ImageIndexType& index = i.GetIndex();
-
-        const typename TImage::SpacingType spacing = image->GetSpacing();
-        typename TImage::PointType point;
-        image->TransformIndexToPhysicalPoint( index, point );
-
-        i.Set( (*_functor)( point, spacing ) );
-
-        ++i;
-        if( i.IsAtEndOfLine( ))
-        {
-            i.NextLine();
-            // report progress only once per line for lower contention on
-            // monitor. Main thread reports to itk, all others to the monitor.
-            if( threadId == 0 )
-            {
-                size_t done = _completed.set( 0 ) + 1 /*self*/;
-                totalLines += done;
-                while( done-- )
-                    progress.CompletedPixel();
-            }
-            else
-                ++_completed;
-        }
-    }
-
-    if( threadId == 0 )
-    {
-        while( totalLines < nLines )
-        {
-            _completed.waitNE( 0 );
-            size_t done = _completed.set( 0 );
-            totalLines += done;
-            while( done-- )
-                progress.CompletedPixel();
-        }
-    }
-}
-
-template< typename TImage >
-void ImageSource< TImage >::BeforeThreadedGenerateData()
-{
-    _completed = 0;
-    _functor->beforeGenerate();
-    _progressObserver->reset();
 }
 
 } // end namespace fivox

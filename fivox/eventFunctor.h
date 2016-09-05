@@ -22,11 +22,7 @@
 #ifndef FIVOX_EVENTFUNCTOR_H
 #define FIVOX_EVENTFUNCTOR_H
 
-#include <fivox/defines.h>
-#include <fivox/eventSource.h>      // member
-#include <fivox/itk.h>
-#include <lunchbox/log.h>
-#include <type_traits>
+#include <fivox/types.h>
 
 namespace fivox
 {
@@ -38,16 +34,11 @@ public:
     typedef typename TImage::PixelType TPixel;
     typedef typename TImage::PointType TPoint;
     typedef typename TImage::SpacingType TSpacing;
-    typedef typename itk::NumericTraits< TPixel >::AccumulateType TAccumulator;
 
-    explicit EventFunctor( const Vector2f& inputRange )
-        : _inputRange( inputRange )
-    {}
+    EventFunctor() {}
     virtual ~EventFunctor() {}
 
-    void setSource( EventSourcePtr source ) { _source = source; }
-    ConstEventSourcePtr getSource() const { return _source; }
-    EventSourcePtr getSource() { return _source; }
+    void setEventSource( EventSourcePtr source ) { _source = source; }
 
     /** Called before threads are starting to voxelize */
     virtual void beforeGenerate() {}
@@ -56,23 +47,6 @@ public:
         const = 0;
 
 protected:
-    TPixel _scale( const float value ) const
-    {
-        // scale only for output integer types
-        if( std::is_floating_point< TPixel >::value )
-            return value;
-
-        const float outputMin = std::numeric_limits< TPixel >::min();
-        const float outputMax = std::numeric_limits< TPixel >::max();
-
-        const float out = ( value - _inputRange[0] ) * ( outputMax - outputMin )
-                          / ( _inputRange[1] - _inputRange[0] ) + outputMin;
-
-        // clamp to output range
-        return std::max( std::min( out, outputMax ), outputMin );
-    }
-
-    const Vector2f _inputRange;
     EventSourcePtr _source;
 };
 

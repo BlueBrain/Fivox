@@ -20,50 +20,70 @@
 #include "synapseLoader.h"
 #include "uriHandler.h"
 
-#include <brion/brion.h>
-#include <lunchbox/os.h>
-#include <lunchbox/memoryMap.h>
-#include <boost/progress.hpp>
-#ifdef final
-#  undef final
-#endif
+#include <brain/brain.h>
+
+#include <future>
+
 
 namespace fivox
 {
+
 class SynapseLoader::Impl
 {
 public:
     Impl( EventSource& output, const URIHandler& params )
         : _output( output )
+        , _circuit( params.getConfig( ))
+        , _preGIDs( params.getPreGIDs( ))
+        , _postGIDs( params.getGIDs( ))
+        , _synapses( _loadSynapseStream( ))
+        , _numChunks( _synapses.getRemaining( ))
     {
-        const auto& gids = params.getGIDs();
+        // compute circuit bounding box as we don't have any synapses at this
+        // point
+        const auto& gids = _circuit.getGIDs();
+        const brion::Vector3fs& positions = _circuit.getPositions( gids );
 
-        LBINFO << "Loading synapses for " << gids.size() << " cells..."
-               << std::endl;
-        boost::progress_display progress( gids.size( ));
-        const brion::Synapse synapses( params.getConfig().getSynapseSource().getPath() +
-                                       "/nrn_positions.h5" );
-
-        std::vector< Vector3f > positions;
-        for( const uint32_t gid : gids )
-        {
-            const brion::SynapseMatrix& data =
-                synapses.read( gid, brion::SYNAPSE_PRESYNAPTIC_SURFACE_X |
-                                    brion::SYNAPSE_PRESYNAPTIC_SURFACE_Y |
-                                    brion::SYNAPSE_PRESYNAPTIC_SURFACE_Z );
-            for( size_t i = 0; i < data.shape()[0]; ++i )
-                positions.emplace_back(
-                        Vector3f( data[i][0], data[i][1], data[i][2] ));
-            ++progress;
-        }
-
-        _output.resize( positions.size( ));
-        for( size_t i = 0; i < positions.size(); ++i )
-            _output.update( i, positions.data()[i], /*radius*/0.f, /*val*/ 1.f);
+        AABBf bbox;
+        for( const auto& position : positions )
+            bbox.merge( position );
+        _output.setBoundingBox( bbox );
     }
 
-private:
+    brain::SynapsesStream _loadSynapseStream()
+    {
+        if( _preGIDs.empty( ))
+            return _circuit.getAfferentSynapses( _postGIDs,
+                                            brain::SynapsePrefetch::positions );
+
+        return _circuit.getProjectedSynapses( _preGIDs, _postGIDs,
+                                            brain::SynapsePrefetch::positions );
+    }
+
+    ssize_t load( const size_t /*chunkIndex*/, const size_t numChunks )
+    {
+        // prefetching the next chunk (instead of synchronously waiting here)
+        // turned out to be slower in real life...
+        const brain::Synapses synapses = _synapses.read( numChunks ).get();
+        if( _synapses.eos( ))
+            _synapses = _loadSynapseStream();
+        _output.resize( synapses.size( ));
+        const float* __restrict__ posx = synapses.preSurfaceXPositions();
+        const float* __restrict__ posy = synapses.preSurfaceYPositions();
+        const float* __restrict__ posz = synapses.preSurfaceZPositions();
+        for( size_t i = 0; i < synapses.size(); ++i )
+            _output.update( i, Vector3f( posx[i], posy[i], posz[i] ),
+                            /*radius*/ 0.f, /*value*/ 1.f );
+
+        return synapses.size();
+    }
+
     EventSource& _output;
+    const brain::Circuit _circuit;
+    const brain::GIDSet _preGIDs;
+    const brain::GIDSet _postGIDs;
+    brain::SynapsesStream _synapses;
+    const size_t _numChunks;
 };
 
 SynapseLoader::SynapseLoader( const URIHandler& params )
@@ -81,9 +101,14 @@ Vector2f SynapseLoader::_getTimeRange() const
     return Vector2f( 0.f, 1.f );
 }
 
-ssize_t SynapseLoader::_load( const float )
+ssize_t SynapseLoader::_load( const size_t chunkIndex, const size_t numChunks )
 {
-    return 0;
+    return _impl->load( chunkIndex, numChunks );
+}
+
+size_t SynapseLoader::_getNumChunks() const
+{
+    return _impl->_numChunks;
 }
 
 }

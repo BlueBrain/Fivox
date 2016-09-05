@@ -118,8 +118,9 @@ public:
         return true;
     }
 
-    ssize_t load( const float start )
+    ssize_t load()
     {
+        const float start = _output.getCurrentTime();
         lunchbox::setZero( _spikesPerNeuron.data(),
                            _spikesPerNeuron.size() * sizeof(size_t));
 
@@ -238,9 +239,10 @@ Vector2f SpikeLoader::_getTimeRange() const
     return Vector2f( _impl->_spikesStart, spikesEnd );
 }
 
-ssize_t SpikeLoader::_load( const float time )
+ssize_t SpikeLoader::_load( const size_t /*chunkIndex*/,
+                            const size_t /*numChunks*/ )
 {
-    return _impl->load( time );
+    return _impl->load();
 }
 
 bool SpikeLoader::_hasEnded() const

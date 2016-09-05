@@ -20,8 +20,10 @@
 
 #include "dataSource.h"
 
+#include <fivox/eventFunctor.h>
 #include <fivox/helpers.h>
 #include <fivox/imageSource.h>
+#include <fivox/scaleFilter.h>
 #include <fivox/uriHandler.h>
 
 #include <livre/core/data/LODNode.h>
@@ -40,22 +42,14 @@ extern "C" bool LunchboxPluginRegister()
 
 namespace fivox
 {
-namespace
-{
-typedef ByteVolume::Pointer VolumePtr;
-
-typedef ImageSource< ByteVolume > ImageSource;
-typedef ImageSource::Pointer ImageSourcePtr;
-
-typedef typename ImageSource::FunctorPtr FunctorPtr;
-}
 
 class DataSource::Impl
 {
 public:
     explicit Impl( const livre::DataSourcePluginData& pluginData )
         : params( pluginData.getURI( ))
-        , source( params.newImageSource< uint8_t >( ))
+        , source( params.newImageSource< FloatVolume >( ))
+        , scaler( source->GetOutput(), params.getInputRange( ))
     {}
 
     livre::MemoryUnitPtr sample( const livre::LODNode& node,
@@ -63,11 +57,9 @@ public:
     {
         // called from multiple render threads, only have one update running
         lunchbox::ScopedWrite mutex( _lock );
-        EventSourcePtr loader = source->getFunctor()->getSource();
+        EventSourcePtr loader = source->getEventSource();
         const uint32_t timeStep = node.getNodeId().getTimeStep();
-        if( !loader->load( timeStep ))
-            return livre::MemoryUnitPtr();
-
+        loader->setTime( timeStep );
 
         const vmml::Vector3i& voxels = info.maximumBlockSize;
 
@@ -101,30 +93,31 @@ public:
         origin[1] = offset[1];
         origin[2] = offset[2];
 
-        VolumePtr output = source->GetOutput();
-        output->SetRegions( region );
-        output->SetSpacing( spacing );
-        output->SetOrigin( origin );
+        auto volume = source->GetOutput();
+        volume->SetRegions( region );
+        volume->SetSpacing( spacing );
+        volume->SetOrigin( origin );
 
         source->Modified();
-        source->Update();
+        scaler.Update();
 
         const size_t size = voxels[0] * voxels[1] * voxels[2] *
                             info.compCount * info.getBytesPerVoxel();
-        return livre::MemoryUnitPtr(
-                    new livre::AllocMemoryUnit( output->GetBufferPointer(), size ));
+        return livre::MemoryUnitPtr( new livre::AllocMemoryUnit(
+                                scaler.GetOutput()->GetBufferPointer(), size ));
     }
 
     void update( livre::VolumeInformation& info )
     {
-        EventSourcePtr loader = source->getFunctor()->getSource();
+        EventSourcePtr loader = source->getEventSource();
         const Vector2ui& frameRange = loader->getFrameRange();
         if( frameRange[1] > 0 ) // is any frame present
             info.frameRange = frameRange;
     }
 
     const URIHandler params;
-    ImageSourcePtr source;
+    ImageSourcePtr< FloatVolume > source;
+    mutable ScaleFilter< ByteVolume > scaler;
     Vector3f _borders;
 
 private:
@@ -186,11 +179,11 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     const float maxDim = std::max( _impl->_borders.x() + bbox.getSize().x(),
                          std::max( _impl->_borders.y() + bbox.getSize().y(),
                                    _impl->_borders.z() + bbox.getSize().z( )));
-    const float scale = 1.0f / maxDim;
+    const Vector3f scale( 1.0f / maxDim );
     vmml::Matrix4f& transform = _volumeInfo.dataToLivreTransform;
     transform.setTranslation( -bbox.getCenter( ));
-    transform.scale( vmml::Vector3f( scale ));
-    transform.scaleTranslation( vmml::Vector3f( scale ));
+    transform.scale( scale );
+    transform.scaleTranslation( scale );
     _volumeInfo.resolution = resolution;
 }
 

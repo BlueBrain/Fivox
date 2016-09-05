@@ -21,15 +21,15 @@
 #ifndef FIVOX_IMAGESOURCE_H
 #define FIVOX_IMAGESOURCE_H
 
-#include <fivox/itk.h>
 #include <fivox/types.h>
 #include <fivox/progressObserver.h> // member
-#include <lunchbox/monitor.h> // member
+
+#include <itkImageSource.h> // base class
 
 namespace fivox
 {
 
-/** ITK image source using an EventFunctor on each pixel to generate the output */
+/** Base class for any image source to sample data from an event source. */
 template< typename TImage >
 class ImageSource : public itk::ImageSource< TImage >
 {
@@ -39,14 +39,12 @@ public:
     typedef itk::ImageSource< TImage >               Superclass;
     typedef itk::SmartPointer< Self >                Pointer;
     typedef itk::SmartPointer< const Self >          ConstPointer;
-    typedef EventFunctor< TImage >                   Functor;
-    typedef std::shared_ptr< Functor >               FunctorPtr;
 
     /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+    itkNewMacro(Self)
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(ImageSource, itk::ImageSource);
+    itkTypeMacro(ImageSource, itk::ImageSource)
 
     /** Typedef to describe the output image region types. */
     typedef TImage                          ImageType;
@@ -66,16 +64,17 @@ public:
     itkStaticConstMacro( ImageDimension, unsigned int,
                          ImageType::ImageDimension );
 
-    /** @return the functor executed for each pixel during update. */
-    FunctorPtr getFunctor();
+    /** Set the event source that is used for sampling into the volume. */
+    void setEventSource( EventSourcePtr source ) { _eventSource = source; }
 
-    /** Set a new functor. */
-    void setFunctor( FunctorPtr functor );
+    /** @return the event source used for sampling. */
+    EventSourcePtr getEventSource() { return _eventSource; }
 
-    /** Enable display of progress bar during voxelization. */
-    void showProgress();
-
-    /** Setup size and resolultion of output volume depending on user input. */
+    /**
+     * Setup size and resolution of output volume depending on user input.
+     *
+     * setEventSource() must be called before.
+     */
     void setup( const URIHandler& params );
 
     /** @return the bounding box of the data in micrometers. */
@@ -90,29 +89,15 @@ public:
     /** @return the resolution of the output volume in voxels per micrometer. */
     const Vector3f& getResolution() const;
 
-    const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const override
-        { return _splitter; }
-
 protected:
     ImageSource();
-    virtual ~ImageSource() {}
+    ImageSource( const Self& ) = delete;
+    void operator=( const Self& ) = delete;
 
-    void PrintSelf(std::ostream & os, itk::Indent indent) const override;
+    void PrintSelf( std::ostream & os, itk::Indent indent ) const override;
 
-    /** ImageSource is implemented as a multithreaded filter. */
-    void ThreadedGenerateData( const ImageRegionType& outputRegionForThread,
-                               itk::ThreadIdType threadId ) override;
-
-    void BeforeThreadedGenerateData() override;
-
-private:
-    ImageSource(const Self &); //purposely not implemented
-    void operator=(const Self &);   //purposely not implemented
-
-    FunctorPtr _functor;
-    itk::ImageRegionSplitterBase::Pointer _splitter;
+    EventSourcePtr _eventSource;
     ProgressObserver::Pointer _progressObserver;
-    lunchbox::Monitor< size_t > _completed;
 
     AABBf _boundingBox;
     Vector3ui _sizeVoxel;

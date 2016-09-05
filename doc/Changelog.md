@@ -3,6 +3,19 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#55](https://github.com/BlueBrain/Fivox/pull/55)
+  Synapse densities support
+  - New 'preTarget' and 'postTarget' URI parameters to support synaptic
+    projections
+  - New EventValueSummationImageSource that voxelizes by iterating over events
+    rather than voxels; used now for synapses and spikes. The current
+    ImageSource is now renamed FunctorImageSource and ImageSource is now the
+    base class for those two sources.
+  - New out-of-core chunking support for event sources, implemented for
+    SynapseLoader
+  - Unify rescaling for non-float volumes; done by ScaleFilter
+  - New functions URIHandler::newFunctor() and URIHandler::newEventSource() in
+    cases no image source is needed, e.g. sample-point
 * [#53](https://github.com/BlueBrain/Fivox/pull/53)
   Add support for volume setup via reference volume with 'reference' parameter
   in volume URI

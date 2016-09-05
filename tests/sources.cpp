@@ -66,19 +66,17 @@ namespace
 const std::string _monsteerPluginScheme( "monsteer" );
 const size_t _minResolution = 8;
 
-template< typename T >
+template< typename Image >
 inline float _testKernel(
-    itk::SmartPointer< fivox::ImageSource< itk::Image< T, 3 >>> filter,
-    const size_t size, const float expectedValue, const vmml::Vector2ui& range )
+        fivox::ImageSourcePtr< Image > filter, const size_t size,
+        const float expectedValue, const vmml::Vector2ui& range )
 {
-    typedef itk::Image< T, 3 > Image;
-
     typename Image::Pointer output = filter->GetOutput();
     _setSize< Image >( output, size );
 
     // set up size and origin for loaded data
-    fivox::EventSourcePtr source = filter->getFunctor()->getSource();
-    source->load( 0.f );
+    fivox::EventSourcePtr source = filter->getEventSource();
+    source->setTime( 0.f );
     const fivox::AABBf& bbox = source->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getSize().find_max();
@@ -103,8 +101,8 @@ inline float _testKernel(
 #else
     std::ostringstream os;
     fivox::EventSource& sourceRef = *source;
-    os << size << '_' << typeid( sourceRef ).name() << '_' << typeid( T ).name()
-       << ".mhd";
+    os << size << '_' << typeid( sourceRef ).name() << '_'
+       << typeid( Image ).name() << ".mhd";
 
     typedef itk::ImageFileWriter< Image > Writer;
     typename Writer::Pointer writer = Writer::New();
@@ -152,16 +150,16 @@ struct SourcesFixture
                      const vmml::Vector2ui& rangeRef )
     {
         const fivox::URIHandler params( uri );
-        auto filter1 = params.newImageSource< uint8_t >();
-        auto filter2 = params.newImageSource< float >();
+        auto filter1 = params.newImageSource< fivox::ByteVolume >();
+        auto filter2 = params.newImageSource< fivox::FloatVolume >();
 
         std::cout << "   Size, " << uri << "," << std::endl;
         for( size_t j = _minResolution; j <= maxSize; j = j << 1 )
         {
             const float t1 =
-                _testKernel< uint8_t >( filter1, j, byteRef, rangeRef );
+                _testKernel< fivox::ByteVolume >( filter1, j, byteRef, rangeRef );
             const float t2 =
-                _testKernel< float >( filter2, j, floatRef, rangeRef );
+                _testKernel< fivox::FloatVolume >( filter2, j, floatRef, rangeRef );
             std::cout << std::setw( 8 ) << j << ',' << std::setw(14)
                       << j*j*j / 1024.f / 1024.f / t1 << ',' << std::setw(15)
                       << j*j*j / 1024.f / 1024.f / t2 << std::endl;
@@ -176,9 +174,9 @@ struct SourcesFixture
             filter2->SetNumberOfThreads( maxThreads * j );
 
             float t1 =
-                _testKernel< uint8_t >( filter1, size, byteRef, rangeRef );
+                _testKernel< fivox::ByteVolume >( filter1, size, byteRef, rangeRef );
             float t2 =
-                _testKernel< float >( filter2, size, floatRef, rangeRef );
+                _testKernel< fivox::FloatVolume >( filter2, size, floatRef, rangeRef );
             std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
                       << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
                       << ',' << std::setw(15)
@@ -186,8 +184,8 @@ struct SourcesFixture
 
             filter1->SetNumberOfThreads( maxThreads / j );
             filter2->SetNumberOfThreads( maxThreads / j );
-            t1 = _testKernel< uint8_t >( filter1, size, byteRef, rangeRef );
-            t2 = _testKernel< float >( filter2, size, floatRef, rangeRef );
+            t1 = _testKernel< fivox::ByteVolume >( filter1, size, byteRef, rangeRef );
+            t2 = _testKernel< fivox::FloatVolume >( filter2, size, floatRef, rangeRef );
             std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
                       << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
                       << ',' << std::setw(15)
@@ -203,7 +201,7 @@ BOOST_AUTO_TEST_CASE( fivoxVoltages_source )
 {
     // Compartment report 'voltages' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivox://" ), 254.529296875f, -0.062685228640475543,
+    testSource( fivox::URI( "fivox://" ), 5.455078125f, -0.062685228640475543,
                 vmml::Vector2ui( 0, 100 ));
 }
 
@@ -211,7 +209,7 @@ BOOST_AUTO_TEST_CASE( fivoxSomas_source )
 {
     // Soma report 'somas' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivoxSomas://" ), 254.927734375f,
+    testSource( fivox::URI( "fivoxSomas://" ), 0.f,
                 -0.0016181814135052264, vmml::Vector2ui( 0, 100 ));
 }
 
@@ -220,7 +218,7 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 {
     // Compartment currents report 'currents' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivox://?functor=lfp" ), 1.00390625,
+    testSource( fivox::URI( "fivox://?functor=lfp" ), 0.f,
                 3.3634767649011466e-09f, vmml::Vector2ui( 0, 100 ));
 }
 #endif
@@ -229,14 +227,14 @@ BOOST_AUTO_TEST_CASE( fivoxSpikes_source )
 {
     // Spikes report timestamps range between 0.725 and 9.975 ms
     testSource( fivox::URI( "fivoxSpikes://?duration=1&dt=1&target=Column" ),
-                0.49609375f, 0.00390625f, vmml::Vector2ui( 0, 9 ));
+                0.005859375f, 0.005859375f, vmml::Vector2ui( 0, 9 ));
 }
 
 BOOST_AUTO_TEST_CASE( fivoxSynapses_source )
 {
     // Synapse reports don't have time support and return a 1-frame interval
-    testSource( fivox::URI( "fivoxSynapses://?target=Column" ), 0.f, 1.7834029313844313e-05f,
-                vmml::Vector2ui( 0, 1 ));
+    testSource( fivox::URI( "fivoxSynapses://?target=Column" ), 7.42578125f,
+                437.92578125f, vmml::Vector2ui( 0, 1 ));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -254,7 +252,7 @@ BOOST_AUTO_TEST_CASE( fivoxSpikes_stream_source_frame_range )
     fivox::URIHandler params(
         "fivoxspikes://?dt=0.1&duration=1&spikes=" + std::to_string( uri ));
     auto filter = params.newImageSource< float >();
-    fivox::EventSourcePtr source = filter->getFunctor()->getSource();
+    fivox::EventSourcePtr source = filter->getEventSource();
 
     lunchbox::sleep( STARTUP_DELAY );
 

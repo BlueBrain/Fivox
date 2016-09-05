@@ -52,9 +52,10 @@ public:
         helpers::addCompartmentEvents( morphologies, _report, output, true );
     }
 
-    ssize_t load( const float time )
+    ssize_t load()
     {
-        const brion::floatsPtr frame = _report.loadFrame( time );
+        const brion::floatsPtr frame =
+                _report.loadFrame( _output.getCurrentTime( ));
         if( !frame )
             return -1;
 
@@ -92,9 +93,10 @@ Vector2f SomaLoader::_getTimeRange() const
                      _impl->_report.getEndTime( ));
 }
 
-ssize_t SomaLoader::_load( const float time )
+ssize_t SomaLoader::_load( const size_t /*chunkIndex*/,
+                           const size_t /*numChunks*/ )
 {
-    return _impl->load( time );
+    return _impl->load();
 }
 
 }

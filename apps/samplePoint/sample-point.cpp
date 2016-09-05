@@ -79,10 +79,11 @@ public:
             return EXIT_FAILURE;
         }
 
-        ImageSourcePtr source = params.newImageSource< float >();
-        ImageSource::FunctorPtr functor = source->getFunctor();
+        auto functor = params.newFunctor< fivox::FloatVolume >();
+        auto eventSource = params.newEventSource();
+        functor->setEventSource( eventSource );
 
-        const float dt = functor->getSource()->getDt();
+        const float dt = eventSource->getDt();
         const fivox::Vector2ui frameRange( getFrameRange( dt ));
 
         typename fivox::FloatVolume::PointType itkPoint;
@@ -101,7 +102,8 @@ public:
 
         for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
         {
-            functor->getSource()->load( i );
+            eventSource->setFrame( i );
+            eventSource->load( 0, eventSource->getNumChunks( ));
             const float value = (*functor)( itkPoint,
                                             fivox::FloatVolume::SpacingType( ));
             file << i * dt << " " << value << "\n";

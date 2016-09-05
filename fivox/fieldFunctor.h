@@ -35,8 +35,8 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    explicit FieldFunctor( const Vector2f& inputRange )
-        : Super( inputRange )
+    FieldFunctor()
+        : Super()
     {}
     virtual ~FieldFunctor() {}
 
@@ -96,7 +96,7 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
         else
             voltage2 += value * distance2; // mV
     }
-    return Super::_scale( voltage1 + voltage2 );
+    return voltage1 + voltage2;
 }
 
 }

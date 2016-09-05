@@ -28,7 +28,8 @@
 #ifdef FIVOX_USE_LFP
 #  include <fivox/lfp/lfpFunctor.h>
 #endif
-#include <fivox/imageSource.h>
+#include <fivox/eventValueSummationImageSource.h>
+#include <fivox/functorImageSource.h>
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
 #include <fivox/synapseLoader.h>
@@ -41,7 +42,6 @@
 #include <lunchbox/log.h>
 #include <lunchbox/uri.h>
 #include <boost/lexical_cast.hpp>
-#include <fivox/itk.h>
 
 #include <brion/blueConfig.h>
 #include <brain/circuit.h>
@@ -54,56 +54,9 @@ using boost::lexical_cast;
 const float _duration = 10.0f;
 const float _dt = -1.0f; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
-const float _resolution = 1.0f; // voxels per unit
 const float _cutoff = 100.0f; // micrometers
 const float _extend = 0.f; // micrometers
 const float _gidFraction = 1.f;
-
-EventSourcePtr _newLoader( const URIHandler& data )
-{
-    switch( data.getType( ))
-    {
-    case VolumeType::compartments:
-        return std::make_shared< CompartmentLoader >( data );
-    case VolumeType::somas:
-        return std::make_shared< SomaLoader >( data );
-    case VolumeType::spikes:
-        return std::make_shared< SpikeLoader >( data );
-    case VolumeType::synapses:
-        return std::make_shared< SynapseLoader >( data );
-    case VolumeType::test:
-        return std::make_shared< TestLoader >( data );
-    case VolumeType::vsd:
-        return std::make_shared< VSDLoader >( data );
-    default:
-        return nullptr;
-    }
-}
-
-template< class T > std::shared_ptr< EventFunctor< itk::Image< T, 3 >>>
-_newFunctor( const URIHandler& data )
-{
-    switch( data.getFunctorType( ))
-    {
-    case FunctorType::density:
-        return std::make_shared< DensityFunctor< itk::Image< T, 3 >>>
-                                                       ( data.getInputRange( ));
-    case FunctorType::field:
-        return std::make_shared< FieldFunctor< itk::Image< T, 3 >>>
-                                                       ( data.getInputRange( ));
-    case FunctorType::frequency:
-        return std::make_shared< FrequencyFunctor< itk::Image< T, 3 >>>
-                                                       ( data.getInputRange( ));
-#ifdef FIVOX_USE_LFP
-    case FunctorType::lfp:
-        return std::make_shared< LFPFunctor< itk::Image< T, 3 >>>
-                                                       ( data.getInputRange( ));
-#endif
-    case FunctorType::unknown:
-    default:
-        return nullptr;
-    }
-}
 }
 
 class URIHandler::Impl
@@ -125,8 +78,9 @@ public:
 #endif
 
         const brain::Circuit circuit( *config );
-        const std::string target = _get( "target", useTestData ? "mini50"
-                                                 : config->getCircuitTarget( ));
+        const std::string target = _get( "target", _get( "postTarget",
+                         useTestData ? "mini50" : config->getCircuitTarget( )));
+        const std::string preTarget = _get( "preTarget" );
         const float gidFraction = getGIDFraction();
         if( target == "*" )
         {
@@ -137,6 +91,17 @@ public:
         {
             gids = gidFraction == 1.f ? circuit.getGIDs( target )
                                  : circuit.getRandomGIDs( gidFraction, target );
+
+            if( !preTarget.empty( ))
+            {
+                preGIDs = gidFraction == 1.f ? circuit.getGIDs( preTarget )
+                              : circuit.getRandomGIDs( gidFraction, preTarget );
+
+                if( preGIDs.empty( ))
+                    LBTHROW( std::runtime_error(
+                             "No GIDs found for requested target '" +
+                                 preTarget + "'" ));
+            }
         }
 
         if( gids.empty( ))
@@ -160,6 +125,15 @@ public:
                      "BlueConfig was not loaded" ));
 
         return gids;
+    }
+
+    const brion::GIDSet& getPreGIDs() const
+    {
+        if( !config )
+            LBTHROW( std::runtime_error(
+                     "BlueConfig was not loaded" ));
+
+        return preGIDs;
     }
 
     std::string getReport() const
@@ -206,8 +180,10 @@ public:
             defaultValue = Vector2f( -100000.f, 300.f );
             break;
         case VolumeType::spikes:
-        case VolumeType::synapses:
             defaultValue = Vector2f( 0.f, 2.f );
+            break;
+        case VolumeType::synapses:
+            defaultValue = FULLDATARANGE;
             break;
         default:
             defaultValue = Vector2f( 0.f, 10.f );
@@ -222,8 +198,17 @@ public:
 
     float getResolution() const
     {
-        return _get( "resolution", getFunctorType() == FunctorType::density
-                                   ? 0.0625f : _resolution );
+        float defaultResolution = 1.0f;
+        switch( getType( ))
+        {
+        case VolumeType::spikes:
+        case VolumeType::synapses:
+            defaultResolution = 0.0625f; // 16 um/voxel
+            break;
+        default:
+            break;
+        }
+        return _get( "resolution", defaultResolution );
     }
 
     size_t getMaxBlockSize() const
@@ -243,8 +228,6 @@ public:
 
     size_t getSizeInVoxel() const
         { return _get( "size", 0 ); }
-
-    bool showProgress() const;
 
     VolumeType getType() const
     {
@@ -281,9 +264,9 @@ public:
         switch( getType( ))
         {
         case VolumeType::spikes:
-            return FunctorType::frequency;
         case VolumeType::synapses:
-            return FunctorType::density;
+            LBTHROW( std::runtime_error(
+                         "No functor support for synapses and spikes. "));
         case VolumeType::compartments:
         case VolumeType::somas:
         case VolumeType::vsd:
@@ -323,6 +306,7 @@ private:
     bool useTestData;
     std::unique_ptr< brion::BlueConfig> config;
     brion::GIDSet gids;
+    brion::GIDSet preGIDs;
 };
 
 // bool specialization: param present with no value = true
@@ -347,11 +331,6 @@ template<> bool URIHandler::Impl::_get( const std::string& param,
     }
 }
 
-bool URIHandler::Impl::showProgress() const
-{
-    return _get( "showProgress", false );
-}
-
 URIHandler::URIHandler( const URI& params )
     : _impl( new URIHandler::Impl( params ))
 {}
@@ -367,6 +346,11 @@ const brion::BlueConfig& URIHandler::getConfig() const
 const brion::GIDSet& URIHandler::getGIDs() const
 {
     return _impl->getGIDs();
+}
+
+const brion::GIDSet& URIHandler::getPreGIDs() const
+{
+    return _impl->getPreGIDs();
 }
 
 std::string URIHandler::getReport() const
@@ -439,28 +423,71 @@ size_t URIHandler::getSizeInVoxel() const
     return _impl->getSizeInVoxel();
 }
 
-template< class T > itk::SmartPointer< ImageSource< itk::Image< T, 3 >>>
-URIHandler::newImageSource() const
+template< class TImage >
+ImageSourcePtr< TImage > URIHandler::newImageSource() const
 {
-    LBINFO << "Loading events..." << std::endl;
+    EventSourcePtr eventSource = newEventSource();
 
-    itk::SmartPointer< ImageSource< itk::Image< T, 3 >>> source =
-        ImageSource< itk::Image< T, 3 >>::New();
-    std::shared_ptr< EventFunctor< itk::Image< T, 3 >>> functor =
-        _newFunctor< T >( *this );
+    ImageSourcePtr< TImage > source;
+    if( getType() == VolumeType::spikes || getType() == VolumeType::synapses )
+        source = EventValueSummationImageSource< TImage >::New();
+    else
+    {
+        auto functorSource = FunctorImageSource< TImage >::New();
+        auto functor = newFunctor< TImage >();
+        functorSource->setFunctor( functor );
+        functor->setEventSource( eventSource );
+        source = functorSource;
+    }
 
-    EventSourcePtr loader = _newLoader( *this );
+    LBINFO << "Ready to voxelize " << *this << ", dt = "
+           << eventSource->getDt() << std::endl;
 
-    LBINFO << loader->getNumEvents() << " events " << *this << ", dt = "
-           << loader->getDt() << " ready to voxelize" << std::endl;
-
-    if( _impl->showProgress( ))
-        source->showProgress();
-
-    functor->setSource( loader );
-    source->setFunctor( functor );
+    source->setEventSource( eventSource );
     source->setup( *this );
     return source;
+}
+
+EventSourcePtr URIHandler::newEventSource() const
+{
+    switch( getType( ))
+    {
+    case VolumeType::compartments:
+        return std::make_shared< CompartmentLoader >( *this );
+    case VolumeType::somas:
+        return std::make_shared< SomaLoader >( *this );
+    case VolumeType::spikes:
+        return std::make_shared< SpikeLoader >( *this );
+    case VolumeType::synapses:
+        return std::make_shared< SynapseLoader >( *this );
+    case VolumeType::test:
+        return std::make_shared< TestLoader >( *this );
+    case VolumeType::vsd:
+        return std::make_shared< VSDLoader >( *this );
+    default:
+        return nullptr;
+    }
+}
+
+template< class TImage >
+EventFunctorPtr< TImage > URIHandler::newFunctor() const
+{
+    switch( getFunctorType( ))
+    {
+    case FunctorType::density:
+        return std::make_shared< DensityFunctor< TImage >>();
+    case FunctorType::field:
+        return std::make_shared< FieldFunctor< TImage >>();
+    case FunctorType::frequency:
+        return std::make_shared< FrequencyFunctor< TImage >>();
+#ifdef FIVOX_USE_LFP
+    case FunctorType::lfp:
+        return std::make_shared< LFPFunctor< TImage >>();
+#endif
+    case FunctorType::unknown:
+    default:
+        return nullptr;
+    }
 }
 
 std::ostream& operator << ( std::ostream& os, const URIHandler& params )
@@ -492,35 +519,13 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
         break;
     }
 
-    os << ", using ";
-    switch( params.getFunctorType( ))
-    {
-    case FunctorType::density:
-        os << "density functor";
-        break;
-    case FunctorType::field:
-        os << "field functor";
-        break;
-    case FunctorType::frequency:
-        os << "frequency functor";
-        break;
-    case FunctorType::lfp:
-        os << "LFP functor";
-        break;
-    case FunctorType::unknown:
-    default:
-        os << "unknown functor";
-        break;
-    }
-
-    return os << ", input data range = " << params.getInputRange()
-              << ", resolution = " << params.getResolution();
+    return os << ", resolution = " << 1.f/params.getResolution() << " um/voxel";
 }
 
 }
 
 // template instantiations
-template fivox::ImageSource< itk::Image< uint8_t, 3 >>::Pointer
+template fivox::ImageSource< fivox::ByteVolume >::Pointer
     fivox::URIHandler::newImageSource() const;
-template fivox::ImageSource< itk::Image< float, 3 >>::Pointer
+template fivox::ImageSource< fivox::FloatVolume >::Pointer
     fivox::URIHandler::newImageSource() const;

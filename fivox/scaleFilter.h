@@ -21,19 +21,26 @@
 #define FIVOX_SCALEFILTER_H
 
 #include <itkIntensityWindowingImageFilter.h>
+#include <itkRescaleIntensityImageFilter.h>
 
-template< typename T > class ScaleFilter
+namespace fivox
+{
+
+template< typename TImage > class ScaleFilter
 {
     typedef fivox::FloatVolume::Pointer VolumePtr;
     typedef itk::IntensityWindowingImageFilter
-        < fivox::FloatVolume, itk::Image< T, 3 >> IntensityWindowingImageFilter;
+        < fivox::FloatVolume, TImage > IntensityWindowingImageFilter;
+
+    typedef itk::RescaleIntensityImageFilter< fivox::FloatVolume,
+                                              TImage > RescaleFilter;
+    typedef typename TImage::PixelType T;
 
 public:
     /**
      * Default constructor (used in VolumeWriter< float >)
      */
     ScaleFilter()
-        : _scaler( IntensityWindowingImageFilter::New( ))
     {}
 
     /**
@@ -42,10 +49,27 @@ public:
      *
      * @param input Pointer to a floating point volume
      * @param dataRange Vector2f containing the lower and upper limits for the
-     * input data range
+     *                  input data range
      */
     ScaleFilter( VolumePtr input, const fivox::Vector2f& dataRange )
     {
+        if( dataRange == fivox::FULLDATARANGE )
+        {
+            LBINFO << "Scale volume into ["
+                   << size_t(std::numeric_limits< T >::min( )) << ", "
+                   << size_t(std::numeric_limits< T >::max( ))
+                   << "] from data range" << std::endl;
+            _rescale = RescaleFilter::New();
+            _rescale->SetInput( input );
+            return;
+        }
+
+        LBINFO << "Scale volume into ["
+               << size_t(std::numeric_limits< T >::min( )) << ", "
+               << size_t(std::numeric_limits< T >::max( ))
+               << "] from values in [" << dataRange[0] << ", " << dataRange[1]
+               << "]" << std::endl;
+
         _scaler = IntensityWindowingImageFilter::New();
         _scaler->SetInput( input );
 
@@ -55,12 +79,24 @@ public:
         _scaler->SetOutputMaximum( std::numeric_limits< T >::max( ));
     }
 
-    typename IntensityWindowingImageFilter::Pointer operator->()
+    typename TImage::Pointer GetOutput()
     {
-        return _scaler;
+        return _scaler ? _scaler->GetOutput() : _rescale->GetOutput();
+    }
+
+    void Update()
+    {
+        if( _scaler )
+            _scaler->Update();
+        else
+            _rescale->Update();
     }
 
 private:
     typename IntensityWindowingImageFilter::Pointer _scaler;
+    typename RescaleFilter::Pointer _rescale;
 };
+
+} // namespace fivox
+
 #endif

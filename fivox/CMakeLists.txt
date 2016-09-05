@@ -5,14 +5,18 @@ set(FIVOX_PUBLIC_HEADERS
   attenuationCurve.h
   compartmentLoader.h
   densityFunctor.h
+  eventValueSummationImageSource.h
+  eventValueSummationImageSource.hxx
+  functorImageSource.h
+  functorImageSource.hxx
   eventFunctor.h
   eventSource.h
   fieldFunctor.h
   frequencyFunctor.h
   imageSource.h
   imageSource.hxx
-  itk.h
   progressObserver.h
+  scaleFilter.h
   somaLoader.h
   spikeLoader.h
   synapseLoader.h
@@ -23,7 +27,7 @@ set(FIVOX_PUBLIC_HEADERS
 )
 
 # Try cloning lfpFivox into the 'fivox' folder
-git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox c4642ed
+git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox f1360df
              OPTIONAL)
 if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
   list(APPEND FIVOX_PUBLIC_HEADERS lfp/lfpFunctor.h)

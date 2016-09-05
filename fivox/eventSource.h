@@ -90,6 +90,13 @@ public:
      */
     EventValues findEvents( const AABBf& area ) const;
 
+    /**
+     * Set bounding box of upcoming events. This overwrites any existing
+     * bounding box. It can be used to set a bounding box before
+     * loading/updating any events.
+     */
+    void setBoundingBox( const AABBf& boundingBox );
+
     /** @return the bounding box of all events. */
     const AABBf& getBoundingBox() const;
 
@@ -125,18 +132,16 @@ public:
      * @param frame The frame number to be loaded. Whether frame numbers are
      *              relative to the start time or absolute (frame 0 is at time
      *              0) depends on the actual data source.
-     * @return true if the frame can be retrieved from the data source
+     * @return true if the frame is within the range of the data source.
      */
-    bool load( uint32_t frame );
+    bool setFrame( uint32_t frame );
 
     /**
-     * Given a timestamp, update the event source with new events to be
-     * sampled.
+     * Given a timestamp, update the event source with new events to be sampled.
      *
      * @param time The time stamp (ms) to be loaded.
-     * @return true if the time stamp can be retrieved from the data source
      */
-    bool load( float time );
+    void setTime( float time );
 
     /**
      * Gets the valid frame range according to data. The valid frames are in the
@@ -158,19 +163,44 @@ public:
      */
     float getDt() const;
 
+    /** @return the current time from setTime() in milliseconds. */
+    float getCurrentTime() const;
+
+    /**
+     * Load and update events for the given chunks of the data source.
+     *
+     * @param chunkIndex the chunk to start loading from
+     * @param numChunks the number of chunks to load into memory
+     * @return the number of updated events, or -1 if the load failed.
+     * @throw std::runtime_error if numChunks is 0.
+     * @throw std::out_of_range if chunkIndex and/or numChunks are out of range.
+     */
+    ssize_t load( size_t chunkIndex, size_t numChunks );
+
+    /**
+     * Load and update all events of the current frame.
+     *
+     * @return the number of updated events, or -1 if the load failed.
+     */
+    ssize_t load();
+
+    /** @return the maximum number of chunks provided by the data source. */
+    size_t getNumChunks() const;
+
 protected:
     explicit EventSource( const URIHandler& params );
+
+    EventSource() = delete;
+    EventSource( const EventSource& ) = delete;
+    EventSource& operator=( const EventSource& ) = delete;
 
     /** @name Abstract interface */
     //@{
     /** @return the interval [a, b) in ms of available events. */
     virtual Vector2f _getTimeRange() const = 0;
 
-    /**
-     * @sa EventSource::load( float )
-     * @return the number of updated events, or -1 if the load failed.
-     */
-    virtual ssize_t _load( float time ) = 0;
+    /** @sa EventSource::load( size_t, size_t ) */
+    virtual ssize_t _load( size_t chunkIndex, size_t numChunks ) = 0;
 
     /** @return the type of this event source, needed for getFrameRange() */
     virtual SourceType _getType() const = 0;
@@ -180,6 +210,9 @@ protected:
      * an ongoing stream, needed for getFrameRange()
      */
     virtual bool _hasEnded() const = 0;
+
+    /** @sa EventSource::getNumChunks() */
+    virtual size_t _getNumChunks() const = 0;
     //@}
 
     /**
@@ -191,9 +224,6 @@ protected:
     void setDt( float dt );
 
 private:
-    EventSource() = delete;
-    EventSource( const EventSource& ) = delete;
-    EventSource& operator=( const EventSource& ) = delete;
     class Impl;
     std::unique_ptr< Impl > _impl;
 };

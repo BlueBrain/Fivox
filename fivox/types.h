@@ -54,8 +54,6 @@ typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
 
 typedef itk::Image< uint8_t, 3 > ByteVolume;
 typedef itk::Image< float, 3 > FloatVolume;
-typedef std::shared_ptr< EventFunctor< ByteVolume >> ByteFunctorPtr;
-typedef std::shared_ptr< EventFunctor< FloatVolume >> FloatFunctorPtr;
 
 struct EventsDeleter
 {
@@ -71,6 +69,12 @@ using vmml::Vector3ui;
 using vmml::AABBf;
 
 using servus::URI;
+
+template< typename TImage >
+using ImageSourcePtr = itk::SmartPointer< ImageSource< TImage >>;
+
+template< typename TImage >
+using EventFunctorPtr = std::shared_ptr< EventFunctor< TImage >>;
 
 /** Supported data sources */
 enum class VolumeType
@@ -102,6 +106,10 @@ enum class SourceType
     event, //!< e.g. spikes reports
     frame  //!< e.g. compartment reports
 };
+
+/** Indicates to consider all data for potential rescaling. */
+const Vector2f FULLDATARANGE( -std::numeric_limits< float >::infinity(),
+                               std::numeric_limits< float >::infinity( ));
 
 }
 

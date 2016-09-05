@@ -60,9 +60,10 @@ public:
         setCurve( AttenuationCurve( params.getDyeCurve(), thickness ));
     }
 
-    ssize_t load( const float time )
+    ssize_t load()
     {
-        brion::floatsPtr voltages = _voltageReport.loadFrame( time );
+        brion::floatsPtr voltages =
+                _voltageReport.loadFrame( _output.getCurrentTime( ));
         if( !voltages )
             return -1;
 
@@ -116,9 +117,10 @@ Vector2f VSDLoader::_getTimeRange() const
                      _impl->_voltageReport.getEndTime( ));
 }
 
-ssize_t VSDLoader::_load( const float time )
+ssize_t VSDLoader::_load( const size_t /*chunkIndex*/,
+                          const size_t /*numChunks*/ )
 {
-    return _impl->load( time );
+    return _impl->load();
 }
 
 }

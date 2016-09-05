@@ -47,11 +47,11 @@ public:
         _output.update( 6, Vector3f( 5.f, 2.f, 1.f ), 1.f );
     }
 
-    ssize_t load( const float time )
+    ssize_t load()
     {
         const size_t numEvents = _output.getNumEvents();
         for( size_t i = 0; i < numEvents; ++i )
-            _output[i] = (i + 1 + time);
+            _output[i] = (i + 1 + _output.getCurrentTime( ));
 
         return numEvents;
     }
@@ -75,9 +75,10 @@ Vector2f TestLoader::_getTimeRange() const
     return Vector2f( 0.f, 100.f );
 }
 
-ssize_t TestLoader::_load( const float time )
+ssize_t TestLoader::_load( const size_t /*chunkIndex*/,
+                           const size_t /*numChunks*/ )
 {
-    return _impl->load( time );
+    return _impl->load();
 }
 
 }
