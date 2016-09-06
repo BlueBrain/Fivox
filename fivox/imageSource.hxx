@@ -22,10 +22,12 @@
 #define FIVOX_IMAGESOURCE_HXX
 
 #include "imageSource.h"
+#include "densityFunctor.h"
+#include "uriHandler.h"
 
-#include <fivox/densityFunctor.h>
 #include <itkProgressReporter.h>
 #include <itkImageLinearIteratorWithIndex.h>
+#include <itkImageFileReader.h>
 
 namespace fivox
 {
@@ -75,6 +77,78 @@ void ImageSource< TImage >::PrintSelf(std::ostream & os, itk::Indent indent )
     const
 {
     Superclass::PrintSelf( os, indent );
+}
+
+template< typename TImage >
+void ImageSource< TImage >::setup( const URIHandler& params )
+{
+    const std::string& refVolume = params.getReferenceVolume();
+    if( refVolume.empty( ))
+    {
+        _boundingBox = _functor->getSource()->getBoundingBox();
+        _sizeMicrometer = _boundingBox.getSize() +
+                          params.getExtendDistance() * 2.f;
+
+        if( params.getSizeInVoxel() > 0 )
+        {
+            for( size_t i = 0; i < 3; ++i )
+                _sizeVoxel[i] = params.getSizeInVoxel() *
+                                _sizeMicrometer[i] / _sizeMicrometer.find_max();
+            const size_t maxSizeIndex = _sizeMicrometer.find_max_index();
+            _sizeVoxel[maxSizeIndex] = params.getSizeInVoxel();
+        }
+        else
+            _sizeVoxel = _sizeMicrometer * params.getResolution();
+        _resolution = Vector3f(_sizeVoxel) / _sizeMicrometer;
+
+        return;
+    }
+
+    LBINFO << "Using reference volume '" << refVolume
+           << "' to setup volume size and resolution" << std::endl;
+
+    typedef itk::Image< double, 3 > ImageType;
+    typedef itk::ImageFileReader< ImageType > ReaderType;
+
+    ReaderType::Pointer reader = ReaderType::New();
+    reader->SetFileName( refVolume );
+    reader->Update();
+    const auto& referenceVolume = reader->GetOutput();
+
+    const auto& region = referenceVolume->GetLargestPossibleRegion();
+    const auto& size = region.GetSize();
+    const auto& spacing = referenceVolume->GetSpacing();
+
+    _sizeMicrometer = Vector3f( size[0] * spacing[0],
+                                size[1] * spacing[1],
+                                size[2] * spacing[2] );
+    _boundingBox = AABBf( Vector3f(0.f), _sizeMicrometer );
+    _sizeVoxel = Vector3ui( size[0], size[1], size[2] );
+    _resolution = Vector3f( 1.f/spacing[0], 1.f/spacing[1], 1.f/spacing[2]);
+}
+
+template< typename TImage >
+const AABBf& ImageSource< TImage >::getBoundingBox() const
+{
+    return _boundingBox;
+}
+
+template< typename TImage >
+const Vector3ui& ImageSource< TImage >::getSizeInVoxel() const
+{
+    return _sizeVoxel;
+}
+
+template< typename TImage >
+const Vector3f& ImageSource< TImage >::getSizeInMicrometer() const
+{
+    return _sizeMicrometer;
+}
+
+template< typename TImage >
+const Vector3f& ImageSource< TImage >::getResolution() const
+{
+    return _resolution;
 }
 
 template< typename TImage >

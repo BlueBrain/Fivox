@@ -2,6 +2,7 @@
 /* Copyright (c) 2014-2016, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
+ *                          Daniel.Nachbaur@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -43,7 +44,7 @@ public:
      *
      * @param parameters URI containing the parameters in the specified form
      */
-    explicit URIHandler( const std::string& parameters );
+    explicit URIHandler( const URI& parameters );
     virtual ~URIHandler(); //!< Destruct this parameter processor
 
     /**
@@ -162,6 +163,15 @@ public:
      *          if unspecified.
      */
     FunctorType getFunctorType() const;
+
+    /**
+     * @return the path to a reference volume to setup the size and resolution
+     *         of the output volme. Empty by default.
+     */
+    std::string getReferenceVolume() const;
+
+    /** @return the size in voxels along the largest dimension of the volume. */
+    size_t getSizeInVoxel() const;
 
     /** @return a new image source for the given parameters and pixel type. */
     template< class T >

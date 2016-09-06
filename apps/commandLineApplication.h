@@ -97,6 +97,7 @@ public:
               "- BlueConfig: BlueConfig file path\n"
               "              (default: BBPTestData)\n"
               "- target: name of the BlueConfig target (default: CircuitTarget)\n"
+              "- gidFraction: take random cells from a fraction [0,1] of the given target (default: 1)\n"
               "- inputMin/inputMax: minimum and maximum input values to be considered for rescaling\n"
               "                     (defaults: [0.0, 2.0] for Spikes and Synapses\n"
               "                                [-190.0, 0.0] for Compartments with TestData, [-80.0, 0.0] otherwise\n"
@@ -107,7 +108,6 @@ public:
               "             (defaults: \"density\" for Synapses,\n"
               "                        \"frequency\" for Spikes,\n"
               "                        \"field\" for Compartments, Somas and VSD)\n"
-              "- resolution: number of voxels per micrometer (default: 10.0)\n"
               "- maxBlockSize: maximum memory usage allowed for one block in bytes\n"
               "                (default: 64MB)\n"
               "- cutoff: the cutoff distance in micrometers (default: 100).\n"
@@ -117,6 +117,10 @@ public:
               "          of the data events). Changing this parameter will result\n"
               "          in more volumetric data, and therefore more computation\n"
               "          time\n"
+              "- reference: path to a reference volume to take its size and resolution,\n"
+              "             overwrites the 'size' and 'resolution' parameter\n"
+              "- size: size in voxels along the largest dimension of the volume, overwrites the 'resolution' parameter\n"
+              "- resolution: number of voxels per micrometer (default: 0.0625 for densities, otherwise 1.0)\n"
               "- showProgress: display progress bar for current voxelization step\n"
               "                (default: 0/off)\n"
               "\n"
@@ -184,7 +188,7 @@ public:
         }
 
         if( _vm.count( "volume" ))
-            _uri = _vm["volume"].as< std::string >();
+            _uri = fivox::URI( _vm["volume"].as< std::string >( ));
         else
             LBINFO << "Using " << _uri << " as volume" << std::endl;
 
@@ -222,11 +226,8 @@ public:
         return fivox::Vector2ui( 0, 1 ); // just frame 0 by default
     }
 
-    /**
-     * Return the volume URI as a string
-     * @return a std::string containing the volume URI
-     */
-    const std::string& getURI() const
+    /** @return the volume URI */
+    const fivox::URI& getURI() const
     {
         return _uri;
     }
@@ -234,7 +235,7 @@ public:
 protected:
     po::options_description _options;
     po::variables_map _vm;
-    std::string _uri;
+    fivox::URI _uri;
 };
 
 }

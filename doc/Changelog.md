@@ -3,12 +3,17 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#53](https://github.com/BlueBrain/Fivox/pull/53)
+  Add support for volume setup via reference volume with 'reference' parameter
+  in volume URI
+  Add 'gidfraction' parameter in volume URI
+  Changed the default 'resolution' to 1 instead of 10 voxel per micrometer
 * [#47](https://github.com/BlueBrain/Fivox/pull/47)
   Fivox computes the data to Livre transform matrix and the meterToDataUnitRatio
   parameter
 * [#48](https://github.com/BlueBrain/Fivox/pull/48)
   Add tool to compute the evolution of data at a specific point over time.
-  Remove support of deprecated #target in the volume URI.
+  Remove support of deprecated \#target in the volume URI.
 * [#45](https://github.com/BlueBrain/Fivox/pull/45)
   Add parameter to extend the volume size. The cutoff distance no longer grows
   the resulting volume.

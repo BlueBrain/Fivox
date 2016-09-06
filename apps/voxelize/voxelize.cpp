@@ -91,8 +91,7 @@ public:
               "Type of the data in the output volume "
               "[float (default), int, short, char]" )
             ( "size,s", po::value< size_t >(),
-              "Size of the output volume. If specified, this parameter will "
-              "overwrite the resolution setting in the uri." )
+              "Deprecated; use size in volume URI instead." )
             ( "output,o", po::value< std::string >(),
               "Name of the output volume file (mhd and raw); contains frame "
               "number if --frames or --times" )
@@ -129,30 +128,27 @@ public:
 
     void sample()
     {
-        const ::fivox::URIHandler params( getURI( ));
-        ImageSourcePtr source = params.newImageSource< float >();
-        ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
-        const fivox::AABBf& bbox = loader->getBoundingBox();
+        ::fivox::URI uri = getURI();
 
-        const fivox::Vector3f& extent( bbox.getSize() +
-                                       params.getExtendDistance() * 2.f );
-
-        size_t size;
+        // for compatibility
         if( _vm.count( "size" ))
-            size = _vm["size"].as< size_t >();
-        else
-        {
-            const fivox::Vector3f& sizeVoxels = extent * params.getResolution();
-            size = (size_t)std::ceil( sizeVoxels.find_max( ));
-        }
+            uri.addQuery( "size", std::to_string( _vm["size"].as< size_t >( )));
 
-        VolumeHandler volumeHandler( size, extent );
+        const ::fivox::URIHandler params( uri );
+        ImageSourcePtr source = params.newImageSource< float >();
 
+        const fivox::Vector3f& extent( source->getSizeInMicrometer( ));
+        const size_t size( std::ceil( source->getSizeInVoxel().find_max( )));
+
+        const VolumeHandler volumeHandler( size, extent );
         VolumePtr output = source->GetOutput();
+
         output->SetRegions( volumeHandler.computeRegion( _decompose ));
         output->SetSpacing( volumeHandler.computeSpacing( ));
+        const fivox::AABBf& bbox = source->getBoundingBox();
         output->SetOrigin( volumeHandler.computeOrigin( bbox.getCenter( )));
 
+        ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
         const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
 
         const double sigmaVSDProjection =

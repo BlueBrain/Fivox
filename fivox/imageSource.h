@@ -75,6 +75,21 @@ public:
     /** Enable display of progress bar during voxelization. */
     void showProgress();
 
+    /** Setup size and resolultion of output volume depending on user input. */
+    void setup( const URIHandler& params );
+
+    /** @return the bounding box of the data in micrometers. */
+    const AABBf& getBoundingBox() const;
+
+    /** @return the size of the output volume in micrometers. */
+    const Vector3f& getSizeInMicrometer() const;
+
+    /** @return the size of the output volume in voxels. */
+    const Vector3ui& getSizeInVoxel() const;
+
+    /** @return the resolution of the output volume in voxels per micrometer. */
+    const Vector3f& getResolution() const;
+
     const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const override
         { return _splitter; }
 
@@ -98,6 +113,11 @@ private:
     itk::ImageRegionSplitterBase::Pointer _splitter;
     ProgressObserver::Pointer _progressObserver;
     lunchbox::Monitor< size_t > _completed;
+
+    AABBf _boundingBox;
+    Vector3ui _sizeVoxel;
+    Vector3f _sizeMicrometer;
+    Vector3f _resolution;
 };
 } // end namespace fivox
 
