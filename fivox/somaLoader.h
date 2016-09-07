@@ -44,7 +44,7 @@ private:
     //@{
     Vector2f _getTimeRange() const final;
     ssize_t _load( float time ) final;
-    SourceType _getType() const final { return SOURCE_FRAME; }
+    SourceType _getType() const final { return SourceType::frame; }
     bool _hasEnded() const final { return true; }
     //@}
 

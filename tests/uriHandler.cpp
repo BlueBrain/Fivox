@@ -37,10 +37,19 @@
 
 #include <BBP/TestDatasets.h>
 
+namespace fivox
+{
+inline std::ostream& operator << ( std::ostream& os, const VolumeType& type )
+{
+   os << static_cast< size_t >( type );
+   return os;
+}
+}
+
 BOOST_AUTO_TEST_CASE(compartment_defaults)
 {
     const fivox::URIHandler handler( fivox::URI( "fivox://" ));
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_COMPARTMENTS );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::compartments );
     BOOST_CHECK_EQUAL( handler.getConfig().getCircuitSource(),
                  brion::BlueConfig( BBP_TEST_BLUECONFIG3 ).getCircuitSource( ));
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
@@ -88,28 +97,28 @@ BOOST_AUTO_TEST_CASE(somas)
 {
     const fivox::URIHandler handler( fivox::URI( "fivoxsomas://" ));
     BOOST_CHECK_EQUAL( handler.getGIDs().size(), 50 );
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SOMAS );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::somas );
     BOOST_CHECK_EQUAL( handler.getReport(), "somas" );
 }
 
 BOOST_AUTO_TEST_CASE(spikes)
 {
     const fivox::URIHandler handler( fivox::URI( "fivoxspikes://" ));
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SPIKES );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::spikes );
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
 BOOST_AUTO_TEST_CASE(synapses)
 {
     const fivox::URIHandler handler( fivox::URI( "fivoxsynapses://" ));
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_SYNAPSES );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::synapses );
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
 }
 
 BOOST_AUTO_TEST_CASE(vsd)
 {
     const fivox::URIHandler handler( fivox::URI( "fivoxvsd://" ));
-    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::TYPE_VSD );
+    BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::vsd );
     BOOST_CHECK_EQUAL( handler.getInputRange(),
                        fivox::Vector2f( -100000.f, 300.f ));
     BOOST_CHECK_EQUAL( handler.getDyeCurve(), "" );

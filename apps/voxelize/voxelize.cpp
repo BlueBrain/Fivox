@@ -152,8 +152,8 @@ public:
         const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
 
         const double sigmaVSDProjection =
-            params.getType() == fivox::TYPE_VSD && _vm.count( "projection" ) ?
-                                _vm["projection"].as< double >() : -1.0;
+            params.getType() == fivox::VolumeType::vsd &&
+            _vm.count( "projection" ) ? _vm["projection"].as< double >() : -1.0;
 
         const std::string& datatype( _vm["datatype"].as< std::string >( ));
         if( datatype == "char" )

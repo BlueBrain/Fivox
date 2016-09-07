@@ -317,7 +317,7 @@ Vector2ui EventSource::getFrameRange() const
     const Vector2f& interval = _getTimeRange();
     switch( _getType( ))
     {
-    case SOURCE_EVENT:
+    case SourceType::event:
         if( _hasEnded( ))
         {
             if( interval.x() == interval.y() && _impl->numEvents == 0 )
@@ -330,7 +330,7 @@ Vector2ui EventSource::getFrameRange() const
             // Return only full frames [t, t+dt)
             return Vector2ui( std::floor( interval.x() / getDt( )),
                               std::floor( interval.y() / getDt( )));
-    case SOURCE_FRAME:
+    case SourceType::frame:
     default:
         return Vector2ui( std::floor( interval.x() / getDt( )),
                           std::ceil( interval.y() / getDt( )));
