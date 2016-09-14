@@ -31,18 +31,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "volumeHandler.h"
-#include "volumeWriter.h"
 #include "../commandLineApplication.h"
+#include "../volumeHandler.h"
+#include "../volumeWriter.h"
 
 namespace
 {
 
 template< typename T >
-void _sample( fivox::ImageSourcePtr< fivox::FloatVolume > source,
-              const vmml::Vector2ui& frameRange,
-              const double sigmaVSDProjection, const fivox::URIHandler& params,
-              const std::string& outputFile )
+void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
+              const fivox::URIHandler& params, const std::string& outputFile )
 {
     VolumePtr input = source->GetOutput();
     VolumeWriter< T > writer( input, params.getInputRange( ));
@@ -69,11 +67,6 @@ void _sample( fivox::ImageSourcePtr< fivox::FloatVolume > source,
         source->Modified();
         writer->Update(); // Run pipeline to write volume
         LBINFO << "Volume written as " << volumeName << std::endl;
-
-        if( sigmaVSDProjection < 0.0 )
-            continue;
-
-        writer.projectVSD( filename, sigmaVSDProjection );
     }
 }
 }
@@ -98,11 +91,6 @@ public:
             ( "output,o", po::value< std::string >(),
               "Name of the output volume file (mhd and raw); contains frame "
               "number if --frames or --times" )
-            ( "projection,p", po::value< double >(), "Generate the "
-              "corresponding projected 2D image (only for VSD volumes), using "
-              "the specified value as the absorption + scattering coefficient "
-              "(units per micrometer) in the Beer-Lambert law. Must be a "
-              "positive value." )
             ( "decompose", po::value< fivox::Vector2ui >(),
               "'rank size' data-decomposition for parallel job submission" );
 //! [VoxelizeParameters]
@@ -154,34 +142,26 @@ public:
         ::fivox::EventSourcePtr loader = source->getEventSource();
         const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
 
-        const double sigmaVSDProjection =
-            params.getType() == fivox::VolumeType::vsd &&
-            _vm.count( "projection" ) ? _vm["projection"].as< double >() : -1.0;
-
         const std::string& datatype( _vm["datatype"].as< std::string >( ));
         if( datatype == "char" )
         {
             LBINFO << "Sampling volume as char (uint8_t) data" << std::endl;
-            _sample< uint8_t >( source, frameRange, sigmaVSDProjection,
-                                params, _outputFile );
+            _sample< uint8_t >( source, frameRange, params, _outputFile );
         }
         else if( datatype == "short" )
         {
             LBINFO << "Sampling volume as short (uint16_t) data" << std::endl;
-            _sample< uint16_t >( source, frameRange, sigmaVSDProjection,
-                                 params, _outputFile );
+            _sample< uint16_t >( source, frameRange, params, _outputFile );
         }
         else if( datatype == "int" )
         {
             LBINFO << "Sampling volume as int (uint32_t) data" << std::endl;
-            _sample< uint32_t >( source, frameRange, sigmaVSDProjection,
-                                 params, _outputFile );
+            _sample< uint32_t >( source, frameRange, params, _outputFile );
         }
         else
         {
             LBINFO << "Sampling volume as floating point data" << std::endl;
-            _sample< float >( source, frameRange, sigmaVSDProjection,
-                              params, _outputFile );
+            _sample< float >( source, frameRange, params, _outputFile );
         }
     }
 

@@ -31,6 +31,7 @@
 #include <brain/neuron/section.h>
 #include <brain/neuron/soma.h>
 
+#include <fstream>
 #include <cassert>
 
 namespace fivox
@@ -41,23 +42,30 @@ class VSDLoader::Impl
 public:
     Impl( EventSource& output, const URIHandler& params )
         : _output( output )
+        , _circuit( params.getConfig( ))
+        , _gids( params.getGIDs( ))
         , _voltageReport( params.getConfig().getReportSource( params.getReport( )),
-                          brion::MODE_READ, params.getGIDs( ))
-        , _areaReport( params.getConfig().getReportSource( "areas" ),
-                       brion::MODE_READ, params.getGIDs( ))
+                          brion::MODE_READ, _gids )
+        , _areaReport( URI( params.getAreas( )), brion::MODE_READ, _gids )
+        , _v0( 0.f )
+        , _g0( 0.f )
+        , _spikeFilter( false )
+        , _apThreshold( 0.f )
+        , _interpolate( false )
     {
-        const brain::Circuit circuit( params.getConfig( ));
-        const auto morphologies = circuit.loadMorphologies(
-            params.getGIDs(), brain::Circuit::Coordinates::global );
+        LBINFO << "Loading " << _gids.size() << " morphologies..." << std::endl;
+        const auto morphologies = _circuit.loadMorphologies(
+            _gids, brain::Circuit::Coordinates::global );
 
+        const brion::Vector3fs& positions = _circuit.getPositions( _gids );
+        for( const auto& position : positions )
+            _bboxSomas.merge( position );
+
+        LBINFO << "Creating events..." << std::endl;
+        helpers::addCompartmentEvents( morphologies, _areaReport, _output );
+
+        LBINFO << "Loading areas..." << std::endl;
         _areas = _areaReport.loadFrame( 0.f );
-        if( !_areas )
-            LBTHROW( std::runtime_error( "Can't load 'areas' vsd report" ));
-
-        helpers::addCompartmentEvents( morphologies, _voltageReport, output );
-
-        const float thickness = _output.getBoundingBox().getSize()[1];
-        setCurve( AttenuationCurve( params.getDyeCurve(), thickness ));
     }
 
     ssize_t load()
@@ -67,32 +75,39 @@ public:
         if( !voltages )
             return -1;
 
-        const float yMax = _output.getBoundingBox().getMax()[1];
-
         assert( voltages->size() == _areas->size( ));
-        for( size_t i = 0; i != voltages->size( ); ++i )
-            _updateEventValue( i, ( *voltages )[i], ( *_areas )[i], yMax );
-
+        for( size_t i = 0; i != voltages->size(); ++i )
+        {
+            const float voltage = ( *voltages )[i];
+            _updateEventValue( i, _spikeFilter ? std::min(voltage, _apThreshold)
+                                               : voltage, ( *_areas )[i] );
+        }
         return voltages->size();
     }
 
-    void setCurve( const AttenuationCurve& curve ) { _curve = curve; }
+    void _updateEventValue( const size_t index, const float voltage,
+                            const float area )
+    {
+        const float positionY = _output.getPositionsY()[index];
+        _output[index] = ( voltage - _v0 + _g0 ) * area *
+                         _curve.getAttenuation( positionY, _interpolate );
+    }
 
     EventSource& _output;
+    const brain::Circuit _circuit;
+    brion::GIDSet _gids;
 
     brion::CompartmentReport _voltageReport;
     brion::CompartmentReport _areaReport;
     brion::floatsPtr _areas;
-
     AttenuationCurve _curve;
 
-    void _updateEventValue( const size_t index, const float voltage,
-                            const float area, const float yMax )
-    {
-        const float positionY = _output.getPositionsY()[index];
-        const float depth = yMax - positionY;
-        _output[index] = voltage * area * _curve.getAttenuation( depth );
-    }
+    AABBf _bboxSomas; // bounding box of the somas
+    float _v0; // resting potential (mV)
+    float _g0; // multiplier for surface area in background fluorescence term
+    bool _spikeFilter; // use the action potential threshold to filter spikes
+    float _apThreshold; // action potential threshold (mV)
+    bool _interpolate; // interpolate the attenuation from the dye curve
 };
 
 VSDLoader::VSDLoader( const URIHandler& params )
@@ -108,7 +123,37 @@ VSDLoader::~VSDLoader()
 
 void VSDLoader::setCurve( const AttenuationCurve& curve )
 {
-    _impl->setCurve( curve );
+    _impl->_curve = curve;
+}
+
+AABBf VSDLoader::getBoundingBoxSomas() const
+{
+    return _impl->_bboxSomas;
+}
+
+void VSDLoader::setV0( const float v0 )
+{
+    _impl->_v0 = v0;
+}
+
+void VSDLoader::setG0( const float g0 )
+{
+    _impl->_g0 = g0;
+}
+
+void VSDLoader::setSpikeFilter( const bool enable )
+{
+    _impl->_spikeFilter = enable;
+}
+
+void VSDLoader::setApThreshold( const float apThreshold )
+{
+    _impl->_apThreshold = apThreshold;
+}
+
+void VSDLoader::setInterpolation( const bool interpolate )
+{
+    _impl->_interpolate = interpolate;
 }
 
 Vector2f VSDLoader::_getTimeRange() const

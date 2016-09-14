@@ -121,6 +121,6 @@ BOOST_AUTO_TEST_CASE(vsd)
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::vsd );
     BOOST_CHECK_EQUAL( handler.getInputRange(),
                        fivox::Vector2f( -100000.f, 300.f ));
-    BOOST_CHECK_EQUAL( handler.getDyeCurve(), "" );
     BOOST_CHECK_EQUAL( handler.getReport(), "voltages" );
+    BOOST_CHECK_THROW( handler.getAreas(), std::runtime_error );
 }

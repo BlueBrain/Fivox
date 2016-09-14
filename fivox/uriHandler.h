@@ -83,6 +83,13 @@ public:
     std::string getReport() const;
 
     /**
+     * Get the specified path to the area report file.
+     *
+     * @return the specified report path.
+     */
+    std::string getAreas() const;
+
+    /**
      * Get the specified timestep (dt).
      *
      * @return the specified timestep. If invalid or empty, return 10.
@@ -112,12 +119,6 @@ public:
      * volume can take before rescaling it
      */
     Vector2f getInputRange() const;
-
-    /**
-     * Get the specified path to a dye curve file
-     * @return the specified path to the dye curve file
-     */
-    std::string getDyeCurve() const;
 
     /**
      * Get the specified resolution in voxels per unit (typically um).
