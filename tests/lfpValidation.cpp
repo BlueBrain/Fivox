@@ -53,9 +53,9 @@ const float expectedValue2 = 2.81135f;
 BOOST_AUTO_TEST_CASE( LfpValidation )
 {
     const fivox::URIHandler params( fivox::URI( "fivoxtest://?resolution=1&cutoff=100&functor=lfp" ));
-    auto volumeSource = params.newImageSource< float >();
+    auto volumeSource = params.newImageSource< fivox::FloatVolume >();
 
-    typedef itk::Image< float, 3 > Image;
+    typedef fivox::FloatVolume Image;
     itk::Size<3> size = {{205, 240, 204}};
     Image::RegionType region;
     region.SetSize( size );
@@ -64,8 +64,8 @@ BOOST_AUTO_TEST_CASE( LfpValidation )
     volume->SetRegions( region );
 
     // set up size and origin for loaded data
-    fivox::EventSourcePtr source = volumeSource->getFunctor()->getSource();
-    source->load( 90u );
+    fivox::EventSourcePtr source = volumeSource->getEventSource();
+    source->setFrame( 90u );
     const fivox::AABBf& bbox = source->getBoundingBox();
     const fivox::Vector3f& extent( bbox.getSize() +
                                    source->getCutOffDistance() * 2.f );

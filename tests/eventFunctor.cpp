@@ -33,7 +33,7 @@
 
 #include "test.h"
 #include <fivox/eventSource.h>
-#include <fivox/imageSource.h>
+#include <fivox/functorImageSource.h>
 #include <fivox/eventFunctor.h>
 #include <itkTimeProbe.h>
 #include <iomanip>
@@ -51,7 +51,7 @@ class MeaningFunctor : public fivox::EventFunctor< TImage >
 {
     typedef fivox::EventFunctor< TImage > Super;
 public:
-    MeaningFunctor() : Super( fivox::Vector2f( )) {}
+    MeaningFunctor() : Super() {}
     virtual ~MeaningFunctor() {}
 
     typename Super::TPixel operator()( const typename Super::TPoint&,
@@ -66,7 +66,7 @@ inline void _testEventFunctor( const size_t size )
 {
     typedef itk::Image< T, dim > Image;
     typedef MeaningFunctor< Image > Functor;
-    typedef fivox::ImageSource< Image > Filter;
+    typedef fivox::FunctorImageSource< Image > Filter;
 
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();

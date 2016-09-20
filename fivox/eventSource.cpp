@@ -233,6 +233,11 @@ EventValues EventSource::findEvents( const AABBf& area LB_UNUSED ) const
     return eventValues;
 }
 
+void EventSource::setBoundingBox( const AABBf& boundingBox )
+{
+    _impl->boundingBox = boundingBox;
+}
+
 const AABBf& EventSource::getBoundingBox() const
 {
     return _impl->boundingBox;
@@ -283,33 +288,19 @@ void EventSource::buildRTree()
 #endif
 }
 
-bool EventSource::load( const uint32_t frame )
+bool EventSource::setFrame( const uint32_t frame )
 {
     if( !isInFrameRange( frame ))
         return false;
 
     const float time  = _getTimeRange().x() + getDt() * frame;
-    return load( time );
+    setTime( time );
+    return true;
 }
 
-bool EventSource::load( const float time )
+void EventSource::setTime( const float time )
 {
-    if( time == _impl->currentTime )
-        return true;
-
-    const ssize_t updatedEvents = _load( time );
-    if( updatedEvents < 0 )
-    {
-        LBERROR << "Timestamp " << time << "ms not loaded, no data or events"
-                << std::endl;
-        return false;
-    }
-
-    LBINFO << "Timestamp " << time << "ms loaded, updated " << updatedEvents
-           << " event(s)" << std::endl;
-
     _impl->currentTime = time;
-    return true;
 }
 
 Vector2ui EventSource::getFrameRange() const
@@ -317,7 +308,7 @@ Vector2ui EventSource::getFrameRange() const
     const Vector2f& interval = _getTimeRange();
     switch( _getType( ))
     {
-    case SOURCE_EVENT:
+    case SourceType::event:
         if( _hasEnded( ))
         {
             if( interval.x() == interval.y() && _impl->numEvents == 0 )
@@ -330,14 +321,14 @@ Vector2ui EventSource::getFrameRange() const
             // Return only full frames [t, t+dt)
             return Vector2ui( std::floor( interval.x() / getDt( )),
                               std::floor( interval.y() / getDt( )));
-    case SOURCE_FRAME:
+    case SourceType::frame:
     default:
         return Vector2ui( std::floor( interval.x() / getDt( )),
                           std::ceil( interval.y() / getDt( )));
     }
 }
 
-bool EventSource::isInFrameRange( uint32_t frame )
+bool EventSource::isInFrameRange( const uint32_t frame )
 {
     const Vector2ui& frameRange = getFrameRange();
     return frame >= frameRange[0] && frame < frameRange[1];
@@ -351,6 +342,31 @@ float EventSource::getDt() const
 void EventSource::setDt( const float dt )
 {
     _impl->dt = dt;
+}
+
+float EventSource::getCurrentTime() const
+{
+    return _impl->currentTime;
+}
+
+ssize_t EventSource::load( const size_t chunkIndex, const size_t numChunks )
+{
+    if( numChunks == 0 )
+        LBTHROW( std::runtime_error(
+                     "EventSource::load: numChunks must be > 0" ));
+    if( chunkIndex + numChunks > getNumChunks( ))
+        LBTHROW( std::out_of_range( "EventSource::load: Out of range" ));
+    return _load( chunkIndex, numChunks );
+}
+
+ssize_t EventSource::load()
+{
+    return load( 0, getNumChunks( ));
+}
+
+size_t EventSource::getNumChunks() const
+{
+    return _getNumChunks();
 }
 
 }

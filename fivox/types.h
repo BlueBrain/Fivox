@@ -54,8 +54,6 @@ typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
 
 typedef itk::Image< uint8_t, 3 > ByteVolume;
 typedef itk::Image< float, 3 > FloatVolume;
-typedef std::shared_ptr< EventFunctor< ByteVolume >> ByteFunctorPtr;
-typedef std::shared_ptr< EventFunctor< FloatVolume >> FloatFunctorPtr;
 
 struct EventsDeleter
 {
@@ -72,36 +70,46 @@ using vmml::AABBf;
 
 using servus::URI;
 
+template< typename TImage >
+using ImageSourcePtr = itk::SmartPointer< ImageSource< TImage >>;
+
+template< typename TImage >
+using EventFunctorPtr = std::shared_ptr< EventFunctor< TImage >>;
+
 /** Supported data sources */
-enum VolumeType
+enum class VolumeType
 {
-    TYPE_UNKNOWN,      //!< Unknown URI scheme
-    TYPE_TEST,         /*!< Test type that creates fixed events
+    unknown,      //!< Unknown URI scheme
+    test,         /*!< Test type that creates fixed events
                             (e.g. for validation of different functors */
-    TYPE_COMPARTMENTS, //!< BBP compartment simulation reports
-    TYPE_SOMAS,        //!< BBP soma simulation reports
-    TYPE_SPIKES,       //!< BBP spike simulation reports
-    TYPE_SYNAPSES,     //!< BBP synapse positions
-    TYPE_VSD,          //!< BBP voltage sensitive dye simulation reports
+    compartments, //!< BBP compartment simulation reports
+    somas,        //!< BBP soma simulation reports
+    spikes,       //!< BBP spike simulation reports
+    synapses,     //!< BBP synapse positions
+    vsd,          //!< BBP voltage sensitive dye simulation reports
 };
 
 /** Supported functor types */
-enum FunctorType
+enum class FunctorType
 {
-    FUNCTOR_UNKNOWN,
-    FUNCTOR_DENSITY, //!< sum( magnitude of events in voxel ) / volume of voxel
-    FUNCTOR_LFP,     //!< LFP computation
-    FUNCTOR_FIELD,   //!< quadratic falloff of magnitude in space
-    FUNCTOR_FREQUENCY //!< maximum magnitude of all events in voxel
+    unknown,
+    density,  //!< sum( magnitude of events in voxel ) / volume of voxel
+    lfp,      //!< LFP computation
+    field,    //!< quadratic falloff of magnitude in space
+    frequency //!< maximum magnitude of all events in voxel
 };
 
 /** @internal Different types of event sources which defines
     EventSource::getFrameRange */
-enum SourceType
+enum class SourceType
 {
-    SOURCE_EVENT, //!< e.g. spikes reports
-    SOURCE_FRAME //!< e.g. compartment reports
+    event, //!< e.g. spikes reports
+    frame  //!< e.g. compartment reports
 };
+
+/** Indicates to consider all data for potential rescaling. */
+const Vector2f FULLDATARANGE( -std::numeric_limits< float >::infinity(),
+                               std::numeric_limits< float >::infinity( ));
 
 }
 

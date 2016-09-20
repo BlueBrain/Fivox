@@ -43,9 +43,10 @@ private:
     /** @name Abstract interface implementation */
     //@{
     Vector2f _getTimeRange() const final;
-    ssize_t _load( float time ) final;
-    SourceType _getType() const final { return SOURCE_EVENT; }
+    ssize_t _load( size_t chunkIndex, size_t numChunks ) final;
+    SourceType _getType() const final { return SourceType::event; }
     bool _hasEnded() const final;
+    size_t _getNumChunks() const final { return 1; }
     //@}
 
     class Impl;

@@ -39,7 +39,8 @@ namespace
 {
 
 template< typename T >
-void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
+void _sample( fivox::ImageSourcePtr< fivox::FloatVolume > source,
+              const vmml::Vector2ui& frameRange,
               const double sigmaVSDProjection, const fivox::URIHandler& params,
               const std::string& outputFile )
 {
@@ -59,7 +60,7 @@ void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
         else
             filename = outputFile;
 
-        source->getFunctor()->getSource()->load( i );
+        source->getEventSource()->setFrame( i );
 
         const std::string& volumeName = filename + ".mhd";
         writer->SetFileName( volumeName );
@@ -135,7 +136,7 @@ public:
             uri.addQuery( "size", std::to_string( _vm["size"].as< size_t >( )));
 
         const ::fivox::URIHandler params( uri );
-        ImageSourcePtr source = params.newImageSource< float >();
+        auto source = params.newImageSource< fivox::FloatVolume >();
 
         const fivox::Vector3f& extent( source->getSizeInMicrometer( ));
         const size_t size( std::ceil( source->getSizeInVoxel().find_max( )));
@@ -148,12 +149,12 @@ public:
         const fivox::AABBf& bbox = source->getBoundingBox();
         output->SetOrigin( volumeHandler.computeOrigin( bbox.getCenter( )));
 
-        ::fivox::EventSourcePtr loader = source->getFunctor()->getSource();
+        ::fivox::EventSourcePtr loader = source->getEventSource();
         const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
 
         const double sigmaVSDProjection =
-            params.getType() == fivox::TYPE_VSD && _vm.count( "projection" ) ?
-                                _vm["projection"].as< double >() : -1.0;
+            params.getType() == fivox::VolumeType::vsd &&
+            _vm.count( "projection" ) ? _vm["projection"].as< double >() : -1.0;
 
         const std::string& datatype( _vm["datatype"].as< std::string >( ));
         if( datatype == "char" )

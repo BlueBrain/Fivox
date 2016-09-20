@@ -36,8 +36,8 @@ class DensityFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    explicit DensityFunctor( const Vector2f& inputRange )
-        : Super( inputRange )
+    DensityFunctor()
+        : Super()
     {}
     virtual ~DensityFunctor() {}
 
@@ -74,7 +74,7 @@ DensityFunctor< TImage >::operator()( const TPoint& itkPoint,
         sum += value;
 
     sum /= std::abs( spacing_2.product() * 8.f );
-    return Super::_scale( sum );
+    return sum;
 }
 
 }

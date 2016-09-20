@@ -33,7 +33,7 @@
 #define FIVOX_VOLUMEWRITER_H
 
 #include "beerLambertProjectionImageFilter.h"
-#include "scaleFilter.h"
+#include <fivox/scaleFilter.h>
 
 #include <itkImageFileWriter.h>
 
@@ -62,7 +62,7 @@ public:
         , _scaler( _input, dataRange )
         , _writer( Writer::New( ))
     {
-        _writer->SetInput( _scaler->GetOutput( ));
+        _writer->SetInput( _scaler.GetOutput( ));
     }
 
     /**
@@ -100,7 +100,7 @@ public:
 
 private:
     VolumePtr _input;
-    ScaleFilter< T > _scaler;
+    fivox::ScaleFilter< itk::Image< T, 3 >> _scaler;
     typename Writer::Pointer _writer;
 };
 

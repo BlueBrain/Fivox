@@ -54,15 +54,22 @@ public:
     const brion::BlueConfig& getConfig() const;
 
     /**
-     * @return the GIDs from the specified target. If no target was specified,
-     *         it returns the GIDs from the BlueConfig's circuit target. If this
-     *         is empty (and TestData is available), it returns the GIDs from
-     *         the 'Column' target when using spikes or synapses, 'Layer1'
-     *         otherwise.
+     * @return the GIDs from the 'postTarget' parameter (if specified, by
+     *         default not), or the 'target' parameter. If no target was
+     *         specified, it returns the GIDs from the BlueConfig's circuit
+     *         target. If this is empty (and TestData is available), it returns
+     *         the GIDs from the 'Column' target when using spikes or synapses,
+     *         'Layer1' otherwise.
      *         If the specified target was the '*' wildcard, it returns all GIDs
      *         of the circuit and omits target parsing entirely.
      */
     const brion::GIDSet& getGIDs() const;
+
+    /**
+     * @return the GIDs from the 'preTarget' parameter, used for synapse
+     *         projections. Empty if parameter not specified.
+     */
+    const brion::GIDSet& getPreGIDs() const;
 
     /**
      * Get the specified report name.
@@ -174,8 +181,15 @@ public:
     size_t getSizeInVoxel() const;
 
     /** @return a new image source for the given parameters and pixel type. */
-    template< class T >
-    itk::SmartPointer< ImageSource< itk::Image< T, 3 >>> newImageSource() const;
+    template< class TImage >
+    ImageSourcePtr< TImage > newImageSource() const;
+
+    /** @return a new functor for the given parameters and pixel type. */
+    template< class TImage >
+    EventFunctorPtr< TImage > newFunctor() const;
+
+    /** @return a new event source for the given parameters. */
+    EventSourcePtr newEventSource() const;
 
 private:
     class Impl;
