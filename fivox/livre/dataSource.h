@@ -53,8 +53,9 @@ public:
      * Updates the data source. Fivox data sources can be data streams,
      * which means that the number of frames changes over time.
      * This function updates the data source to the latest data received.
+     * @return true if the datasource has changed since the last update().
      */
-    void update() final;
+    bool update() final;
 
 private:
     class Impl;

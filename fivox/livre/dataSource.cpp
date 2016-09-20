@@ -107,12 +107,17 @@ public:
                                 scaler.GetOutput()->GetBufferPointer(), size ));
     }
 
-    void update( livre::VolumeInformation& info )
+    bool update( livre::VolumeInformation& info )
     {
         EventSourcePtr loader = source->getEventSource();
         const Vector2ui& frameRange = loader->getFrameRange();
+
+        if( info.frameRange == frameRange )
+            return false;
+
         if( frameRange[1] > 0 ) // is any frame present
             info.frameRange = frameRange;
+        return true;
     }
 
     const URIHandler params;
@@ -248,9 +253,9 @@ bool DataSource::handles( const livre::DataSourcePluginData& data )
     return scheme.substr( 0, fivox.size( )) == fivox;
 }
 
-void DataSource::update()
+bool DataSource::update()
 {
-    _impl->update( _volumeInfo );
+    return _impl->update( _volumeInfo );
 }
 
 }

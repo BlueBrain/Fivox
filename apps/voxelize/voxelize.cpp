@@ -62,7 +62,9 @@ void _sample( fivox::ImageSourcePtr< fivox::FloatVolume > source,
 
         source->getEventSource()->setFrame( i );
 
-        const std::string& volumeName = filename + ".mhd";
+        std::string volumeName = filename;
+        if( volumeName.find_last_of( ".") == std::string::npos )
+            volumeName += ".mhd";
         writer->SetFileName( volumeName );
         source->Modified();
         writer->Update(); // Run pipeline to write volume

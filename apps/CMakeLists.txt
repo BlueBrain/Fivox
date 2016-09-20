@@ -4,5 +4,6 @@
 # This file is part of Fivox <https://github.com/BlueBrain/Fivox>
 
 add_subdirectory(samplePoint)
+add_subdirectory(synapseDensities)
 add_subdirectory(voxelize)
 add_subdirectory(voxelizeBatch)
