@@ -130,6 +130,8 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     // We assume that the data's units are micrometers
     _volumeInfo.meterToDataUnitRatio = 1e6;
 
+    _volumeInfo.description = _impl->params.getDescription();
+
     const AABBf& bbox = _impl->source->getBoundingBox();
     const Vector3f resolution = _impl->source->getResolution();
     const Vector3f fullResolution =

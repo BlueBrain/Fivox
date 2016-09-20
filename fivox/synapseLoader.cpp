@@ -39,6 +39,9 @@ public:
         , _synapses( _loadSynapseStream( ))
         , _numChunks( _synapses.getRemaining( ))
     {
+        if( !params.getReferenceVolume().empty( ))
+            return;
+
         // compute circuit bounding box as we don't have any synapses at this
         // point
         const auto& gids = _circuit.getGIDs();

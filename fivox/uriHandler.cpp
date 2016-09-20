@@ -229,6 +229,51 @@ public:
     size_t getSizeInVoxel() const
         { return _get( "size", 0 ); }
 
+    std::string getDescription() const
+    {
+        std::stringstream desc;
+        switch( getType( ))
+        {
+        case VolumeType::compartments:
+        case VolumeType::somas:
+            if( getFunctorType() == FunctorType::lfp )
+                desc << "local field potential in mV of ";
+            else
+                desc << "membrane voltage in mV of ";
+            if( getType() == VolumeType::somas )
+                desc << "soma ";
+            else
+                desc << "compartment ";
+            desc << "report '" << getReport() << "' for target '"
+                 << _get( "target" ) << "'";
+            break;
+        case VolumeType::spikes:
+            desc << "number of spikes in " << getDuration()
+                 << "ms for target '" << _get( "target" ) << "'";
+            break;
+        case VolumeType::synapses:
+        {
+            desc << "number of synapses/voxel ";
+            const std::string& preTarget = _get( "preTarget" );
+            if( preTarget.empty( ))
+                desc << "for afferent synapses of target '"
+                     << _get( "target" ) << "'";
+            else
+                desc << "for pathway from '" << preTarget << "' to '"
+                     << _get( "postTarget" ) << "'";
+        } break;
+        case VolumeType::vsd:
+            desc << "VSD (Voltage-Sensitive Dye) from " << getReport()
+                 << " for target '"  << _get( "target" ) << "'";
+            break;
+        case VolumeType::test:
+        default:
+            return "";
+        }
+
+        return desc.str();
+    }
+
     VolumeType getType() const
     {
         const std::string& scheme = uri.getScheme();
@@ -423,6 +468,11 @@ size_t URIHandler::getSizeInVoxel() const
     return _impl->getSizeInVoxel();
 }
 
+std::string URIHandler::getDescription() const
+{
+    return _impl->getDescription();
+}
+
 template< class TImage >
 ImageSourcePtr< TImage > URIHandler::newImageSource() const
 {
@@ -492,34 +542,8 @@ EventFunctorPtr< TImage > URIHandler::newFunctor() const
 
 std::ostream& operator << ( std::ostream& os, const URIHandler& params )
 {
-    switch( params.getType( ))
-    {
-    case VolumeType::compartments:
-        os << "compartment voltages from " << params.getReport();
-        break;
-    case VolumeType::somas:
-        os << "soma voltages from " << params.getReport();
-        break;
-    case VolumeType::spikes:
-        os << "spikes from " << params.getConfig().getSpikeSource()
-           << ", duration = " << params.getDuration();
-        break;
-    case VolumeType::synapses:
-        os << "synapse positions from " << params.getConfig().getSynapseSource();
-        break;
-    case VolumeType::vsd:
-        os << "VSD (Voltage-Sensitive Dye) from " << params.getReport();
-        break;
-    case VolumeType::test:
-        os << "test type for validation";
-        break;
-    case VolumeType::unknown:
-    default:
-        os << "unknown data source";
-        break;
-    }
-
-    return os << ", resolution = " << 1.f/params.getResolution() << " um/voxel";
+    return os << params.getDescription() << ", resolution = "
+              << 1.f/params.getResolution() << " um/voxel";
 }
 
 }

@@ -180,6 +180,9 @@ public:
     /** @return the size in voxels along the largest dimension of the volume. */
     size_t getSizeInVoxel() const;
 
+    /** @return description of the volume from the provided URI paramters. */
+    std::string getDescription() const;
+
     /** @return a new image source for the given parameters and pixel type. */
     template< class TImage >
     ImageSourcePtr< TImage > newImageSource() const;
