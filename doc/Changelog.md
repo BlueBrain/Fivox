@@ -4,6 +4,8 @@ Changelog {#changelog}
 # git master {#master}
 
 * [#56](https://github.com/BlueBrain/Fivox/pull/56)
+  Add synapse_densities.py tool
+* [#56](https://github.com/BlueBrain/Fivox/pull/56)
   Datasource for livre now reports description
 * [#55](https://github.com/BlueBrain/Fivox/pull/55)
   Synapse densities support
