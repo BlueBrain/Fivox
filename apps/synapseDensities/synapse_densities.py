@@ -14,7 +14,7 @@ __author__ = "Daniel Nachbaur"
 __email__ = "daniel.nachbaur@epfl.ch"
 __copyright__ = "Copyright 2016, EPFL/Blue Brain Project"
 
-def find_executable(executable):
+def _find_executable(executable):
     """
     Search for executable in PATH and return result
     """
@@ -26,6 +26,17 @@ def find_executable(executable):
         return False
     return True
 
+def _use_vgl():
+    is_ssh = 'SSH_CLIENT' in os.environ
+    is_vglconnect = is_ssh and ('VGL_DISPLAY' in os.environ or
+                                'VGL_CLIENT' in os.environ)
+    try:
+        is_ssh_x = is_ssh and 'localhost:' in os.environ['DISPLAY']
+    except KeyError:
+        is_ssh_x = False
+    is_vnc = 'VNCDESKTOP' in os.environ
+    return is_vglconnect or is_vnc or is_ssh_x
+
 class Launcher(object): # pylint: disable=too-few-public-methods
     """
     Launcher for a tool showing synapse density volume.
@@ -36,7 +47,7 @@ class Launcher(object): # pylint: disable=too-few-public-methods
         Setup volume URI for livre and/or voxelize from args.
         """
 
-        self._usevgl = 'VGL_CLIENT' in os.environ
+        self._usevgl = _use_vgl()
         self._args = args
         self._args.resolution = 1./self._args.resolution
         self._volume = 'fivoxsynapses://{config}?resolution={resolution}&'
@@ -102,7 +113,7 @@ def main():
     tools = ['livre', 'paraview', 'voxelize']
     executables = list()
     for tool in tools:
-        if find_executable(tool):
+        if _find_executable(tool):
             executables.append(tool)
 
     if not executables:
