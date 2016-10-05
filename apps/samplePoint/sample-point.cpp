@@ -31,7 +31,7 @@
 
 #include "../commandLineApplication.h"
 
-#include <fivox/fivox.h>
+#include <fivox/uriHandler.h>
 #include <fstream>
 
 class SamplePoint : public CommandLineApplication
