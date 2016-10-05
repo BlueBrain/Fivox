@@ -184,12 +184,10 @@ public:
     std::string getDescription() const;
 
     /** @return a new image source for the given parameters and pixel type. */
-    template< class TImage >
-    ImageSourcePtr< TImage > newImageSource() const;
+    template< class TImage > ImageSourcePtr< TImage > newImageSource() const;
 
     /** @return a new functor for the given parameters and pixel type. */
-    template< class TImage >
-    EventFunctorPtr< TImage > newFunctor() const;
+    template< class TImage > EventFunctorPtr< TImage > newFunctor() const;
 
     /** @return a new event source for the given parameters. */
     EventSourcePtr newEventSource() const;

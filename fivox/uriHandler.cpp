@@ -549,7 +549,11 @@ std::ostream& operator << ( std::ostream& os, const URIHandler& params )
 }
 
 // template instantiations
-template fivox::ImageSource< fivox::ByteVolume >::Pointer
+template fivox::ImageSourcePtr< fivox::ByteVolume >
     fivox::URIHandler::newImageSource() const;
-template fivox::ImageSource< fivox::FloatVolume >::Pointer
+template fivox::ImageSourcePtr< fivox::FloatVolume >
     fivox::URIHandler::newImageSource() const;
+template fivox::EventFunctorPtr< fivox::ByteVolume >
+    fivox::URIHandler::newFunctor() const;
+template fivox::EventFunctorPtr< fivox::FloatVolume >
+    fivox::URIHandler::newFunctor() const;
