@@ -24,7 +24,7 @@ before_install:
   - brew update
   - brew outdated cmake || brew upgrade cmake
   - brew install cppcheck doxygen ninja
-  - brew install zeromq python qt5 homebrew/science/hdf5
+  - brew install zeromq python qt5 homebrew/science/hdf5 homebrew/science/insighttoolkit
   - pip install pyparsing
   - ssh-keyscan bbpcode.epfl.ch >> ~/.ssh/known_hosts
 script:
