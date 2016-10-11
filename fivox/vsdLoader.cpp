@@ -47,8 +47,8 @@ public:
         , _voltageReport( params.getConfig().getReportSource( params.getReport( )),
                           brion::MODE_READ, _gids )
         , _areaReport( URI( params.getAreas( )), brion::MODE_READ, _gids )
-        , _v0( 0.f )
-        , _g0( 0.f )
+        , _restingPotential( 0.f )
+        , _areaMultiplier( 0.f )
         , _spikeFilter( false )
         , _apThreshold( 0.f )
         , _interpolate( false )
@@ -75,7 +75,10 @@ public:
         if( !voltages )
             return -1;
 
-        assert( voltages->size() == _areas->size( ));
+        if( voltages->size() != _areas->size( ))
+            LBTHROW( std::runtime_error( "The number of compartments in the "
+                                         "voltage report doesn't match the "
+                                         "number of areas" ));
         for( size_t i = 0; i != voltages->size(); ++i )
         {
             const float voltage = ( *voltages )[i];
@@ -89,8 +92,8 @@ public:
                             const float area )
     {
         const float positionY = _output.getPositionsY()[index];
-        _output[index] = ( voltage - _v0 + _g0 ) * area *
-                         _curve.getAttenuation( positionY, _interpolate );
+        _output[index] = ( voltage - _restingPotential + _areaMultiplier ) *
+                         area * _curve.getAttenuation( positionY, _interpolate);
     }
 
     EventSource& _output;
@@ -103,8 +106,9 @@ public:
     AttenuationCurve _curve;
 
     AABBf _bboxSomas; // bounding box of the somas
-    float _v0; // resting potential (mV)
-    float _g0; // multiplier for surface area in background fluorescence term
+    float _restingPotential; // resting potential (mV)
+    float _areaMultiplier; // multiplier for surface area in background
+                           // fluorescence term
     bool _spikeFilter; // use the action potential threshold to filter spikes
     float _apThreshold; // action potential threshold (mV)
     bool _interpolate; // interpolate the attenuation from the dye curve
@@ -131,14 +135,14 @@ AABBf VSDLoader::getBoundingBoxSomas() const
     return _impl->_bboxSomas;
 }
 
-void VSDLoader::setV0( const float v0 )
+void VSDLoader::setRestingPotential( const float millivolts )
 {
-    _impl->_v0 = v0;
+    _impl->_restingPotential = millivolts;
 }
 
-void VSDLoader::setG0( const float g0 )
+void VSDLoader::setAreaMultiplier( const float factor )
 {
-    _impl->_g0 = g0;
+    _impl->_areaMultiplier = factor;
 }
 
 void VSDLoader::setSpikeFilter( const bool enable )

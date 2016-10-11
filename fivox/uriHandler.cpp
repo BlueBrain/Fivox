@@ -156,7 +156,7 @@ public:
     {
         const std::string& areas( _get( "areas" ));
         if( areas.empty() && getType() == VolumeType::vsd )
-            LBTHROW( std::runtime_error( "'areas' was not specified" ));
+            LBTHROW( std::runtime_error( "URI parameter 'areas' missing" ));
 
         return areas;
     }

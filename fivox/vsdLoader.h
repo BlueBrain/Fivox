@@ -70,17 +70,17 @@ public:
     /**
     * Set the resting potential that will be used for the computation of the VSD
     *
-    * @param v0 resting potential in mV
+    * @param millivolts resting potential in mV
     */
-    void setV0( float v0 );
+    void setRestingPotential( float millivolts );
 
     /**
     * Set the multiplier for surface area in background fluorescence term value
     *
-    * @param g0 multiplier for surface area in background fluorescence term
+    * @param factor multiplier for surface area in background fluorescence term
     * value
     */
-    void setG0( float g0 );
+    void setAreaMultiplier( float factor );
 
     /**
      * Enable the spike filtering

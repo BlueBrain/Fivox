@@ -48,25 +48,25 @@ class ComputeVSD : public CommandLineApplication
 {
 public:
     ComputeVSD()
-        : CommandLineApplication( "Compute the VSD signal and voxelize it to "
-                                  "generate a 2D image through a Beer-Lambert "
-                                  "projection (VTK format)" )
+        : CommandLineApplication( "A tool to compute 2D projections of VSD "
+                                  "signals using the Beer-Lambert law." )
         , _outputFile( "image" )
     {
         _options.add_options()
 //! [ComputeVSDParameters] @anchor ComputeVSD
             ( "output,o", po::value< std::string >(),
-              "Name of the output volume file; contains frame number if "
-              "--frames or --times" )
+              "Name of the output volume (if 'export-volume' specified) and 2D "
+              "image (VTK format) files; contains frame number if --frames or "
+              "--times specified." )
             ( "export-volume",
-              "Export also the 3d volume containing the VSD values, "
-              "in addition to the VTK file." )
+              "Export also the 3d volume (mhd + raw) containing the VSD values,"
+              " in addition to the VTK file." )
             ( "sensor-res", po::value< size_t >()->default_value( 512 ),
               "Number of pixels per side of square sensor." )
             ( "sensor-dim", po::value< size_t >()->default_value( 1000 ),
               "Length of side of square sensor in micrometers." )
             ( "curve", po::value< std::string >(),
-              "Path to the dye curve file (default: no file; attenuation of 1)")
+              "Path to the dye curve file (default: no attenuation)")
             ( "depth", po::value< float >()->default_value( 2081.75641787f ),
               "Depth of the attenuation curve area of influence. It also "
               "defines the Y-coordinate at which it starts being applied, "
@@ -149,9 +149,9 @@ public:
         const float v0 = _vm["v0"].as< float >();
         const float g0 = _vm["g0"].as< float >();
 
-        LBINFO << "VSD info: v0 = " << v0 << " mV; g0 = " << g0 << std::endl;
-        vsdLoader->setV0( v0 );
-        vsdLoader->setG0( g0 );
+        LBINFO << "VSD info: V0 = " << v0 << " mV; G0 = " << g0 << std::endl;
+        vsdLoader->setRestingPotential( v0 );
+        vsdLoader->setAreaMultiplier( g0 );
 
         if( _vm.count( "ap-threshold" ))
         {

@@ -1,5 +1,6 @@
-# Copyright (c) BBP/EPFL 2014-2015, Stefan.Eilemann@epfl.ch
-# All rights reserved. Do not distribute without further notice.
+# Copyright (c) BBP/EPFL 2014-2016, Jafet.VillafrancaDiaz@epfl.ch
+#
+# This file is part of Fivox <https://github.com/BlueBrain/Fivox>
 
 set(COMPUTE-VSD_HEADERS
   beerLambertProjectionImageFilter.h
