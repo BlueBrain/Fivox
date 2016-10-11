@@ -25,6 +25,8 @@
 
 #include <itkProgressReporter.h>
 
+#include <lunchbox/clock.h>
+
 namespace fivox
 {
 
@@ -44,12 +46,19 @@ void EventValueSummationImageSource< TImage >::GenerateData()
     image->FillBuffer( 0 );
 
     auto source = Superclass::_eventSource;
-    itk::ProgressReporter progress( this, 0, source->getNumChunks( ));
+    const auto numChunks = source->getNumChunks();
+    itk::ProgressReporter progress( this, 0, numChunks );
     size_t totalEvents = 0;
     typename TImage::PixelType maxValue = 0;
-    for( size_t i = 0; i < source->getNumChunks(); ++i )
+
+    // start with batch size of at most 10, adapts to target time wrt loading
+    // time of event source
+    size_t batchSize = std::min( size_t(10), numChunks );
+
+    for( size_t i = 0; i < numChunks; )
     {
-        totalEvents += source->load( i, 1 );
+        lunchbox::Clock clock;
+        totalEvents += source->load( i, batchSize );
 
         const float* __restrict__ posx = source->getPositionsX();
         const float* __restrict__ posy = source->getPositionsY();
@@ -73,12 +82,23 @@ void EventValueSummationImageSource< TImage >::GenerateData()
             }
         }
 
-        progress.CompletedPixel();
+        for( size_t j = 0; j < batchSize; ++j )
+            progress.CompletedPixel();
+
+        i += batchSize;
+        LBDEBUG << "Batch " << i-batchSize << " to " << i << " took "
+                << clock.getTime64() << "ms" << std::endl;
+
+        // ensure an update of the progress every 500ms, clamp lower limit to
+        // remaining chunks. Upper limit could be clamped to not overcommit
+        // memory, but with current data sources one should not reach that limit
+        // within 500ms.
+        batchSize = std::max( 1.f, batchSize * 500.f / clock.getTimef( ));
+        batchSize = std::min( batchSize, numChunks - i );
     }
 
     LBINFO << "Voxelized " << totalEvents << " events for "
-           << source->getNumChunks() << " chunks, max value " << maxValue
-           << std::endl;
+           << numChunks << " chunks, max value " << maxValue << std::endl;
 }
 
 } // end namespace fivox
