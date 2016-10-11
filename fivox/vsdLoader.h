@@ -48,9 +48,54 @@ public:
 
     /**
     * Set the attenuation curve that will be applied to the computed events
+    *
     * @param curve The attenuation curve to apply
     */
     void setCurve( const AttenuationCurve& curve );
+
+    /**
+     * Enable the interpolation of the attenuation values from the dye curve
+     *
+     * @param interpolate true to interpolate the attenuation values before
+     * applying them; false to use the attenuation values as they are in the
+     * dye curve file
+     */
+    void setInterpolation( bool interpolate );
+
+    /**
+     * @return the bounding box of the loaded somas
+     */
+    AABBf getBoundingBoxSomas() const;
+
+    /**
+    * Set the resting potential that will be used for the computation of the VSD
+    *
+    * @param millivolts resting potential in mV
+    */
+    void setRestingPotential( float millivolts );
+
+    /**
+    * Set the multiplier for surface area in background fluorescence term value
+    *
+    * @param factor multiplier for surface area in background fluorescence term
+    * value
+    */
+    void setAreaMultiplier( float factor );
+
+    /**
+     * Enable the spike filtering
+     * @param enable true to enable spike filtering; false to use the input
+     * voltages as they are
+     */
+    void setSpikeFilter( bool enable );
+
+    /**
+     * When the spike filtering is enabled, use this to set the action potential
+     * threshold, in millivolts
+     *
+     * @param apThreshold action potential threshold, in millivolts
+     */
+    void setApThreshold( float apThreshold );
 
 private:
     /** @name Abstract interface implementation */

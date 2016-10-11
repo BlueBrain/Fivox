@@ -152,6 +152,15 @@ public:
         return report;
     }
 
+    std::string getAreas() const
+    {
+        const std::string& areas( _get( "areas" ));
+        if( areas.empty() && getType() == VolumeType::vsd )
+            LBTHROW( std::runtime_error( "URI parameter 'areas' missing" ));
+
+        return areas;
+    }
+
     float getDt() const { return _get( "dt", _dt ); }
 
     std::string getSpikes() const { return _get( "spikes" ); }
@@ -193,8 +202,6 @@ public:
         return Vector2f( _get( "inputMin", defaultValue[0] ),
                          _get( "inputMax", defaultValue[1] ));
     }
-
-    std::string getDyeCurve() const { return _get( "dyecurve" ); }
 
     float getResolution() const
     {
@@ -403,6 +410,11 @@ std::string URIHandler::getReport() const
     return _impl->getReport();
 }
 
+std::string URIHandler::getAreas() const
+{
+    return _impl->getAreas();
+}
+
 float URIHandler::getDt() const
 {
     return _impl->getDt();
@@ -421,11 +433,6 @@ float URIHandler::getDuration() const
 Vector2f URIHandler::getInputRange() const
 {
     return _impl->getInputRange();
-}
-
-std::string URIHandler::getDyeCurve() const
-{
-    return _impl->getDyeCurve();
 }
 
 float URIHandler::getResolution() const
@@ -479,10 +486,14 @@ ImageSourcePtr< TImage > URIHandler::newImageSource() const
     EventSourcePtr eventSource = newEventSource();
 
     ImageSourcePtr< TImage > source;
-    if( getType() == VolumeType::spikes || getType() == VolumeType::synapses )
-        source = EventValueSummationImageSource< TImage >::New();
-    else
+    switch( getType( ))
     {
+    case VolumeType::spikes:
+    case VolumeType::synapses:
+    case VolumeType::vsd:
+        source = EventValueSummationImageSource< TImage >::New();
+        break;
+    default:
         auto functorSource = FunctorImageSource< TImage >::New();
         auto functor = newFunctor< TImage >();
         functorSource->setFunctor( functor );

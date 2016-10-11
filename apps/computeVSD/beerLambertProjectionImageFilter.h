@@ -57,8 +57,7 @@ public:
     inline void operator()( const TInputPixel& input )
     {
         // assume that values are being computed in order (top-down)
-        const double depth =
-                m_PixelSize * ( m_Size - m_Values.size( )) / (double)m_Size;
+        const double depth = m_PixelSize * m_Values.size();
 
         m_Sum += input * std::exp( -m_Sigma * depth );
         m_Values.push_back( input );
@@ -142,10 +141,8 @@ protected:
     }
 
 private:
-    //purposely not implemented
-    BeerLambertProjectionImageFilter( const Self & );
-
-    void operator=( const Self & ); //purposely not implemented
+    BeerLambertProjectionImageFilter( const Self & ) = delete;
+    void operator=( const Self & ) = delete;
 
     /** Micrometers per input pixel */
     double m_PixelSize;

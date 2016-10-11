@@ -29,6 +29,7 @@
 
 namespace fivox
 {
+
 /** Attentuation curve access for depth-based interpolation. @sa VSDLoader */
 class AttenuationCurve
 {
@@ -43,7 +44,7 @@ public:
     AttenuationCurve( const std::string& dyeCurveFile, const float thickness )
         : _thickness( thickness )
     {
-        if( dyeCurveFile.empty())
+        if( dyeCurveFile.empty( ))
             return;
 
         std::ifstream ifs( dyeCurveFile );
@@ -55,41 +56,52 @@ public:
         while( std::getline( ifs, line ))
             _dyeCurve.push_back( atof( line.c_str( )));
 
-        if( _dyeCurve.empty())
+        if( _dyeCurve.empty( ))
             return;
 
         const float maxAttn = *std::max_element( _dyeCurve.begin(),
-                                                 _dyeCurve.end());
+                                                 _dyeCurve.end( ));
         for( float& dyeAttn : _dyeCurve )
             dyeAttn = dyeAttn / maxAttn;
     }
 
     /**
-     * Get the attenuation for the given depth.
+     * Get the attenuation for the given Y-coordinate.
      *
-     * If no curve file was loaded, returns 1.0f for any attenuation depth so it
-     * does not modify the value of event. If depth is larger than the
-     * thickness it returns the first element of the curve (generally 0.f)
+     * If no curve file was loaded or the thickness has a negative value,
+     * returns 1.0f for any attenuation depth so it does not modify the value of
+     * event. If yCoord is larger than the thickness it returns the first
+     * element of the curve (generally 0.f)
      *
-     * @param depth Absolute depth (Y axis) of the point.
+     * @param yCoord Absolute position (Y axis) of the point.
+     * @param interpolate If true, interpolate the attenuation between the two
+     * closest indices in the attenuation curve.
      * @return the interpolated attenuation value according to depth; 1 if there
      * is no attenuation curve or it is empty.
      */
-    float getAttenuation( const float depth ) const
+    float getAttenuation( const float yCoord,
+                          const bool interpolate = false ) const
     {
-        if( _dyeCurve.empty( ))
+        if( _dyeCurve.empty() || _thickness <= 0.f )
             return 1.0f;
 
-        if( _dyeCurve.size() == 1 || depth >= _thickness )
-            return _dyeCurve[ 0 ];
+        if( yCoord >= _thickness )
+            return _dyeCurve[0];
 
-        const float invertedDepth = _thickness - depth;
-        const float deltaDepthPerAttn = _thickness / ( _dyeCurve.size() - 1 );
-        const size_t ind = invertedDepth / deltaDepthPerAttn;
-        const float diffToIndRatio = (invertedDepth - deltaDepthPerAttn * ind)
-                                                        / deltaDepthPerAttn;
-        return diffToIndRatio * _dyeCurve[ ind + 1 ] +
-               ( 1.0f - diffToIndRatio ) * _dyeCurve[ ind ];
+        const float depth = _thickness - yCoord;
+        if( _dyeCurve.size() == 1 || depth >= _thickness )
+            return _dyeCurve[ _dyeCurve.size() - 1 ];
+
+        const float depthDelta = _thickness / ( _dyeCurve.size() - 1 );
+        const size_t index = depth / depthDelta;
+
+        const float attenuation = _dyeCurve[ index + 1 ];
+        if( !interpolate )
+            return attenuation;
+
+        // parameter used for performing linear interpolation
+        const float t = (depth - depthDelta * index) / depthDelta;
+        return t * attenuation + ( 1.0f - t ) * _dyeCurve[ index ];
     }
 
 private:
@@ -98,5 +110,4 @@ private:
 };
 
 }
-
 #endif

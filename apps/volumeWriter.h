@@ -32,13 +32,10 @@
 #ifndef FIVOX_VOLUMEWRITER_H
 #define FIVOX_VOLUMEWRITER_H
 
-#include "beerLambertProjectionImageFilter.h"
 #include <fivox/scaleFilter.h>
 
 #include <itkImageFileWriter.h>
 
-typedef float FloatPixelType;
-typedef itk::Image< FloatPixelType, 2 > FloatImageType;
 typedef fivox::FloatVolume::Pointer VolumePtr;
 
 namespace
@@ -63,37 +60,6 @@ public:
         , _writer( Writer::New( ))
     {
         _writer->SetInput( _scaler.GetOutput( ));
-    }
-
-    /**
-     * Write a floating point 2D image containing the Voltage-Sensitive Dye
-     * projection, using a Beer-Lambert projection filter. The projection filter
-     * computes the output using the real value of the data, i.e. not limited by
-     * the precision of the final image
-     *
-     * @param filename name of the output image file
-     * @param pixelSize size of the input voxel/pixel (micrometers)
-     * @param sigma absorption + scattering coefficient (units per micrometer)
-     */
-    void projectVSD( const std::string& filename, const double sigma )
-    {
-        typedef BeerLambertProjectionImageFilter
-            < fivox::FloatVolume, FloatImageType > FilterType;
-        FilterType::Pointer projection = FilterType::New();
-        projection->SetInput( _input );
-        projection->SetProjectionDimension( 1 ); // projection along Y-axis
-        projection->SetPixelSize( _input->GetSpacing( ).GetElement( 0 ));
-        projection->SetSigma( sigma );
-
-        // Write output image
-        typedef itk::ImageFileWriter< FloatImageType > ImageWriter;
-        ImageWriter::Pointer imageWriter = ImageWriter::New();
-        imageWriter->SetInput( projection->GetOutput( ));
-
-        const std::string& imageFile = filename + ".vtk";
-        imageWriter->SetFileName( imageFile );
-        imageWriter->Update();
-        LBINFO << "VSD projection written as " << imageFile << std::endl;
     }
 
     typename Writer::Pointer operator->() { return _writer; }

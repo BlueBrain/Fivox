@@ -32,7 +32,7 @@
 #define BOOST_TEST_MODULE VolumeHandler
 
 #include "test.h"
-#include <apps/voxelize/volumeHandler.h>
+#include <apps/volumeHandler.h>
 
 BOOST_AUTO_TEST_CASE( VolumeHandlerRegion )
 {

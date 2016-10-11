@@ -145,10 +145,9 @@ public:
               "          (default: SpikesPath specified in the BlueConfig)\n"
               "\n"
               "Parameters for VSD:\n"
-              "- report: name of the soma report\n"
+              "- report: name of the voltage report\n"
               "          (default: 'soma'; 'voltage' if BlueConfig is BBPTestData)\n"
-              "- dyecurve: path to the dye curve file to apply, e.g. attenuation\n"
-              "            (default: no file; attenuation of 1.0)\n"
+              "- areas: path to an area report file\n"
 //! [VolumeParameters]
               )
             ( "time,t", po::value< float >(),

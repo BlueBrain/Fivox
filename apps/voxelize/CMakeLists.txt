@@ -2,10 +2,9 @@
 # All rights reserved. Do not distribute without further notice.
 
 set(VOXELIZE_HEADERS
-  beerLambertProjectionImageFilter.h
   ../commandLineApplication.h
-  volumeHandler.h
-  volumeWriter.h
+  ../volumeHandler.h
+  ../volumeWriter.h
 )
 set(VOXELIZE_SOURCES
   voxelize.cpp

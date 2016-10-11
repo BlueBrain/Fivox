@@ -3,6 +3,7 @@
 #
 # This file is part of Fivox <https://github.com/BlueBrain/Fivox>
 
+add_subdirectory(computeVSD)
 add_subdirectory(samplePoint)
 add_subdirectory(synapseDensities)
 add_subdirectory(voxelize)

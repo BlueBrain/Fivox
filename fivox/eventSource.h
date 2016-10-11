@@ -22,7 +22,6 @@
 #ifndef FIVOX_EVENTSOURCE_H
 #define FIVOX_EVENTSOURCE_H
 
-#include <fivox/attenuationCurve.h>
 #include <fivox/types.h>
 #include <lunchbox/compiler.h>
 

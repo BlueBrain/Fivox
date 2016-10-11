@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#59](https://github.com/BlueBrain/Fivox/pull/59)
+  Add compute-vsd tool
 * [#60](https://github.com/BlueBrain/Fivox/pull/60)
   Auto-adapt chunk size in EventValueSummationImageSource based on load time
 * [#56](https://github.com/BlueBrain/Fivox/pull/56)
