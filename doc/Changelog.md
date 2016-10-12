@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#61](https://github.com/BlueBrain/Fivox/pull/61)
+  Use the timestamp in the output file names (only in compute-vsd)
 * [#59](https://github.com/BlueBrain/Fivox/pull/59)
   Add compute-vsd tool
 * [#60](https://github.com/BlueBrain/Fivox/pull/60)

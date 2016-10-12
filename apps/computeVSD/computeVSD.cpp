@@ -78,7 +78,7 @@ public:
               "the Beer-Lambert law. Must be a positive value "
               "(default: 0.0045).")
             ( "v0", po::value< float >()->default_value( -65.f ),
-              "Resting potential (default: -65 mV." )
+              "Resting potential (default: -65 mV)." )
             ( "g0", po::value< float >()->default_value( 0.f ),
               "Multiplier for surface area in background fluorescence term." )
             ( "ap-threshold", po::value< float >(),
@@ -203,14 +203,29 @@ public:
         VolumeWriter< float > writer( output, fivox::Vector2ui( ));
 
         const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
-        const size_t numDigits = std::to_string( frameRange.y( )).length();
+        size_t numDigits = std::to_string( frameRange.y( )).length();
+        if( _vm.count( "times" ))
+        {
+            const float endTime = _vm["times"].as< fivox::Vector2f >()[1];
+            std::ostringstream s;
+            s << std::fixed << std::setprecision(1) << endTime;
+            numDigits = s.str().length();
+        }
+
         for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
         {
             std::string filename = _outputFile;
             if( frameRange.y() - frameRange.x() > 1 )
             {
+                // append the frame number if --frames, timestamp otherwise
                 std::ostringstream os;
-                os << filename << std::setfill('0') << std::setw(numDigits) << i;
+                os << filename << std::setfill('0') << std::setw( numDigits );
+                if( _vm.count( "times" ))
+                    os << std::fixed << std::setprecision(1)
+                       << i * vsdLoader->getDt();
+                else
+                    os << i;
+
                 filename = os.str();
             }
 

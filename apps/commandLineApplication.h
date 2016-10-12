@@ -93,7 +93,7 @@ public:
               "- Synapse densities for pathways:\n"
               "    fivoxsynapses://BlueConfig?preTarget=string&postTarget=string\n"
               "- Voltage-sensitive dye reports:\n"
-              "    fivoxvsd://BlueConfig?dyecurve=string&target=string\n"
+              "    fivoxvsd://BlueConfig?report=string&target=string\n"
               "\n"
               "Parameters for all types :\n"
               "- BlueConfig: BlueConfig file path\n"
@@ -148,6 +148,8 @@ public:
               "- report: name of the voltage report\n"
               "          (default: 'soma'; 'voltage' if BlueConfig is BBPTestData)\n"
               "- areas: path to an area report file\n"
+              "- dt: timestep between requested frames in milliseconds\n"
+              "      (default: report dt)\n"
 //! [VolumeParameters]
               )
             ( "time,t", po::value< float >(),
