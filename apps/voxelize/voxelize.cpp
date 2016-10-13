@@ -38,31 +38,50 @@
 namespace
 {
 
+void _getNameAndExtension( const std::string& filePath,
+                           std::string& outputName, std::string& extension )
+{
+    outputName = filePath;
+    extension = ".mhd";
+
+    std::string fileName = filePath;
+    // Consider only the filename to check whether there is an extension or not
+    const std::size_t slashPos = filePath.find_last_of("/");
+    if( slashPos != std::string::npos )
+        fileName = filePath.substr( slashPos + 1 );
+
+    if( fileName.find_last_of(".") != std::string::npos ) // has extension
+    {
+        const std::size_t extensionPos = filePath.find_last_of(".");
+        outputName = filePath.substr( 0, extensionPos );
+        extension = filePath.substr( extensionPos );
+    }
+}
+
 template< typename T >
 void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
-              const fivox::URIHandler& params, const std::string& outputFile )
+              const fivox::URIHandler& params, const std::string& filePath )
 {
     VolumePtr input = source->GetOutput();
     VolumeWriter< T > writer( input, params.getInputRange( ));
 
+    std::string outputName, extension;
+    _getNameAndExtension( filePath, outputName, extension );
+
     const size_t numDigits = std::to_string( frameRange.y( )).length();
     for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
     {
-        std::string filename;
+        source->getEventSource()->setFrame( i );
+
+        std::string volumeName = outputName + extension;
         if( frameRange.y() - frameRange.x() > 1 )
         {
             std::ostringstream os;
-            os << outputFile << std::setfill('0') << std::setw(numDigits) << i;
-            filename = os.str();
+            os << outputName << std::setfill('0') << std::setw(numDigits)
+               << i << extension;
+            volumeName = os.str();
         }
-        else
-            filename = outputFile;
 
-        source->getEventSource()->setFrame( i );
-
-        std::string volumeName = filename;
-        if( volumeName.find_last_of( ".") == std::string::npos )
-            volumeName += ".mhd";
         writer->SetFileName( volumeName );
         source->Modified();
         writer->Update(); // Run pipeline to write volume
