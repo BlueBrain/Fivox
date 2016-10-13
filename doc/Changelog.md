@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#63](https://github.com/BlueBrain/Fivox/pull/63)
+  Fix the volume writing when there are dots in the output path
 * [#61](https://github.com/BlueBrain/Fivox/pull/61)
   Use the timestamp in the output file names (only in compute-vsd)
 * [#59](https://github.com/BlueBrain/Fivox/pull/59)
