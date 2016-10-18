@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#64](https://github.com/BlueBrain/Fivox/pull/64)
+  Change default parameters: resolution is now 0.1 voxels/um by default
 * [#63](https://github.com/BlueBrain/Fivox/pull/63)
   Fix the volume writing when there are dots in the output path
 * [#61](https://github.com/BlueBrain/Fivox/pull/61)

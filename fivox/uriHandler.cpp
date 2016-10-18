@@ -154,10 +154,16 @@ public:
 
     std::string getAreas() const
     {
-        const std::string& areas( _get( "areas" ));
+        std::string areas = _get( "areas" );
         if( areas.empty() && getType() == VolumeType::vsd )
+        {
+#ifdef FIVOX_USE_BBPTESTDATA
+            if( useTestData )
+                return std::string( BBP_TESTDATA ) +
+                     "/circuitBuilding_1000neurons/Neurodamus_output/areas.bbp";
+#endif
             LBTHROW( std::runtime_error( "URI parameter 'areas' missing" ));
-
+        }
         return areas;
     }
 
@@ -169,21 +175,16 @@ public:
 
     Vector2f getInputRange() const
     {
-        Vector2f defaultValue;
+        Vector2f defaultValue( brion::MINIMUM_VOLTAGE, 0.f );
         switch( getType( ))
         {
         case VolumeType::compartments:
             if( _get( "functor" ) == "lfp" )
                 defaultValue = Vector2f( -1.47e-05f, 2.25e-03f );
-            else
-                defaultValue =
-                        useTestData ? Vector2f( -190.f, 0.f )
-                                    : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
             break;
         case VolumeType::somas:
-            defaultValue =
-                    useTestData ? Vector2f( -15.f, 0.f )
-                                : Vector2f( brion::MINIMUM_VOLTAGE, 0.f );
+            if( useTestData )
+                defaultValue = Vector2f( -15.f, 0.f );
             break;
         case VolumeType::vsd:
             defaultValue = Vector2f( -100000.f, 300.f );
@@ -205,7 +206,7 @@ public:
 
     float getResolution() const
     {
-        float defaultResolution = 1.0f;
+        float defaultResolution = 0.1f;
         switch( getType( ))
         {
         case VolumeType::spikes:

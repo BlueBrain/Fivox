@@ -239,9 +239,7 @@ BOOST_AUTO_TEST_CASE( fivoxSynapses_source )
 
 BOOST_AUTO_TEST_CASE( fivoxVSD_source )
 {
-    const std::string& areaReport = std::string( BBP_TESTDATA ) +
-            "/circuitBuilding_1000neurons/Neurodamus_output/areas.bbp";
-    testSource( fivox::URI( "fivoxVSD://?target=allmini50&areas=" + areaReport),
+    testSource( fivox::URI( "fivoxVSD://?target=allmini50" ),
                 12.703125, -85293.598821282387f, vmml::Vector2ui( 0, 100 ));
 }
 
