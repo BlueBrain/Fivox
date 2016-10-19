@@ -1,5 +1,5 @@
-VSD computation - User guide
-============================
+VSD computation {#computeVSD}
+===============
 
 The compute-vsd application was developed with the goal of helping scientists
 to do their experiments and research in the context of in-silico VSD imaging.
@@ -161,7 +161,7 @@ applied to the top coordinates of the data.
 
 Example, attenuating more in the middle part:
 
-```
+```cpp
 1.00
 0.96
 0.82
@@ -187,7 +187,7 @@ A VTK file containing a metadata header section and a binary section with the
 floating point values of the 2D projection. Readable as a NumPy array from
 Python, as follows:
 
-```
+```py
 import vtk
 from vtk.util import numpy_support
 import numpy
