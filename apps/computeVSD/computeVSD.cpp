@@ -212,19 +212,23 @@ public:
         {
             const auto& fileName = _vm["soma-pixels"].as< std::string >();
             std::ofstream file( fileName );
+            file << "# Soma position and corresponding pixel index for each "
+                    "cell, in the following format:\n"
+                 << "#     gid [ posX posY posZ ]: i j\n"
+                 << "# File version: 1\n"
+                 << "# Fivox version: " << fivox::Version::getString()
+                 << std::endl;
 
             size_t i = 0;
             const auto& gids = vsdLoader->getGIDs();
             for( const auto& gid : gids )
             {
-                const auto pos = somaPositions[i];
+                const auto pos = somaPositions[i++];
                 file << gid << " " << pos << ": "
                      << std::floor(( pos[0]- origin[0] ) / spacing[0] ) << " "
                      << std::floor(( pos[2]- origin[2] ) / spacing[1] )
                      << std::endl;
-                i++;
             }
-            file.close();
             LBINFO << "Soma positions written as " << fileName << std::endl;
         }
 
