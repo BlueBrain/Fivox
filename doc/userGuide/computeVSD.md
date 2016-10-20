@@ -33,8 +33,8 @@ as a new loader (VSDLoader).
 attenuated
 * --depth: Depth of the attenuation curve area of influence, in micrometers. It
 also defines the Y-coordinate at which it starts being applied, down until y=0
-* --interpolate-attenuation: If specified, interpolate the attenuation values
-from the dye curve file
+* --interpolate-attenuation: If specified, linearly interpolate the attenuation
+values from the dye curve file. Use nearest-neighbor otherwise (default).
 * --v0: Resting potential in millivolts
 * --g0: Multiplier for surface area in background fluorescence term
 * --ap-threshold: Action potential threshold in millivolts
@@ -57,16 +57,31 @@ and optionally the 3D volume containing the VSD values
 
 ## Algorithm
 
+The basic idea is to generate a set of events in 3D space, each of them
+corresponding to a compartment in the neuron morphology, and then update these
+events with the computed VSD value, based on the reported voltage from the
+simulation.
+
+The 3D space will then be sampled into a homogeneous volume, resulting in a set
+of cubic voxels, each of them containing the aggregated VSD value of all the
+events falling within the voxel extent.
+
+Finally, the contents of the 3D volume will be projected vertically onto a
+2D surface that represents the pial surface of the brain.
+
+All the steps in the process are detailed next.
+
+
 ### Creation of the events
 
 The first step is to read the circuit information from the BlueConfig file,
 using Brion, and load the morphologies corresponding to the target specified. At
 the same time, we read the voltage report, and obtain the number of compartments
 per section, for all the sections in each of the morphologies. With this
-information we can compute the position of all the compartments in the report,
+information we can compute the position of the center of the compartments,
 by linearly interpolating the sections coordinates.
 
-Each of these compartment become an event that will eventually be updated and
+Each of these compartments becomes an event that will eventually be updated and
 evaluated, with an initial value of 0.
 
 
@@ -124,9 +139,9 @@ by sensor-res. The origin of the resulting volume corresponds to the center of
 the bounding box of the soma positions.
 
 All the events are evaluated, computing the corresponding voxel indices based on
-the event center positions, and summing their values together when more than one
-share a voxel index. The original floating point value is kept, being 0 the
-default for empty voxels.
+the event positions, and summing their values together when more than one share
+a voxel index. The original floating point value is kept, being 0 the default
+for empty voxels.
 
 At this point, if the _export-volume_ command line option is specified, the
 resulting 3D volume is written to disk.
@@ -134,11 +149,11 @@ resulting 3D volume is written to disk.
 
 ### Projection of VSD data to the surface of brain
 
-To generate the projection of the data from the 3D volume into a 2D image that
-represents the surface of the brain, the Beer-Lambert law is used. To do that,
-we accumulate all the voxel values along the Y direction, resulting in a
-2-dimensional squared array of floating point values, with _sensor-res_ pixels
-per side.
+To generate the projection of the data from the 3D volume onto a 2D image
+(representing the plane that rests on the pial surface of the brain), the
+Beer-Lambert law is used. To do that, we accumulate all the voxel values along
+the Y direction, resulting in a 2-dimensional squared array of floating point
+values, with _sensor-res_ pixels per side.
 
 For that, an ITK image filter was implemented. This filter does, for each of the
 pixels in the final VSD projection:
