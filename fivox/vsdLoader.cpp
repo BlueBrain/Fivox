@@ -57,10 +57,6 @@ public:
         const auto morphologies = _circuit.loadMorphologies(
             _gids, brain::Circuit::Coordinates::global );
 
-        const brion::Vector3fs& positions = _circuit.getPositions( _gids );
-        for( const auto& position : positions )
-            _bboxSomas.merge( position );
-
         LBINFO << "Creating events..." << std::endl;
         helpers::addCompartmentEvents( morphologies, _areaReport, _output );
 
@@ -130,9 +126,14 @@ void VSDLoader::setCurve( const AttenuationCurve& curve )
     _impl->_curve = curve;
 }
 
-AABBf VSDLoader::getBoundingBoxSomas() const
+const brion::GIDSet& VSDLoader::getGIDs() const
 {
-    return _impl->_bboxSomas;
+    return _impl->_gids;
+}
+
+const brion::Vector3fs VSDLoader::getSomaPositions() const
+{
+    return _impl->_circuit.getPositions( _impl->_gids );
 }
 
 void VSDLoader::setRestingPotential( const float millivolts )

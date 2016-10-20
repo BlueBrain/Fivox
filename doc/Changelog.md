@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#65](https://github.com/BlueBrain/Fivox/pull/65)
+  Add option in compute-vsd tool to export the soma positions as a text file
 * [#64](https://github.com/BlueBrain/Fivox/pull/64)
   Change default parameters: resolution is now 0.1 voxels/um by default
 * [#63](https://github.com/BlueBrain/Fivox/pull/63)
