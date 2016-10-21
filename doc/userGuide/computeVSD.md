@@ -45,6 +45,8 @@ values from the dye curve file. Use nearest-neighbor otherwise (default).
 
 * --sigma: Absorption + scattering coefficient (units per micrometer) in the
 Beer-Lambert law. It must be a positive value
+* --soma-pixels: Produce a text file with the GID, 3D position and corresponding
+pixel coordinates in the final 2D image for all the cells loaded
 
 ##### Common
 
@@ -165,6 +167,9 @@ content of a specific voxel; __sigma__ a coefficient specified by the user;
 and __depth__ the depth of the voxel in micrometers, starting from 0 at the top
 of the volume.
 
+If the _soma-pixels_ command line option is specified, a text file will be
+written to disk, containing the GID, 3D position and corresponding pixel
+coordinates in the final 2D image for the somas of all the cells loaded.
 
 ## File formats
 
@@ -214,4 +219,30 @@ reader.Update()
 
 points = reader.GetOutput().GetPointData().GetScalars()
 array = numpy_support.vtk_to_numpy(points)
+```
+
+#### Soma positions and pixel coordinates:
+
+ASCII file containing all GIDs, 3D positions and corresponding pixel coordinates
+in the final 2D projection, for all the somas in the scene, with one cell per
+line.
+
+It also includes a header section with a brief explanation of the format, file
+version, and the library used to generate it. Example with 10 cells:
+
+```cpp
+# Soma position and corresponding pixel index for each cell, in the following format:
+#     gid [ posX posY posZ ]: i j
+# File version: 1
+# Fivox version: 0.6.0
+10 [     50.115       1971     61.384 ]: 258 256
+20 [     54.818     1997.1     71.462 ]: 261 262
+30 [     50.896     1760.8     56.659 ]: 258 254
+40 [     38.099     1807.9     30.819 ]: 252 241
+50 [     19.888     1755.2     69.948 ]: 243 261
+60 [     42.529     1730.5     50.998 ]: 254 251
+70 [     59.509     1742.3     50.691 ]: 263 251
+80 [     43.298     1826.1     57.443 ]: 255 254
+160 [     52.034     1595.8     55.536 ]: 259 253
+170 [     29.455     1451.9     28.081 ]: 248 239
 ```

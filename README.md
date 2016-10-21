@@ -72,5 +72,5 @@ platforms and build environments are tested:
 * Linux: Ubuntu 14.04, RHEL 6.6 (Makefile, x64)
 * Mac OS X 10.9
 
-The [API documentation](https://developer.humanbrainproject.eu/docs/Fivox/latest/)
+The [API documentation](https://bluebrain.github.io/Fivox-0.6/index.html)
 can be found on [bluebrain.github.io](https://bluebrain.github.io).
