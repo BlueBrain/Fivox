@@ -63,9 +63,14 @@ public:
     void setInterpolation( bool interpolate );
 
     /**
-     * @return the bounding box of the loaded somas
+     * @return All GIDs loaded
      */
-    AABBf getBoundingBoxSomas() const;
+    const brion::GIDSet& getGIDs() const;
+
+    /**
+     * @return The soma positions of all the cells loaded
+     */
+    const brion::Vector3fs getSomaPositions() const;
 
     /**
     * Set the resting potential that will be used for the computation of the VSD

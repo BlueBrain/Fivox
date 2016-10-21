@@ -82,7 +82,11 @@ public:
             ( "g0", po::value< float >()->default_value( 0.f ),
               "Multiplier for surface area in background fluorescence term." )
             ( "ap-threshold", po::value< float >(),
-              "Action potential threshold in millivolts." );
+              "Action potential threshold in millivolts." )
+            ( "soma-pixels", po::value< std::string >(),
+              "Produce a text file containing the GIDs loaded and their "
+              "corresponding 3D positions and indices in the resulting 2D "
+              "image." );
 //! [ComputeVSDParameters]
     }
 
@@ -195,10 +199,54 @@ public:
 
         VolumePtr output = source->GetOutput();
         output->SetRegions( fivox::FloatVolume::RegionType( vIndex, vSize ));
-        output->SetSpacing( volumeHandler.computeSpacing( ));
 
-        const fivox::AABBf& bbox = vsdLoader->getBoundingBoxSomas();
-        output->SetOrigin( volumeHandler.computeOrigin( bbox.getCenter( )));
+        fivox::AABBf bboxSomas;
+        const auto& somaPositions = vsdLoader->getSomaPositions();
+        for( const auto& position : somaPositions )
+            bboxSomas.merge( position );
+
+        // pixel/voxel size
+        const auto spacing = volumeHandler.computeSpacing();
+        // left bottom corner of the image/volume
+        const auto origin = volumeHandler.computeOrigin( bboxSomas.getCenter());
+
+        if( _vm.count( "soma-pixels" ))
+        {
+            const auto& fileName = _vm["soma-pixels"].as< std::string >();
+            std::ofstream file( fileName );
+            if( !file.is_open( ))
+                LBERROR << "File " << fileName << " could not be opened"
+                        << std::endl;
+            else
+            {
+                file << "# Soma position and corresponding pixel index for "
+                        "each cell, in the following format:\n"
+                     << "#     gid [ posX posY posZ ]: i j\n"
+                     << "# File version: 1\n"
+                     << "# Fivox version: " << fivox::Version::getString()
+                     << std::endl;
+
+                size_t i = 0;
+                const auto& gids = vsdLoader->getGIDs();
+                for( const auto& gid : gids )
+                {
+                    if( file.bad( ))
+                        break;
+                    const auto& pos = somaPositions[i++];
+                    file << gid << " " << pos << ": "
+                         << std::floor((pos[0] - origin[0]) / spacing[0]) << " "
+                         << std::floor((pos[2] - origin[2]) / spacing[1])
+                         << std::endl;
+                }
+            }
+            if( file.good( ))
+                LBINFO << "Soma positions written as " << fileName << std::endl;
+            else
+                LBERROR << "Error while writing to " << fileName << std::endl;
+        }
+
+        output->SetSpacing( spacing );
+        output->SetOrigin( origin );
 
         VolumeWriter< float > writer( output, fivox::Vector2ui( ));
 
