@@ -101,7 +101,7 @@ public:
 
         // parameter used for performing linear interpolation
         const float t = (depth - depthDelta * index) / depthDelta;
-        return t * attenuation + ( 1.0f - t ) * _dyeCurve[ index ];
+        return t * attenuation + ( 1.f - t ) * _dyeCurve[ index ];
     }
 
 private:

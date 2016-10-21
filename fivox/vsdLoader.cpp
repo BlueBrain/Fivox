@@ -58,7 +58,7 @@ public:
             _gids, brain::Circuit::Coordinates::global );
 
         LBINFO << "Creating events..." << std::endl;
-        helpers::addCompartmentEvents( morphologies, _areaReport, _output );
+        helpers::addCompartmentEvents( morphologies, _voltageReport, _output );
 
         LBINFO << "Loading areas..." << std::endl;
         _areas = _areaReport.loadFrame( 0.f );

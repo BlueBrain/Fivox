@@ -1,4 +1,4 @@
-Rescaling output voxel values
+Rescaling output voxel values {#rescaleOutput}
 =============================
 
 Since Fivox makes all the computations in floating point values, and supports

@@ -50,7 +50,7 @@ Changelog {#changelog}
   Optimizations. Modify memory layout in EventSource so computations can be
   vectorized for performance.
 
-# Release 0.5 (30-06-2016)
+# Release 0.5 (30-06-2016) {#Release05}
 
 * [#38](https://github.com/BlueBrain/Fivox/pull/38)
   Replaced maxError parameter with cutoff distance and added LFP
@@ -62,7 +62,7 @@ Changelog {#changelog}
 * [#28](https://github.com/BlueBrain/Fivox/pull/28)
   Adapt to servus::URI query separator change (replaced ',' by '&').
 
-# Release 0.4 (05-04-2016)
+# Release 0.4 (05-04-2016) {#Release04}
 
 * [#23](https://github.com/BlueBrain/Fivox/pull/23)
   Add resolution parameter in voxelize_batch script.
