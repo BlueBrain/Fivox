@@ -10,6 +10,8 @@ collaboration with scientists:
 
 #### Local Field Potential
 
+![](/doc/images/application_lfp.png "Local Field Potential")
+
 Compute the LFP signal at the extracellular space of a given circuit, based on
 a simulation current report
 ([more info](https://en.wikipedia.org/wiki/Local_field_potential)).
@@ -17,16 +19,19 @@ a simulation current report
 The output is generated as a 3D volume, containing each of the voxels the LFP
 value corresponding to the position at the center of the voxel.
 
-For convenience, a separate tool (sample-point) is provided, to generate the
+For completeness, a separate tool (sample-point) is provided, to generate the
 time series of the output voltage at a specific 3D point. In this case the space
 is not voxelized, and the computation is done for a single point, so the
-resulting values are more accurate, as an exact 3D position is used as input.
-The output is a text file with one value per timestep, being possible to plot
-this values in order to visualize the evolution of the voltage over time as a
-2D graph.
+resulting values are more accurate, as an exact 3D position is used as input
+(as opposed to the voxelized space, in which several different points within a
+same voxel take the same value). The output is a text file with one value per
+timestep, being possible to plot this values in order to visualize the evolution
+of the voltage over time as a 2D graph.
 
 
 #### Voltage-Sensitive Dye
+
+![](/doc/images/application_vsd.png "Voltage-Sensitive Dye")
 
 Generate the in-silico VSD optical imaging of a given circuit, based on the
 compartment areas and simulation voltage report
@@ -38,10 +43,12 @@ brain; and also a 3D volume containing the VSD values for each of the
 compartments (before the projection step).
 
 
-#### Synapse densities
+#### Synapse distributions
 
-Generate a 3D volume with the synapse densities per voxel, for the given pre
-and post-synaptic targets.
+![](/doc/images/application_synapses.png "Synapse distributions")
+
+Generate a 3D volume with the synapse distributions, with the count of synapses
+per voxel, for the given pre and post-synaptic targets.
 
 
 ## Potential applications
