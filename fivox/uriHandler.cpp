@@ -28,6 +28,9 @@
 #ifdef FIVOX_USE_LFP
 #  include <fivox/lfp/lfpFunctor.h>
 #endif
+#ifdef FIVOX_USE_CUDA
+#  include <fivox/cudaImageSource.h>
+#endif
 #include <fivox/eventValueSummationImageSource.h>
 #include <fivox/functorImageSource.h>
 #include <fivox/somaLoader.h>
@@ -495,11 +498,18 @@ ImageSourcePtr< TImage > URIHandler::newImageSource() const
         source = EventValueSummationImageSource< TImage >::New();
         break;
     default:
-        auto functorSource = FunctorImageSource< TImage >::New();
-        auto functor = newFunctor< TImage >();
-        functorSource->setFunctor( functor );
-        functor->setEventSource( eventSource );
-        source = functorSource;
+#ifdef USE_CUDA
+        if( getFunctorType() == FunctorType::lfp )
+            source = CudaImageSource< TImage >::New();
+        else
+#endif
+        {
+            auto functorSource = FunctorImageSource< TImage >::New();
+            auto functor = newFunctor< TImage >();
+            functorSource->setFunctor( functor );
+            functor->setEventSource( eventSource );
+            source = functorSource;
+        }
     }
 
     LBINFO << "Ready to voxelize " << *this << ", dt = "

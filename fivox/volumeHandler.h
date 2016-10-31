@@ -32,10 +32,11 @@
 #ifndef FIVOX_VOLUMEHANDLER_H
 #define FIVOX_VOLUMEHANDLER_H
 
-#include <fivox/fivox.h>
+#include <fivox/types.h>
+#include <itkImage.h>
 
-typedef fivox::FloatVolume FloatVolume;
-
+namespace fivox
+{
 /**
  * Performs common volume operations based on its size and extent
  */
@@ -47,10 +48,7 @@ public:
      * @param extent 3D vector containing the width, height and depth of the
      * volume in micrometers
      */
-    VolumeHandler( const size_t size, const vmml::Vector3f& extent )
-        : _size( size )
-        , _extent( extent )
-    {}
+    VolumeHandler( const size_t size, const vmml::Vector3f& extent );
 
     /**
      * Compute the region of interest of the volume
@@ -60,29 +58,7 @@ public:
      * @return an itk::Image::RegionType containing the starting index and size
      * of the computed region of interest
      */
-    FloatVolume::RegionType
-        computeRegion( const fivox::Vector2ui& decompose ) const
-    {
-        const size_t begin = float( _size ) / float( decompose[1] ) *
-                             float( decompose[0] );
-        const size_t end = size_t( float( _size ) / float( decompose[1] ) *
-                                   float( decompose[0] + 1 )) - 1;
-
-        const size_t maxExtentIndex = _extent.find_max_index();
-
-        fivox::FloatVolume::IndexType vIndex;
-        vIndex.Fill( 0 );
-        vIndex[ maxExtentIndex ] = begin;
-
-        fivox::FloatVolume::SizeType vSize;
-        vSize[ maxExtentIndex ] = end - begin + 1;
-        for( size_t i = 0; i < 3; ++i )
-        {
-            if( i != maxExtentIndex )
-                vSize[i] = _size * _extent[i] / _extent.find_max();
-        }
-        return fivox::FloatVolume::RegionType( vIndex, vSize );
-    }
+    FloatVolume::RegionType computeRegion( const Vector2ui& decompose ) const;
 
     /**
      * Compute the spacing of the volume
@@ -90,13 +66,7 @@ public:
      * @return an itk::Image::SpacingType containing the geometric distance
      * between image samples
      */
-    FloatVolume::SpacingType computeSpacing() const
-    {
-        fivox::FloatVolume::SpacingType spacing;
-        spacing.Fill( _extent.find_max() / float( _size ));
-
-        return spacing;
-    }
+    FloatVolume::SpacingType computeSpacing() const;
 
     /**
      * Compute the origin of the volume
@@ -105,27 +75,17 @@ public:
      * @return an itk::Image::PointType containing the 3D position of the
      * volume origin
      */
-    FloatVolume::PointType
-        computeOrigin( const fivox::Vector3f& center ) const
-    {
-        const fivox::Vector3f& position( center - _extent * 0.5f );
-
-        typename fivox::FloatVolume::PointType origin;
-        origin[0] = position[0];
-        origin[1] = position[1];
-        origin[2] = position[2];
-
-        return origin;
-    }
+    FloatVolume::PointType computeOrigin( const Vector3f& center ) const;
 
     void setSize( const size_t size ) { _size = size; }
     float getSize() const { return _size; }
 
-    void setExtent( const fivox::Vector3f& extent ) { _extent = extent; }
-    const fivox::Vector3f& getExtent() const { return _extent; }
+    void setExtent( const Vector3f& extent ) { _extent = extent; }
+    const Vector3f& getExtent() const { return _extent; }
 
 private:
     size_t _size;
-    fivox::Vector3f _extent;
+    Vector3f _extent;
 };
+}
 #endif

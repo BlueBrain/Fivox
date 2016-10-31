@@ -3,7 +3,6 @@
 
 set(VOXELIZE_HEADERS
   ../commandLineApplication.h
-  ../volumeHandler.h
   ../volumeWriter.h
 )
 set(VOXELIZE_SOURCES

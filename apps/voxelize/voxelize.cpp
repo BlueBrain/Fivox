@@ -32,7 +32,6 @@
  */
 
 #include "../commandLineApplication.h"
-#include "../volumeHandler.h"
 #include "../volumeWriter.h"
 
 namespace
@@ -150,7 +149,7 @@ public:
         const fivox::Vector3f& extent( source->getSizeInMicrometer( ));
         const size_t size( std::ceil( source->getSizeInVoxel().find_max( )));
 
-        const VolumeHandler volumeHandler( size, extent );
+        const fivox::VolumeHandler volumeHandler( size, extent );
         VolumePtr output = source->GetOutput();
 
         output->SetRegions( volumeHandler.computeRegion( _decompose ));

@@ -23,6 +23,7 @@ set(FIVOX_PUBLIC_HEADERS
   testLoader.h
   types.h
   uriHandler.h
+  volumeHandler.h
   vsdLoader.h
 )
 
@@ -42,12 +43,25 @@ set(FIVOX_SOURCES
   synapseLoader.cpp
   testLoader.cpp
   uriHandler.cpp
+  volumeHandler.cpp
   vsdLoader.cpp
 )
 
 set(FIVOX_LINK_LIBRARIES
   PUBLIC ${ITK_LIBRARIES} Brion Lunchbox vmmlib
   PRIVATE ${Boost_LIBRARIES} Brain)
+
+if(CUDA_FOUND)
+  list(APPEND FIVOX_LINK_LIBRARIES ${CUDA_LIBRARIES})
+endif()
+
+option(FIVOX_USE_CUDA "Use CUDA" ON)
+add_subdirectory(cuda)
+if(FIVOX_USE_CUDA AND CUDA_FOUND)
+  add_definitions(-DUSE_CUDA)
+  list(APPEND FIVOX_PUBLIC_HEADERS cudaImageSource.h cudaImageSource.hxx)
+  include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
+endif()
 
 common_library(Fivox)
 

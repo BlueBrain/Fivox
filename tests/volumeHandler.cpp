@@ -32,16 +32,16 @@
 #define BOOST_TEST_MODULE VolumeHandler
 
 #include "test.h"
-#include <apps/volumeHandler.h>
+#include <fivox/volumeHandler.h>
 
 BOOST_AUTO_TEST_CASE( VolumeHandlerRegion )
 {
-    FloatVolume::RegionType region;
-    FloatVolume::IndexType expectedIndex;
-    FloatVolume::SizeType expectedSize;
+    fivox::FloatVolume::RegionType region;
+    fivox::FloatVolume::IndexType expectedIndex;
+    fivox::FloatVolume::SizeType expectedSize;
 
     // even number of voxels
-    VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
+    fivox::VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
 
     // full volume region
     region = volumeHandler.computeRegion( fivox::Vector2ui( 0, 1 ));
@@ -97,9 +97,8 @@ BOOST_AUTO_TEST_CASE( VolumeHandlerRegion )
 
 BOOST_AUTO_TEST_CASE( VolumeHandlerSpacing )
 {
-    FloatVolume::SpacingType expectedSpacing;
-
-    VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
+    fivox::FloatVolume::SpacingType expectedSpacing;
+    fivox::VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
     expectedSpacing.Fill( 1 );
     BOOST_CHECK_EQUAL( volumeHandler.computeSpacing(), expectedSpacing );
 
@@ -114,9 +113,8 @@ BOOST_AUTO_TEST_CASE( VolumeHandlerSpacing )
 
 BOOST_AUTO_TEST_CASE( VolumeHandlerOrigin )
 {
-    FloatVolume::PointType expectedOrigin;
-
-    VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
+    fivox::FloatVolume::PointType expectedOrigin;
+    fivox::VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
 
     expectedOrigin[0] = -25; expectedOrigin[1] = -50; expectedOrigin[2] = -21;
     BOOST_CHECK_EQUAL( volumeHandler.computeOrigin( fivox::Vector3f( 0, 0, 0 )),
