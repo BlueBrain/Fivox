@@ -61,6 +61,9 @@ public:
             ( "export-volume",
               "Export also the 3d volume (mhd + raw) containing the VSD values,"
               " in addition to the VTK file." )
+            ( "export-point-sprites",
+              "Export also the point sprite files containing the VSD values,"
+              " in addition to the VTK file." )
             ( "sensor-res", po::value< size_t >()->default_value( 512 ),
               "Number of pixels per side of square sensor." )
             ( "sensor-dim", po::value< size_t >()->default_value( 1000 ),
@@ -146,9 +149,9 @@ public:
         const ::fivox::URIHandler params( uri );
         ImageSourcePtr source = params.newImageSource< fivox::FloatVolume >();
 
-        ::fivox::EventSourcePtr loader = source->getEventSource();
+        _eventSource = source->getEventSource();
         std::shared_ptr< fivox::VSDLoader > vsdLoader =
-                std::static_pointer_cast< fivox::VSDLoader >( loader );
+                std::static_pointer_cast< fivox::VSDLoader >( _eventSource );
 
         const float v0 = _vm["v0"].as< float >();
         const float g0 = _vm["g0"].as< float >();
@@ -250,7 +253,7 @@ public:
 
         VolumeWriter< float > writer( output, fivox::Vector2ui( ));
 
-        const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
+        const fivox::Vector2ui frameRange( getFrameRange( _eventSource->getDt( )));
         size_t numDigits = std::to_string( frameRange.y( )).length();
         if( _vm.count( "times" ))
         {
@@ -258,6 +261,12 @@ public:
             std::ostringstream s;
             s << std::fixed << std::setprecision(1) << endTime;
             numDigits = s.str().length();
+        }
+
+        if( _vm.count( "export-point-sprites" ))
+        {
+            _writePointSpriteHeader();
+            _writePointSpritePositions();
         }
 
         for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
@@ -277,7 +286,7 @@ public:
                 filename = os.str();
             }
 
-            source->getEventSource()->setFrame( i );
+            _eventSource->setFrame( i );
             source->Modified();
 
             if( _vm.count( "export-volume" ))
@@ -290,11 +299,80 @@ public:
             }
 
             projectVSD( output, filename );
+
+            if( _vm.count( "export-point-sprites" ))
+                _writePointSpriteIntensities( filename );
         }
     }
 
 private:
+    void _writePointSpriteHeader() const
+    {
+        const std::string& pshFile( _outputFile + ".psh" );
+        std::ofstream file( pshFile.c_str( ));
+        if( file.is_open( ))
+        {
+            file << "# VSD Point Sprite files\n"
+                 << "# File version: 1\n"
+                 << "# Fivox version: " << fivox::Version::getString()
+                 << std::endl;
+
+            file << "EventsCount=" << _eventSource->getNumEvents() << std::endl;
+            const fivox::AABBf& bbox( _eventSource->getBoundingBox( ));
+            file << "XCenter=" << bbox.getCenter().x() << std::endl;
+            file << "YCenter=" << bbox.getCenter().y() << std::endl;
+            file << "ZCenter=" << bbox.getCenter().z() << std::endl;
+            file << "AABBWidth=" << bbox.getSize().x() << std::endl;
+            file << "AABBHeight=" << bbox.getSize().y() << std::endl;
+            file << "AABBDepth=" << bbox.getSize().z() << std::endl;
+
+            file << "VSDPositionFile=" << _outputFile + ".psp" << std::endl;
+            file << "VSDIntensityFile=" << _outputFile + ".psi" << std::endl;
+            file << "TimeStep=" << _eventSource->getDt() << std::endl;
+            if( file.good( ))
+                LBINFO << "Point Sprite header written as " << pshFile
+                       << std::endl;
+        }
+    }
+
+    void _writePointSpritePositions() const
+    {
+        const std::string& pspFile( _outputFile + ".psp" );
+        std::ofstream file( pspFile.c_str(), std::ios::binary );
+        if( file.is_open( ))
+        {
+            for( size_t i = 0; i < _eventSource->getNumEvents(); ++i )
+            {
+                file.write( (const char*)&_eventSource->getPositionsX()[i],
+                            sizeof( float ));
+                file.write( (const char*)&_eventSource->getPositionsY()[i],
+                            sizeof( float ));
+                file.write( (const char*)&_eventSource->getPositionsZ()[i],
+                            sizeof( float ));
+            }
+            if( file.good( ))
+                LBINFO << "Point Sprite positions written as " << pspFile
+                       << std::endl;
+        }
+    }
+
+    void _writePointSpriteIntensities( const std::string& filename ) const
+    {
+        const std::string& psiFile( filename + ".psi" );
+        std::ofstream file( psiFile.c_str(), std::ios::binary );
+        if( file.is_open( ))
+        {
+            for( size_t i = 0; i < _eventSource->getNumEvents(); ++i )
+                file.write( (const char*)&_eventSource->getValues()[i],
+                            sizeof( float ));
+            if( file.good( ))
+                LBINFO << "Point Sprite intensities written as "
+                       << psiFile << std::endl;
+        }
+    }
+
     std::string _outputFile;
+    ::fivox::EventSourcePtr _eventSource;
 };
 
 int main( int argc, char* argv[] )
