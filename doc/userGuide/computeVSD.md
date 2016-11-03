@@ -12,7 +12,7 @@ as a new loader (VSDLoader).
 
     compute-vsd --volume 'fivoxvsd://BlueConfig?report=voltages&target=Column&areas=/path/to/report/area.bbp&dt=0.1'
                 --curve /path/to/dyecurve.txt --depth 2000 [--interpolate-attenuation]
-                --v0 -65 --g0 10000 [--ap-threshold -55] [--export-volume]
+                --v0 -65 --g0 10000 [--ap-threshold -55] [--export-volume] [--export-point-sprites]
                 --sigma 0.001 --sensor-res 512 --sensor-dim 1000
                 --frame[s] '0 10' (or alternatively, --time[s] '0 100') --output /path/to/output/prefix_
 
@@ -40,6 +40,8 @@ values from the dye curve file. Use nearest-neighbor otherwise (default).
 * --ap-threshold: Action potential threshold in millivolts
 * --export-volume: If specified, generate a 3D volume containing the VSD signal
 (.mhd and .raw files)
+* --export-point-sprites: If specified, generate a set of files describing the
+VSD events as point sprites (.psh, .psp and .psi files)
 
 ##### Beer-Lambert projection
 
@@ -130,6 +132,10 @@ the corresponding region.
 applied to the VSD value s the result of lineraly interpolating the two closest
 values in the input dye curve file, so the curve is smoother.
 
+If the _export-point-sprites_ command line option is specified, the resulting
+information (VSD events) will be written to disk in the form of point sprite
+files.
+
 
 ### Voxelization
 
@@ -194,6 +200,12 @@ Example, attenuating more in the middle part:
 0.83
 0.95
 ```
+
+#### VSD point sprite files:
+
+A metadata header ASCII file (.psh), a binary file containing the positions for
+all the VSD events (.psp), and one binary file containing all the event values
+for each generated frame (.psi).
 
 #### Output 3D volume:
 

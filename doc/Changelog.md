@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#69](https://github.com/BlueBrain/Fivox/pull/69)
+  Add option in compute-vsd tool to export the VSD events as point sprite files
 * [#65](https://github.com/BlueBrain/Fivox/pull/65)
   Add option in compute-vsd tool to export the soma positions as a text file
 * [#64](https://github.com/BlueBrain/Fivox/pull/64)

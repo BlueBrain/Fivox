@@ -31,7 +31,6 @@
 #include <brain/neuron/section.h>
 #include <brain/neuron/soma.h>
 
-#include <fstream>
 #include <cassert>
 
 namespace fivox
