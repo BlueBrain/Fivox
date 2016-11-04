@@ -21,6 +21,7 @@
 #ifndef FIVOX_DENSITYFUNCTOR_H
 #define FIVOX_DENSITYFUNCTOR_H
 
+#include <fivox/api.h>
 #include <fivox/eventFunctor.h> // base class
 
 namespace fivox
@@ -36,17 +37,17 @@ class DensityFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    DensityFunctor()
+    FIVOX_API DensityFunctor()
         : Super()
     {}
-    virtual ~DensityFunctor() {}
+    FIVOX_API virtual ~DensityFunctor() {}
 
-    void beforeGenerate() override
+    FIVOX_API void beforeGenerate() override
     {
         if( Super::_source ) Super::_source->buildRTree();
     }
 
-    TPixel operator()( const TPoint& point, const TSpacing& spacing )
+    FIVOX_API TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const override;
 };
 

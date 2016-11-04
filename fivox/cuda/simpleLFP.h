@@ -48,6 +48,24 @@ struct VolumeInfo
     float3 origin;
 };
 
+/**
+ * Compute the local field potential from a set of input events
+ *
+ * @param posX array of x-coordinates of event positions
+ * @param posY array of y-coordinates of event positions
+ * @param posZ array of z-coordinates of event positions
+ * @param radii array of event radii
+ * @param values array of event values
+ * @param parameters structure containing the number of events and the cutoff
+ * distance
+ * @param volInfo structure containing the volume dimensions, the voxel size and
+ * the origin coordinates (bottom left corner)
+ * @param output array of the output values. Each value corresponds to a voxel,
+ * being its 3D indices flattened: first traversing along X, then Y
+ * (using "width" steps), and finally Z (using "width"*"height" planes)
+ * @return the time of execution, in milliseconds, of the computation in the
+ * CUDA kernel
+ */
 float simpleLFP( float* posX, float* posY, float* posZ,
                  float* radii, float* values, const Parameters& parameters,
                  const VolumeInfo& volInfo, float* output );

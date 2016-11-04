@@ -32,6 +32,11 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
 {
     // 1D grid of 1D blocks
     const int threadId = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned int numVoxels = volInfo.dimensions.x *
+                                   volInfo.dimensions.y *
+                                   volInfo.dimensions.z;
+    if( threadId >= numVoxels )
+        return;
 
     const int xIndex = threadId % volInfo.dimensions.x;
     const int yIndex = ( threadId / volInfo.dimensions.x )
@@ -44,7 +49,7 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
     const float voxelPosZ = zIndex * volInfo.voxelSize + volInfo.origin.z;
 
     // Compute directly the inverted value to gain performance in the for loop
-    const float cutOffDistance = 1.f / params.cutoff;
+    const float cutOffDistance = __frcp_rn( params.cutoff );
 
     float current( 0.f );
     for( unsigned int i = 0; i < params.numEvents; ++i )
@@ -59,8 +64,8 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
                                distanceY * distanceY +
                                distanceZ * distanceZ );
 
-        // Use the reciprocal of sqrt (faster in AVX assembly)
-        const float length = 1.f / sqrtf( distance2 );
+        // Use the reciprocal of sqrt
+        const float length = __frsqrt_rn( distance2 );
         // Comparison is inverted, as we are using the reciprocal values
         if( length < cutOffDistance )
             continue;
@@ -70,10 +75,7 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
         const float radius( radii[i] );
         // Comparison is inverted, as we are using the reciprocal values
         // (radius is already stored like that from the loader)
-        if( length > radius )
-            current += value * radius; // mA
-        else
-            current += value * length; // mA
+        current += value * min( radius, length ); // mA
     }
     // voltageFactor =  1 / (4 * PI * conductivity),
     // with conductivity = 1 / 3.54 (siemens per meter)
@@ -118,6 +120,9 @@ float simpleLFP( float* posX, float* posY, float* posZ, float* radii,
 
     float milliseconds = 0;
     gpuErrchk( cudaEventElapsedTime( &milliseconds, start, stop ));
+
+    gpuErrchk( cudaEventDestroy( start ));
+    gpuErrchk( cudaEventDestroy( stop ));
 
     gpuErrchk( cudaFree( cudaParameters ));
     gpuErrchk( cudaFree( cudaVolInfo ));

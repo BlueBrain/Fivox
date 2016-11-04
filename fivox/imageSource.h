@@ -21,6 +21,7 @@
 #ifndef FIVOX_IMAGESOURCE_H
 #define FIVOX_IMAGESOURCE_H
 
+#include <fivox/api.h>
 #include <fivox/types.h>
 #include <fivox/progressObserver.h> // member
 
@@ -65,29 +66,32 @@ public:
                          ImageType::ImageDimension );
 
     /** Set the event source that is used for sampling into the volume. */
-    void setEventSource( EventSourcePtr source ) { _eventSource = source; }
+    FIVOX_API void setEventSource( EventSourcePtr source )
+    {
+        _eventSource = source;
+    }
 
     /** @return the event source used for sampling. */
-    EventSourcePtr getEventSource() { return _eventSource; }
+    FIVOX_API EventSourcePtr getEventSource() { return _eventSource; }
 
     /**
      * Setup size and resolution of output volume depending on user input.
      *
      * setEventSource() must be called before.
      */
-    void setup( const URIHandler& params );
+    FIVOX_API void setup( const URIHandler& params );
 
     /** @return the bounding box of the data in micrometers. */
-    const AABBf& getBoundingBox() const;
+    FIVOX_API const AABBf& getBoundingBox() const;
 
     /** @return the size of the output volume in micrometers. */
-    const Vector3f& getSizeInMicrometer() const;
+    FIVOX_API const Vector3f& getSizeInMicrometer() const;
 
     /** @return the size of the output volume in voxels. */
-    const Vector3ui& getSizeInVoxel() const;
+    FIVOX_API const Vector3ui& getSizeInVoxel() const;
 
     /** @return the resolution of the output volume in voxels per micrometer. */
-    const Vector3f& getResolution() const;
+    FIVOX_API const Vector3f& getResolution() const;
 
 protected:
     ImageSource();

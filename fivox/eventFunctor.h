@@ -22,6 +22,7 @@
 #ifndef FIVOX_EVENTFUNCTOR_H
 #define FIVOX_EVENTFUNCTOR_H
 
+#include <fivox/api.h>
 #include <fivox/types.h>
 
 namespace fivox
@@ -35,16 +36,16 @@ public:
     typedef typename TImage::PointType TPoint;
     typedef typename TImage::SpacingType TSpacing;
 
-    EventFunctor() {}
-    virtual ~EventFunctor() {}
+    FIVOX_API EventFunctor() {}
+    FIVOX_API virtual ~EventFunctor() {}
 
-    void setEventSource( EventSourcePtr source ) { _source = source; }
+    FIVOX_API void setEventSource( EventSourcePtr source ) { _source = source; }
 
     /** Called before threads are starting to voxelize */
-    virtual void beforeGenerate() {}
+    FIVOX_API virtual void beforeGenerate() {}
 
-    virtual TPixel operator()( const TPoint& point, const TSpacing& spacing )
-        const = 0;
+    FIVOX_API virtual TPixel operator()( const TPoint& point,
+                                         const TSpacing& spacing ) const = 0;
 
 protected:
     EventSourcePtr _source;

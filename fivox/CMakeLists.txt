@@ -51,16 +51,13 @@ set(FIVOX_LINK_LIBRARIES
   PUBLIC ${ITK_LIBRARIES} Brion Lunchbox vmmlib
   PRIVATE ${Boost_LIBRARIES} Brain)
 
-if(CUDA_FOUND)
-  list(APPEND FIVOX_LINK_LIBRARIES ${CUDA_LIBRARIES})
-endif()
-
-option(FIVOX_USE_CUDA "Use CUDA" ON)
-add_subdirectory(cuda)
-if(FIVOX_USE_CUDA AND CUDA_FOUND)
-  add_definitions(-DUSE_CUDA)
+if(CUDA_FOUND AND FIVOX_USE_CUDA)
+  add_subdirectory(cuda)
+  list(APPEND PRIVATE FIVOX_LINK_LIBRARIES ${CUDA_LIBRARIES})
   list(APPEND FIVOX_PUBLIC_HEADERS cudaImageSource.h cudaImageSource.hxx)
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
+else()
+  message(STATUS "Disable cuda")
 endif()
 
 common_library(Fivox)

@@ -20,6 +20,7 @@
 #ifndef FIVOX_TESTLOADER_H
 #define FIVOX_TESTLOADER_H
 
+#include <fivox/api.h>
 #include <fivox/eventSource.h> // base class
 
 namespace fivox
@@ -37,8 +38,8 @@ public:
     * @param params the URIHandler object containing the parameters
     * to define the event source
     */
-    explicit TestLoader( const URIHandler& params );
-    virtual ~TestLoader();
+    FIVOX_API explicit TestLoader( const URIHandler& params );
+    FIVOX_API virtual ~TestLoader();
 
 private:
     /** @name Abstract interface implementation */

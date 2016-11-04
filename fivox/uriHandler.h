@@ -23,6 +23,7 @@
 #ifndef FIVOX_URIHANDLER_H
 #define FIVOX_URIHANDLER_H
 
+#include <fivox/api.h>
 #include <brion/types.h>
 #include <fivox/types.h>
 #include <memory>
@@ -44,14 +45,14 @@ public:
      *
      * @param parameters URI containing the parameters in the specified form
      */
-    explicit URIHandler( const URI& parameters );
-    virtual ~URIHandler(); //!< Destruct this parameter processor
+    FIVOX_API explicit URIHandler( const URI& parameters );
+    FIVOX_API virtual ~URIHandler(); //!< Destruct this parameter processor
 
     /**
      * @return the BlueConfig object from the parameters. For empty parameters,
      *         it returns the TestData's BlueConfig if available.
      */
-    const brion::BlueConfig& getConfig() const;
+    FIVOX_API const brion::BlueConfig& getConfig() const;
 
     /**
      * @return the GIDs from the 'postTarget' parameter (if specified, by
@@ -63,13 +64,13 @@ public:
      *         If the specified target was the '*' wildcard, it returns all GIDs
      *         of the circuit and omits target parsing entirely.
      */
-    const brion::GIDSet& getGIDs() const;
+    FIVOX_API const brion::GIDSet& getGIDs() const;
 
     /**
      * @return the GIDs from the 'preTarget' parameter, used for synapse
      *         projections. Empty if parameter not specified.
      */
-    const brion::GIDSet& getPreGIDs() const;
+    FIVOX_API const brion::GIDSet& getPreGIDs() const;
 
     /**
      * Get the specified report name.
@@ -80,31 +81,31 @@ public:
      *
      * @return the specified report name.
      */
-    std::string getReport() const;
+    FIVOX_API std::string getReport() const;
 
     /**
      * Get the specified path to the area report file.
      *
      * @return the specified report path.
      */
-    std::string getAreas() const;
+    FIVOX_API std::string getAreas() const;
 
     /**
      * Get the specified timestep (dt).
      *
      * @return the specified timestep. If invalid or empty, return 10.
      */
-    float getDt() const;
+    FIVOX_API float getDt() const;
 
     /** @return URI to spikes source, empty by default */
-    std::string getSpikes() const;
+    FIVOX_API std::string getSpikes() const;
 
     /**
      * Get the specified duration.
      *
      * @return the specified duration. If invalid or empty, return getDt().
      */
-    float getDuration() const;
+    FIVOX_API float getDuration() const;
 
     /**
      * Get the range of values to consider in the input data for rescaling into
@@ -118,14 +119,14 @@ public:
      * @return a vector containing the minimum and maximum values that the
      * volume can take before rescaling it
      */
-    Vector2f getInputRange() const;
+    FIVOX_API Vector2f getInputRange() const;
 
     /**
      * Get the specified resolution in voxels per unit (typically um).
      *
      * @return the specified resolution. If invalid or empty, return 10.
      */
-    float getResolution() const;
+    FIVOX_API float getResolution() const;
 
     /**
      * Get the specified maximum size per block (bytes).
@@ -133,7 +134,7 @@ public:
      * @return the specified maximum size per block. If invalid or empty, return
      *         64MB
      */
-    size_t getMaxBlockSize() const;
+    FIVOX_API size_t getMaxBlockSize() const;
 
     /**
      * Get the specified cutoff distance in micrometers.
@@ -141,7 +142,7 @@ public:
      * @return the specified cutoff distance in micrometers. If invalid or
      *         empty, return 100.
      */
-    float getCutoffDistance() const;
+    FIVOX_API float getCutoffDistance() const;
 
     /**
      * Get the additional distance, in micrometers, by which the original data
@@ -151,14 +152,14 @@ public:
      * @return the distance to extend the data volume, in micrometers.
      *         If invalid or empty, return 0.
      */
-    float getExtendDistance() const;
+    FIVOX_API float getExtendDistance() const;
 
     /**
      * Get the type of the volume that is being loaded (present in the URI
      * schema)
      * @return the type of the volume
      */
-    VolumeType getType() const;
+    FIVOX_API VolumeType getType() const;
 
     /**
      * Available functors are "density", "field" and "frequency". If "functor"
@@ -170,28 +171,30 @@ public:
      * @return the type of the functor to use, use VolumeType default functor
      *          if unspecified.
      */
-    FunctorType getFunctorType() const;
+    FIVOX_API FunctorType getFunctorType() const;
 
     /**
      * @return the path to a reference volume to setup the size and resolution
      *         of the output volme. Empty by default.
      */
-    std::string getReferenceVolume() const;
+    FIVOX_API std::string getReferenceVolume() const;
 
     /** @return the size in voxels along the largest dimension of the volume. */
-    size_t getSizeInVoxel() const;
+    FIVOX_API size_t getSizeInVoxel() const;
 
     /** @return description of the volume from the provided URI paramters. */
-    std::string getDescription() const;
+    FIVOX_API std::string getDescription() const;
 
     /** @return a new image source for the given parameters and pixel type. */
-    template< class TImage > ImageSourcePtr< TImage > newImageSource() const;
+    FIVOX_API template< class TImage > ImageSourcePtr< TImage > newImageSource()
+        const;
 
     /** @return a new functor for the given parameters and pixel type. */
-    template< class TImage > EventFunctorPtr< TImage > newFunctor() const;
+    FIVOX_API template< class TImage > EventFunctorPtr< TImage > newFunctor()
+        const;
 
     /** @return a new event source for the given parameters. */
-    EventSourcePtr newEventSource() const;
+    FIVOX_API EventSourcePtr newEventSource() const;
 
 private:
     class Impl;

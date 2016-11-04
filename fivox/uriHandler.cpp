@@ -498,7 +498,7 @@ ImageSourcePtr< TImage > URIHandler::newImageSource() const
         source = EventValueSummationImageSource< TImage >::New();
         break;
     default:
-#ifdef USE_CUDA
+#ifdef FIVOX_USE_CUDA
         if( getFunctorType() == FunctorType::lfp )
             source = CudaImageSource< TImage >::New();
         else

@@ -28,8 +28,7 @@ namespace fivox
 {
 
 /**
- * Image source iterating over all events and summing their values into the
- * voxel they fall into.
+ * Image source using a CUDA compute kernel on each pixel to generate the output
  */
 template< typename TImage >
 class CudaImageSource : public ImageSource< TImage >

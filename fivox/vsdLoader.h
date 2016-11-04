@@ -21,6 +21,7 @@
 #ifndef FIVOX_VSDLOADER_H
 #define FIVOX_VSDLOADER_H
 
+#include <fivox/api.h>
 #include <fivox/attenuationCurve.h>
 #include <fivox/eventSource.h> // base class
 
@@ -43,15 +44,15 @@ public:
     * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    explicit VSDLoader( const URIHandler& params );
-    virtual ~VSDLoader(); //!< Destruct this vsd event source
+    FIVOX_API explicit VSDLoader( const URIHandler& params );
+    FIVOX_API virtual ~VSDLoader(); //!< Destruct this vsd event source
 
     /**
     * Set the attenuation curve that will be applied to the computed events
     *
     * @param curve The attenuation curve to apply
     */
-    void setCurve( const AttenuationCurve& curve );
+    FIVOX_API void setCurve( const AttenuationCurve& curve );
 
     /**
      * Enable the interpolation of the attenuation values from the dye curve
@@ -60,24 +61,24 @@ public:
      * applying them; false to use the attenuation values as they are in the
      * dye curve file
      */
-    void setInterpolation( bool interpolate );
+    FIVOX_API void setInterpolation( bool interpolate );
 
     /**
      * @return All GIDs loaded
      */
-    const brion::GIDSet& getGIDs() const;
+    FIVOX_API const brion::GIDSet& getGIDs() const;
 
     /**
      * @return The soma positions of all the cells loaded
      */
-    const brion::Vector3fs getSomaPositions() const;
+    FIVOX_API const brion::Vector3fs getSomaPositions() const;
 
     /**
     * Set the resting potential that will be used for the computation of the VSD
     *
     * @param millivolts resting potential in mV
     */
-    void setRestingPotential( float millivolts );
+    FIVOX_API void setRestingPotential( float millivolts );
 
     /**
     * Set the multiplier for surface area in background fluorescence term value
@@ -85,14 +86,14 @@ public:
     * @param factor multiplier for surface area in background fluorescence term
     * value
     */
-    void setAreaMultiplier( float factor );
+    FIVOX_API void setAreaMultiplier( float factor );
 
     /**
      * Enable the spike filtering
      * @param enable true to enable spike filtering; false to use the input
      * voltages as they are
      */
-    void setSpikeFilter( bool enable );
+    FIVOX_API void setSpikeFilter( bool enable );
 
     /**
      * When the spike filtering is enabled, use this to set the action potential
@@ -100,7 +101,7 @@ public:
      *
      * @param apThreshold action potential threshold, in millivolts
      */
-    void setApThreshold( float apThreshold );
+    FIVOX_API void setApThreshold( float apThreshold );
 
 private:
     /** @name Abstract interface implementation */

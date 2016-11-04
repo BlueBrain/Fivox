@@ -40,15 +40,6 @@ void CudaImageSource< TImage >::GenerateData()
     image->Allocate();
     image->FillBuffer( 0 );
 
-    auto source = Superclass::_eventSource;
-    float* posX;
-    float* posY;
-    float* posZ;
-    float* radii;
-    float* values;
-    const int fsize = source->getNumEvents() * sizeof(float);
-    source->load();
-
     const auto& sizeVoxels = Superclass::getSizeInVoxel();
     const size_t width = sizeVoxels.x();
     const size_t height = sizeVoxels.y();
@@ -69,10 +60,19 @@ void CudaImageSource< TImage >::GenerateData()
     volInfo.origin.y = origin[1];
     volInfo.origin.z = origin[2];
 
+    auto source = Superclass::_eventSource;
+    source->load();
+    const int fsize = source->getNumEvents() * sizeof(float);
+
     cuda::Parameters parameters;
     parameters.numEvents = source->getNumEvents();
     parameters.cutoff = source->getCutOffDistance();
 
+    float* posX;
+    float* posY;
+    float* posZ;
+    float* radii;
+    float* values;
     // copy input from host to device
     gpuErrchk( cudaMalloc( (void**)&posX, fsize ));
     gpuErrchk( cudaMalloc( (void**)&posY, fsize ));

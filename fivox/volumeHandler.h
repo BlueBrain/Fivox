@@ -32,6 +32,7 @@
 #ifndef FIVOX_VOLUMEHANDLER_H
 #define FIVOX_VOLUMEHANDLER_H
 
+#include <fivox/api.h>
 #include <fivox/types.h>
 #include <itkImage.h>
 
@@ -48,7 +49,7 @@ public:
      * @param extent 3D vector containing the width, height and depth of the
      * volume in micrometers
      */
-    VolumeHandler( const size_t size, const vmml::Vector3f& extent );
+    FIVOX_API VolumeHandler( const size_t size, const vmml::Vector3f& extent );
 
     /**
      * Compute the region of interest of the volume
@@ -58,7 +59,8 @@ public:
      * @return an itk::Image::RegionType containing the starting index and size
      * of the computed region of interest
      */
-    FloatVolume::RegionType computeRegion( const Vector2ui& decompose ) const;
+    FIVOX_API FloatVolume::RegionType computeRegion( const Vector2ui& decompose)
+        const;
 
     /**
      * Compute the spacing of the volume
@@ -66,7 +68,7 @@ public:
      * @return an itk::Image::SpacingType containing the geometric distance
      * between image samples
      */
-    FloatVolume::SpacingType computeSpacing() const;
+    FIVOX_API FloatVolume::SpacingType computeSpacing() const;
 
     /**
      * Compute the origin of the volume
@@ -75,13 +77,14 @@ public:
      * @return an itk::Image::PointType containing the 3D position of the
      * volume origin
      */
-    FloatVolume::PointType computeOrigin( const Vector3f& center ) const;
+    FIVOX_API FloatVolume::PointType computeOrigin( const Vector3f& center )
+        const;
 
-    void setSize( const size_t size ) { _size = size; }
-    float getSize() const { return _size; }
+    FIVOX_API void setSize( const size_t size ) { _size = size; }
+    FIVOX_API float getSize() const { return _size; }
 
-    void setExtent( const Vector3f& extent ) { _extent = extent; }
-    const Vector3f& getExtent() const { return _extent; }
+    FIVOX_API void setExtent( const Vector3f& extent ) { _extent = extent; }
+    FIVOX_API const Vector3f& getExtent() const { return _extent; }
 
 private:
     size_t _size;

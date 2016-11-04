@@ -20,6 +20,7 @@
 #ifndef FIVOX_SCALEFILTER_H
 #define FIVOX_SCALEFILTER_H
 
+#include <fivox/api.h>
 #include <itkIntensityWindowingImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
@@ -40,7 +41,7 @@ public:
     /**
      * Default constructor (used in VolumeWriter< float >)
      */
-    ScaleFilter()
+    FIVOX_API ScaleFilter()
     {}
 
     /**
@@ -51,7 +52,7 @@ public:
      * @param dataRange Vector2f containing the lower and upper limits for the
      *                  input data range
      */
-    ScaleFilter( VolumePtr input, const fivox::Vector2f& dataRange )
+    FIVOX_API ScaleFilter( VolumePtr input, const fivox::Vector2f& dataRange )
     {
         if( dataRange == fivox::FULLDATARANGE )
         {
@@ -79,12 +80,12 @@ public:
         _scaler->SetOutputMaximum( std::numeric_limits< T >::max( ));
     }
 
-    typename TImage::Pointer GetOutput()
+    FIVOX_API typename TImage::Pointer GetOutput()
     {
         return _scaler ? _scaler->GetOutput() : _rescale->GetOutput();
     }
 
-    void Update()
+    FIVOX_API void Update()
     {
         if( _scaler )
             _scaler->Update();

@@ -22,6 +22,8 @@
 #ifndef FIVOX_ATTENUATION_CURVE_H
 #define FIVOX_ATTENUATION_CURVE_H
 
+#include <fivox/api.h>
+
 #include <string>
 #include <vector>
 #include <fstream>
@@ -35,13 +37,14 @@ class AttenuationCurve
 {
 public:
     /** Construct an empty attenuation curve */
-    AttenuationCurve() : _thickness( 1.f ) {}
+    FIVOX_API AttenuationCurve() : _thickness( 1.f ) {}
 
     /**
      * @param dyeCurveFile Dye attenuation file.
      * @param thickness Thickness of the circuit.
      */
-    AttenuationCurve( const std::string& dyeCurveFile, const float thickness )
+    FIVOX_API AttenuationCurve( const std::string& dyeCurveFile,
+                                const float thickness )
         : _thickness( thickness )
     {
         if( dyeCurveFile.empty( ))
@@ -79,8 +82,8 @@ public:
      * @return the interpolated attenuation value according to depth; 1 if there
      * is no attenuation curve or it is empty.
      */
-    float getAttenuation( const float yCoord,
-                          const bool interpolate = false ) const
+    FIVOX_API float getAttenuation( const float yCoord,
+                                    const bool interpolate = false ) const
     {
         if( _dyeCurve.empty() || _thickness <= 0.f )
             return 1.0f;
