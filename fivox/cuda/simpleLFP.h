@@ -66,7 +66,8 @@ struct VolumeInfo
  * @return the time of execution, in milliseconds, of the computation in the
  * CUDA kernel
  */
-float simpleLFP( float* posX, float* posY, float* posZ,
-                 float* radii, float* values, const Parameters& parameters,
-                 const VolumeInfo& volInfo, float* output );
+float simpleLFP( const float* posX, const float* posY, const float* posZ,
+                 const float* radii, const float* values,
+                 const Parameters& parameters, const VolumeInfo& volInfo,
+                 float* output );
 }

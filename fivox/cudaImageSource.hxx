@@ -23,7 +23,6 @@
 
 #include "cuda/simpleLFP.h"
 #include "cudaImageSource.h"
-#include "volumeHandler.h"
 
 namespace fivox
 {
@@ -40,22 +39,20 @@ void CudaImageSource< TImage >::GenerateData()
     image->Allocate();
     image->FillBuffer( 0 );
 
-    const auto& sizeVoxels = Superclass::getSizeInVoxel();
-    const size_t width = sizeVoxels.x();
-    const size_t height = sizeVoxels.y();
-    const size_t depth = sizeVoxels.z();
+    typename TImage::SizeType vSize = image->GetRequestedRegion().GetSize();
+    const size_t width = vSize[0];
+    const size_t height = vSize[1];
+    const size_t depth = vSize[2];
 
     cuda::VolumeInfo volInfo;
     volInfo.dimensions.x = width;
     volInfo.dimensions.y = height;
     volInfo.dimensions.z = depth;
 
-    const auto& volExtent( Superclass::getSizeInMicrometer( ));
-    const size_t volSize( std::ceil( Superclass::getSizeInVoxel().find_max( )));
-    const VolumeHandler volumeHandler( volSize, volExtent );
-    volInfo.voxelSize = volumeHandler.computeSpacing()[0];
+    volInfo.voxelSize = image->GetSpacing()[0];
 
-    const auto& origin = Superclass::getBoundingBox().getMin();
+    const auto& origin = Superclass::getBoundingBox().getCenter() -
+                         Superclass::getSizeInMicrometer() * 0.5f;
     volInfo.origin.x = origin[0];
     volInfo.origin.y = origin[1];
     volInfo.origin.z = origin[2];
@@ -96,7 +93,7 @@ void CudaImageSource< TImage >::GenerateData()
     gpuErrchk( cudaMalloc( (void**)&cudaOutput, numVoxels * sizeof(float) ));
     const float elapsed = cuda::simpleLFP( posX, posY, posZ, radii, values,
                                            parameters, volInfo, cudaOutput );
-    LBINFO << "CUDA elapsed time: " << elapsed << " ms" << std::endl;
+    LBINFO << "CUDA elapsed time: " << elapsed << "ms" << std::endl;
 
     // copy output from device to host
     float* output = (float*)malloc( numVoxels * sizeof(float) );

@@ -84,9 +84,10 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
     output[threadId] = voltageFactor * current;
 }
 
-float simpleLFP( float* posX, float* posY, float* posZ, float* radii,
-                 float* values, const Parameters& parameters,
-                 const VolumeInfo& volInfo, float* output )
+float simpleLFP( const float* posX, const float* posY, const float* posZ,
+                 const float* radii, const float* values,
+                 const Parameters& parameters, const VolumeInfo& volInfo,
+                 float* output )
 {
     cuda::Parameters* cudaParameters;
     cuda::VolumeInfo* cudaVolInfo;

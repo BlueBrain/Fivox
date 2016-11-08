@@ -52,7 +52,8 @@ const float expectedValue2 = 2.81135f;
 
 BOOST_AUTO_TEST_CASE( LfpValidation )
 {
-    const fivox::URIHandler params( fivox::URI( "fivoxtest://?resolution=1&cutoff=100&functor=lfp" ));
+    const fivox::URIHandler params( fivox::URI(
+               "fivoxtest://?resolution=1&cutoff=100&functor=lfp&extend=100" ));
     auto volumeSource = params.newImageSource< fivox::FloatVolume >();
 
     typedef fivox::FloatVolume Image;
@@ -68,7 +69,7 @@ BOOST_AUTO_TEST_CASE( LfpValidation )
     source->setFrame( 90u );
     const fivox::AABBf& bbox = source->getBoundingBox();
     const fivox::Vector3f& extent( bbox.getSize() +
-                                   source->getCutOffDistance() * 2.f );
+                                   params.getExtendDistance() * 2.f );
     const fivox::Vector3f& position = bbox.getCenter() - extent * 0.5;
 
     Image::SpacingType spacing;
