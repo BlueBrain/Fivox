@@ -21,6 +21,7 @@
 #ifndef FIVOX_SPIKELOADER_H
 #define FIVOX_SPIKELOADER_H
 
+#include <fivox/api.h>
 #include <fivox/eventSource.h> // base class
 
 namespace fivox
@@ -36,8 +37,8 @@ public:
     * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    explicit SpikeLoader( const URIHandler& params );
-    virtual ~SpikeLoader();
+    FIVOX_API explicit SpikeLoader( const URIHandler& params );
+    FIVOX_API virtual ~SpikeLoader();
 
 private:
     /** @name Abstract interface implementation */

@@ -28,6 +28,9 @@
 #ifdef FIVOX_USE_LFP
 #  include <fivox/lfp/lfpFunctor.h>
 #endif
+#ifdef FIVOX_USE_CUDA
+#  include <fivox/cudaImageSource.h>
+#endif
 #include <fivox/eventValueSummationImageSource.h>
 #include <fivox/functorImageSource.h>
 #include <fivox/somaLoader.h>
@@ -495,11 +498,33 @@ ImageSourcePtr< TImage > URIHandler::newImageSource() const
         source = EventValueSummationImageSource< TImage >::New();
         break;
     default:
-        auto functorSource = FunctorImageSource< TImage >::New();
-        auto functor = newFunctor< TImage >();
-        functorSource->setFunctor( functor );
-        functor->setEventSource( eventSource );
-        source = functorSource;
+#ifdef FIVOX_USE_CUDA
+        bool cudaCapable = false;
+        if( getFunctorType() == FunctorType::lfp )
+        {
+            int deviceCount = 0;
+            if( cudaGetDeviceCount( &deviceCount ) != cudaSuccess )
+                deviceCount = 0;
+
+            cudaCapable = deviceCount > 0;
+            if( cudaCapable )
+            {
+                LBINFO << "CUDA-capable device is detected. "
+                       << "Using GPU implementation." << std::endl;
+                source = CudaImageSource< TImage >::New();
+            }
+        }
+        if( !cudaCapable )
+#endif
+        {
+            LBINFO << "No CUDA-capable device is detected. "
+                   << "Using CPU implementation." << std::endl;
+            auto functorSource = FunctorImageSource< TImage >::New();
+            auto functor = newFunctor< TImage >();
+            functorSource->setFunctor( functor );
+            functor->setEventSource( eventSource );
+            source = functorSource;
+        }
     }
 
     LBINFO << "Ready to voxelize " << *this << ", dt = "

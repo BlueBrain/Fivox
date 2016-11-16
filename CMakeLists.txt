@@ -23,17 +23,26 @@ set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(Common)
 
-set(FIVOX_DEPENDENT_LIBRARIES Lunchbox ITK vmmlib)
+set(FIVOX_DEPENDENT_LIBRARIES CUDA Lunchbox ITK vmmlib)
 
 common_find_package(BBPTestData)
 common_find_package(Boost REQUIRED COMPONENTS unit_test_framework
-                                         program_options system)
+                                              program_options system)
 common_find_package(Brion REQUIRED)
+common_find_package(CUDA 4.0)
 common_find_package(ITK REQUIRED SYSTEM)
 common_find_package(Lexis)
 common_find_package(Livre)
 common_find_package(vmmlib REQUIRED)
 common_find_package(ZeroEQ)
+
+if(CUDA_FOUND)
+  option(FIVOX_USE_CUDA "Use CUDA" ON)
+  if(NOT FIVOX_USE_CUDA)
+    common_find_package_disable(CUDA)
+  endif()
+endif()
+
 common_find_package_post()
 
 include(${ITK_USE_FILE})

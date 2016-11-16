@@ -21,6 +21,7 @@
 #ifndef FIVOX_FIELDFUNCTOR_H
 #define FIVOX_FIELDFUNCTOR_H
 
+#include <fivox/api.h>
 #include <fivox/eventFunctor.h> // base class
 #include <brion/types.h>
 
@@ -35,12 +36,12 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FieldFunctor()
+    FIVOX_API FieldFunctor()
         : Super()
     {}
-    virtual ~FieldFunctor() {}
+    FIVOX_API virtual ~FieldFunctor() {}
 
-    TPixel operator()( const TPoint& point, const TSpacing& spacing )
+    FIVOX_API TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const override;
 };
 

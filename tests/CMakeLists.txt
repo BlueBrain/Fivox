@@ -13,6 +13,13 @@ if(TARGET BrionMonsteerSpikeReport)
   list(APPEND TEST_LIBRARIES BrionMonsteerSpikeReport)
 endif()
 
+# For Boost versions < 1.60 we need to manually set the following option to "no"
+# in the test target, as explained here:
+# http://stackoverflow.com/questions/5325202
+# This is needed for the runtime check of CUDA devices, done in several tests.
+# Note that this won't affect the test application, only the target.
+set(TEST_ARGS --catch_system_errors=no)
+
 set(TESTDATA_TESTS uriHandler.cpp sources.cpp)
 if(TARGET BBPTestData AND TARGET Brion)
   set(UNIT_AND_PERF_TESTS ${TESTDATA_TESTS})

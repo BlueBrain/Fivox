@@ -22,6 +22,7 @@
 #ifndef FIVOX_FREQUENCYFUNCTOR_H
 #define FIVOX_FREQUENCYFUNCTOR_H
 
+#include <fivox/api.h>
 #include <fivox/eventFunctor.h> // base class
 
 namespace fivox
@@ -37,17 +38,17 @@ class FrequencyFunctor : public EventFunctor< TImage >
     typedef typename Super::TSpacing TSpacing;
 
 public:
-    FrequencyFunctor()
+    FIVOX_API FrequencyFunctor()
         : Super()
     {}
-    virtual ~FrequencyFunctor() {}
+    FIVOX_API virtual ~FrequencyFunctor() {}
 
-    void beforeGenerate() override
+    FIVOX_API void beforeGenerate() override
     {
         if( Super::_source ) Super::_source->buildRTree();
     }
 
-    TPixel operator()( const TPoint& point, const TSpacing& spacing )
+    FIVOX_API TPixel operator()( const TPoint& point, const TSpacing& spacing )
         const override;
 };
 

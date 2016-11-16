@@ -21,6 +21,7 @@
 #ifndef FIVOX_COMPARTMENTLOADER_H
 #define FIVOX_COMPARTMENTLOADER_H
 
+#include <fivox/api.h>
 #include <fivox/eventSource.h> // base class
 
 namespace fivox
@@ -36,8 +37,8 @@ public:
     * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    explicit CompartmentLoader( const URIHandler& params );
-    virtual ~CompartmentLoader(); //!< Destruct this compartment event source
+    FIVOX_API explicit CompartmentLoader( const URIHandler& params );
+    FIVOX_API virtual ~CompartmentLoader(); //!< Destruct this event source
 
 private:
     /** @name Abstract interface implementation */

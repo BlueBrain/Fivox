@@ -22,6 +22,7 @@
 #ifndef FIVOX_EVENTSOURCE_H
 #define FIVOX_EVENTSOURCE_H
 
+#include <fivox/api.h>
 #include <fivox/types.h>
 #include <lunchbox/compiler.h>
 
@@ -38,7 +39,7 @@ namespace fivox
 class EventSource
 {
 public:
-    virtual ~EventSource();
+    FIVOX_API virtual ~EventSource();
 
     /**
      * Resize the underlying event structure to the specified size, and
@@ -46,7 +47,7 @@ public:
      *
      * @param numEvents the number of events that the EventSource will hold
      */
-    void resize( size_t numEvents );
+    FIVOX_API void resize( size_t numEvents );
 
     /**
      * Get a reference to the value of an event contained in the EventSource
@@ -56,26 +57,26 @@ public:
      * @return value of the event stored in the EventSource with the
      * specified index.
      */
-    float& operator[]( size_t index );
+    FIVOX_API float& operator[]( size_t index );
 
     /** @return the number of events */
-    size_t getNumEvents() const;
+    FIVOX_API size_t getNumEvents() const;
 
     /** @return a const pointer to the X coordinates of the event positions */
-    const float* getPositionsX() const;
+    FIVOX_API const float* getPositionsX() const;
 
     /** @return a const pointer to the Y coordinates of the event positions */
-    const float* getPositionsY() const;
+    FIVOX_API const float* getPositionsY() const;
 
     /** @return a const pointer to the Z coordinates of the event positions */
-    const float* getPositionsZ() const;
+    FIVOX_API const float* getPositionsZ() const;
 
     /** @return a const pointer to the events' inverse radii (1/radius).
      *  This helps speeding up common computations later on, e.g. functors. */
-    const float* getRadii() const;
+    FIVOX_API const float* getRadii() const;
 
     /** @return a const pointer to the events' values */
-    const float* getValues() const;
+    FIVOX_API const float* getValues() const;
 
     /**
      * Find all events in the given area.
@@ -87,22 +88,22 @@ public:
      * @return The values of the events contained in the area. Empty if no RTree
      * available (depends on boost::geometry)
      */
-    EventValues findEvents( const AABBf& area ) const;
+    FIVOX_API EventValues findEvents( const AABBf& area ) const;
 
     /**
      * Set bounding box of upcoming events. This overwrites any existing
      * bounding box. It can be used to set a bounding box before
      * loading/updating any events.
      */
-    void setBoundingBox( const AABBf& boundingBox );
+    FIVOX_API void setBoundingBox( const AABBf& boundingBox );
 
     /** @return the bounding box of all events. */
-    const AABBf& getBoundingBox() const;
+    FIVOX_API const AABBf& getBoundingBox() const;
 
     /**
      * @return the cutoff distance currently set (50.0 by default)
      */
-    float getCutOffDistance() const;
+    FIVOX_API float getCutOffDistance() const;
 
     /**
      * Update attributes of the event specified by the index. Update also the
@@ -115,14 +116,14 @@ public:
      * @param rad the event radius
      * @param val the event value, set to 0 if not specified
      */
-    void update( size_t i, const Vector3f& pos, float rad, float val = 0.f );
+    FIVOX_API void update( size_t i, const Vector3f& pos, float rad, float val = 0.f );
 
     /**
      * @internal Called before data is read. Not thread safe.
      * Build an RTree so it can be used from findEvents() (depends
      * on boost::geometry)
      */
-    void buildRTree();
+    FIVOX_API void buildRTree();
 
     /**
      * Given a frame number, update the event source with new events to be
@@ -133,37 +134,37 @@ public:
      *              0) depends on the actual data source.
      * @return true if the frame is within the range of the data source.
      */
-    bool setFrame( uint32_t frame );
+    FIVOX_API bool setFrame( uint32_t frame );
 
     /**
      * Given a timestamp, update the event source with new events to be sampled.
      *
      * @param time The time stamp (ms) to be loaded.
      */
-    void setTime( float time );
+    FIVOX_API void setTime( float time );
 
     /**
      * Gets the valid frame range according to data. The valid frames are in the
      * [a, b) range
      * @return the valid frame range
      */
-    Vector2ui getFrameRange() const;
+    FIVOX_API Vector2ui getFrameRange() const;
 
     /**
      * @param frame The frame number to be checked.
      * @return Checks the frame range, if the frame is satisfying [a, b)
      * range, returns true
      */
-    bool isInFrameRange( uint32_t frame );
+    FIVOX_API bool isInFrameRange( uint32_t frame );
 
     /**
      * @return the dt used for frame-to-time conversion in the data source,
      *         default is -1.0 and should be set accordingly in constructor.
      */
-    float getDt() const;
+    FIVOX_API float getDt() const;
 
     /** @return the current time from setTime() in milliseconds. */
-    float getCurrentTime() const;
+    FIVOX_API float getCurrentTime() const;
 
     /**
      * Load and update events for the given chunks of the data source.
@@ -174,17 +175,17 @@ public:
      * @throw std::runtime_error if numChunks is 0.
      * @throw std::out_of_range if chunkIndex and/or numChunks are out of range.
      */
-    ssize_t load( size_t chunkIndex, size_t numChunks );
+    FIVOX_API ssize_t load( size_t chunkIndex, size_t numChunks );
 
     /**
      * Load and update all events of the current frame.
      *
      * @return the number of updated events, or -1 if the load failed.
      */
-    ssize_t load();
+    FIVOX_API ssize_t load();
 
     /** @return the maximum number of chunks provided by the data source. */
-    size_t getNumChunks() const;
+    FIVOX_API size_t getNumChunks() const;
 
 protected:
     explicit EventSource( const URIHandler& params );

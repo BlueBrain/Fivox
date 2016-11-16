@@ -33,7 +33,6 @@
 
 #include "beerLambertProjectionImageFilter.h"
 #include "../commandLineApplication.h"
-#include "../volumeHandler.h"
 #include "../volumeWriter.h"
 
 #include <itkImageFileWriter.h>
@@ -192,7 +191,7 @@ public:
         extent[0] = sensorDim;
         extent[2] = sensorDim;
 
-        const VolumeHandler volumeHandler( size, extent );
+        const fivox::VolumeHandler volumeHandler( size, extent );
         fivox::FloatVolume::IndexType vIndex;
         vIndex.Fill(0);
         fivox::FloatVolume::SizeType vSize;

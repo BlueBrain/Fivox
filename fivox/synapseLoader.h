@@ -20,6 +20,7 @@
 #ifndef FIVOX_SYNAPSELOADER_H
 #define FIVOX_SYNAPSELOADER_H
 
+#include <fivox/api.h>
 #include <fivox/eventSource.h> // base class
 
 namespace fivox
@@ -35,8 +36,8 @@ public:
     * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    explicit SynapseLoader( const URIHandler& params );
-    virtual ~SynapseLoader();
+    FIVOX_API explicit SynapseLoader( const URIHandler& params );
+    FIVOX_API virtual ~SynapseLoader();
 
 private:
     /** @name Abstract interface implementation */

@@ -21,6 +21,7 @@
 #ifndef FIVOX_SOMALOADER_H
 #define FIVOX_SOMALOADER_H
 
+#include <fivox/api.h>
 #include <fivox/eventSource.h> // base class
 
 namespace fivox
@@ -36,8 +37,8 @@ public:
     * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    explicit SomaLoader( const URIHandler& params );
-    virtual ~SomaLoader();
+    FIVOX_API explicit SomaLoader( const URIHandler& params );
+    FIVOX_API virtual ~SomaLoader();
 
 private:
     /** @name Abstract interface implementation */
