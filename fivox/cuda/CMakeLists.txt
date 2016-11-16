@@ -13,9 +13,6 @@ set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20
                                         -gencode arch=compute_35,code=sm_35
                                         -gencode arch=compute_50,code=sm_50")
 cuda_add_library(FivoxCuda SHARED ${CUDA_SOURCES})
-target_link_libraries(FivoxCuda Lunchbox)
-list(APPEND FIVOX_LINK_LIBRARIES FivoxCuda)
-set(FIVOX_LINK_LIBRARIES "${FIVOX_LINK_LIBRARIES}" PARENT_SCOPE)
 
 install(TARGETS FivoxCuda EXPORT ${PROJECT_NAME}Targets
         LIBRARY DESTINATION lib COMPONENT COMMON)

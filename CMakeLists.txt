@@ -23,7 +23,7 @@ set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(Common)
 
-set(FIVOX_DEPENDENT_LIBRARIES Lunchbox ITK vmmlib)
+set(FIVOX_DEPENDENT_LIBRARIES CUDA Lunchbox ITK vmmlib)
 
 common_find_package(BBPTestData)
 common_find_package(Boost REQUIRED COMPONENTS unit_test_framework
@@ -38,11 +38,7 @@ common_find_package(ZeroEQ)
 
 if(CUDA_FOUND)
   option(FIVOX_USE_CUDA "Use CUDA" ON)
-  find_cuda_device()
-  if(NOT CUDA_DEVICE_FOUND)
-    message(STATUS "CUDA device not found")
-  endif()
-  if(NOT FIVOX_USE_CUDA OR NOT CUDA_DEVICE_FOUND)
+  if(NOT FIVOX_USE_CUDA)
     common_find_package_disable(CUDA)
   endif()
 endif()

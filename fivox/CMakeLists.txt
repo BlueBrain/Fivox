@@ -53,12 +53,14 @@ set(FIVOX_LINK_LIBRARIES
 
 if(CUDA_FOUND)
   add_subdirectory(cuda)
-  list(APPEND PRIVATE FIVOX_LINK_LIBRARIES ${CUDA_LIBRARIES})
   list(APPEND FIVOX_PUBLIC_HEADERS cudaImageSource.h cudaImageSource.hxx)
-  include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
 endif()
 
 common_library(Fivox)
+
+if(TARGET FivoxCuda)
+  target_link_libraries(Fivox PRIVATE FivoxCuda)
+endif()
 
 if(TARGET Lexis AND TARGET ZeroEQ)
   target_compile_definitions(Fivox PRIVATE USE_ZEROEQ_PROGRESS)
