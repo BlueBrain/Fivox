@@ -1,7 +1,7 @@
 Generic event loading {#genericEventLoading}
 =====================
 
-For research and debugging purposes, some times we need to quickly visualize
+For research and debugging purposes, sometimes we need to quickly visualize
 a set of events in 3D space. For example, in a neural circuit with synaptic
 connectivity, we are interested in visualizing the position of the post-synaptic
 cells; or for validation purposes, we want to check that the LFP computation is
@@ -15,6 +15,11 @@ The solution chosen for this feature is the loading of events from file. This
 offers users flexibility to generate all types of events in a simple and generic
 way, so the tool doesn't need to be adapted to fit the particular needs of any
 situation.
+
+A generic event is always defined by its 3D position, radius and value,
+regardless of the use case. It could be the cases that the radius and value are
+not relevant, but they are always present (e.g. in the synaptic connectivity,
+the radius can be 0, and value 1, as we will count each event as one cell).
 
 
 ## Requirements
@@ -44,12 +49,14 @@ just for testing purposes. The loader and schema names are open for discussion.
     "fivox:///absolute/path/to/events/file?resolution=1&functor=lfp"
 
 The path to the input file is optional, behaving like the original TestLoader
-and creating the initial 7 events if it is omitted.
+and creating the initial 7 events if it is omitted. Please note that, when using
+the GenericLoader, the events file path replaces the BlueConfig path (used
+in most of the scientific use cases).
 
 For simplicity, and for now, only the GenericLoader can read events from file.
 But any EventSource can write this type of files, dumping their contents (all
 the events and their corrresponding values that it contains at the moment).
-For that, a new method will be added:
+For that, a new method will be implemented in the base class:
 
     bool EventSource::write( const std::string& filename, bool binary = true );
 
@@ -98,6 +105,8 @@ all the events, with five 32-bit floating point values
 
 ### 1: What names should we use for the loader and URI schema?
 
+_Resolution: Yes_ GenericLoader and "fivox://".
+
 We can replace the TestLoader by GenericLoader. Other alternatives are:
 EventLoader, GenericEventLoader, FileLoader.
 
@@ -105,15 +114,17 @@ As for the URI schema, we have "fivoxtest://", that could be replaced by
 simply "fivox://" (which is now used for the CompartmentLoader, but that could
 be changed), "fivoxfile://", "fivoxevents://", "fivoxgeneric://".
 
-### 2: Why not extend this feature for any loader, to be able to store the
-event positions in a cache file after their initial creation? 
+### 2: Why not extending this feature for any loader, to be able to store the event positions in a cache file after their initial creation?
+
+_Resolution: Yes_ We can write the events from any loader, but read only from
+the GenericLoader (for now).
 
 It's an interesting possibility, specially considering the amount of time it
 takes in some occasions to just create the events based on a BlueConfig file and
 target, for example. The problem is that not every loader works the same way
-(for example the SynapseLoader loads by chunks, not everything at one at
+(for example the SynapseLoader loads by chunks, not everything at once at
 construction time), and this addition would also complicate the implementation
 and usage of each of the loaders. For the events reading, we should keep this
 feature self-contained in the new GenericLoader, at least for now, and then we
 see if it is possible to extend it for any use case. For writing, there should
-not be any problem in making it available for any loader.
+not be any problem in making it available for any loader (the implementation
