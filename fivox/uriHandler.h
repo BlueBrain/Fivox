@@ -49,6 +49,13 @@ public:
     FIVOX_API virtual ~URIHandler(); //!< Destruct this parameter processor
 
     /**
+     * @return a string corresponding to the URI path specified in the
+     *         parameters (i.e. the Config raw path). Return an empty string if
+     *         not specified.
+     */
+    FIVOX_API const std::string& getConfigPath() const;
+
+    /**
      * @return the BlueConfig object from the parameters. For empty parameters,
      *         it returns the TestData's BlueConfig if available.
      */
@@ -162,14 +169,14 @@ public:
     FIVOX_API VolumeType getType() const;
 
     /**
-     * Available functors are "density", "field" and "frequency". If "functor"
-     * is unspecified, the default functor for the VolumeType is returned:
-     * - FUNCTOR_DENSITY for SYNAPSES
-     * - FUNCTOR_FREQUENCY for SPIKES
-     * - FUNCTOR_FIELD for COMPARTMENTS, SOMAS and VSD
+     * Available functors are "density", "field", "frequency" and "lfp".
+     * If "functor" is unspecified, the default functor for the VolumeType is
+     * returned:
+     * - FunctorType::field for VolumeType::compartments and VolumeType::somas
+     * - FunctorType::unknown otherwise
      *
      * @return the type of the functor to use, use VolumeType default functor
-     *          if unspecified.
+     *         if unspecified.
      */
     FIVOX_API FunctorType getFunctorType() const;
 

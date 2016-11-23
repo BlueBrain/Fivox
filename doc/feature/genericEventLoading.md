@@ -82,6 +82,7 @@ Example:
 #     posX posY posZ radius value
 # File version: 1
 # Fivox version: 0.6.0
+Number of events: 10
 50.115 1971 61.384 1.0 1
 54.818 1997.1 71.462 1.0 2
 50.896 1760.8 56.659 1.0 3
@@ -105,7 +106,7 @@ all the events, with five 32-bit floating point values
 
 ### 1: What names should we use for the loader and URI schema?
 
-_Resolution: Yes_ GenericLoader and "fivox://".
+Resolved: Use GenericLoader and "fivox://".
 
 We can replace the TestLoader by GenericLoader. Other alternatives are:
 EventLoader, GenericEventLoader, FileLoader.
@@ -116,7 +117,7 @@ be changed), "fivoxfile://", "fivoxevents://", "fivoxgeneric://".
 
 ### 2: Why not extending this feature for any loader, to be able to store the event positions in a cache file after their initial creation?
 
-_Resolution: Yes_ We can write the events from any loader, but read only from
+Resolved: Yes. We can write the events from any loader, but read only from
 the GenericLoader (for now).
 
 It's an interesting possibility, specially considering the amount of time it
@@ -127,4 +128,4 @@ construction time), and this addition would also complicate the implementation
 and usage of each of the loaders. For the events reading, we should keep this
 feature self-contained in the new GenericLoader, at least for now, and then we
 see if it is possible to extend it for any use case. For writing, there should
-not be any problem in making it available for any loader (the implementation
+not be any problem in making it available for any loader.

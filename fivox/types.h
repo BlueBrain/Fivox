@@ -80,8 +80,9 @@ using EventFunctorPtr = std::shared_ptr< EventFunctor< TImage >>;
 enum class VolumeType
 {
     unknown,      //!< Unknown URI scheme
-    test,         /*!< Test type that creates fixed events
-                            (e.g. for validation of different functors */
+    generic,      /*!< Generic type that loads events from file (if present),
+                       or creates fixed events (e.g. for validation of different
+                       functors) */
     compartments, //!< BBP compartment simulation reports
     somas,        //!< BBP soma simulation reports
     spikes,       //!< BBP spike simulation reports

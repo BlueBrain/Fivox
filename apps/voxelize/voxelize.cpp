@@ -110,7 +110,9 @@ public:
               "Name of the output volume file (mhd and raw); contains frame "
               "number if --frames or --times" )
             ( "decompose", po::value< fivox::Vector2ui >(),
-              "'rank size' data-decomposition for parallel job submission" );
+              "'rank size' data-decomposition for parallel job submission" )
+            ( "export-events", po::value< std::string >(),
+              "Name of the output events file" );
 //! [VoxelizeParameters]
     }
 
@@ -159,6 +161,9 @@ public:
 
         ::fivox::EventSourcePtr loader = source->getEventSource();
         const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
+
+        if( _vm.count( "export-events" ))
+            loader->write( _vm["export-events"].as< std::string >(), true );
 
         const std::string& datatype( _vm["datatype"].as< std::string >( ));
         if( datatype == "char" )

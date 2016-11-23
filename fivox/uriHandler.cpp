@@ -33,10 +33,10 @@
 #endif
 #include <fivox/eventValueSummationImageSource.h>
 #include <fivox/functorImageSource.h>
+#include <fivox/genericLoader.h>
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
 #include <fivox/synapseLoader.h>
-#include <fivox/testLoader.h>
 #include <fivox/vsdLoader.h>
 #ifdef FIVOX_USE_BBPTESTDATA
 #  include <BBP/TestDatasets.h>
@@ -69,11 +69,11 @@ public:
         : uri( parameters )
         , useTestData( false )
     {
-        if( getType() == VolumeType::test )
+        if( getType() == VolumeType::generic )
             return;
 
 #ifdef FIVOX_USE_BBPTESTDATA
-        useTestData = uri.getPath().empty( );
+        useTestData = uri.getPath().empty();
         config.reset( new brion::BlueConfig( useTestData ? BBP_TEST_BLUECONFIG3
                                                          : uri.getPath( )));
 #else
@@ -110,6 +110,11 @@ public:
         if( gids.empty( ))
             LBTHROW( std::runtime_error(
                      "No GIDs found for requested target '" + target + "'" ));
+    }
+
+    const std::string& getConfigPath() const
+    {
+        return uri.getPath();
     }
 
     const brion::BlueConfig& getConfig() const
@@ -245,6 +250,9 @@ public:
         std::stringstream desc;
         switch( getType( ))
         {
+        case VolumeType::generic:
+            desc << "generic events from " << getConfigPath() << "'";
+            break;
         case VolumeType::compartments:
         case VolumeType::somas:
             if( getFunctorType() == FunctorType::lfp )
@@ -277,7 +285,6 @@ public:
             desc << "VSD (Voltage-Sensitive Dye) from " << getReport()
                  << " for target '"  << _get( "target" ) << "'";
             break;
-        case VolumeType::test:
         default:
             return "";
         }
@@ -288,6 +295,10 @@ public:
     VolumeType getType() const
     {
         const std::string& scheme = uri.getScheme();
+        if( scheme == "fivox" )
+            return VolumeType::generic;
+        if( scheme == "fivoxcompartments" )
+            return VolumeType::compartments;
         if( scheme == "fivoxsomas" )
             return VolumeType::somas;
         if( scheme == "fivoxspikes" )
@@ -296,10 +307,6 @@ public:
             return VolumeType::synapses;
         if( scheme == "fivoxvsd" )
             return VolumeType::vsd;
-        if( scheme == "fivox" || scheme == "fivoxcompartments" )
-            return VolumeType::compartments;
-        if( scheme == "fivoxtest" )
-            return VolumeType::test;
 
         LBERROR << "Unknown URI scheme: " << scheme << std::endl;
         return VolumeType::unknown;
@@ -310,25 +317,20 @@ public:
         const std::string& functor = _get( "functor" );
         if( functor == "density" )
             return FunctorType::density;
-        if( functor == "lfp" )
-            return FunctorType::lfp;
         if( functor == "field" )
             return FunctorType::field;
         if( functor == "frequency" )
             return FunctorType::frequency;
+        if( functor == "lfp" )
+            return FunctorType::lfp;
 
         switch( getType( ))
         {
-        case VolumeType::spikes:
-        case VolumeType::synapses:
-            LBTHROW( std::runtime_error(
-                         "No functor support for synapses and spikes. "));
         case VolumeType::compartments:
         case VolumeType::somas:
-        case VolumeType::vsd:
-        case VolumeType::test:
-        default:
             return FunctorType::field;
+        default:
+            return FunctorType::unknown;
         }
     }
 
@@ -393,6 +395,11 @@ URIHandler::URIHandler( const URI& params )
 
 URIHandler::~URIHandler()
 {}
+
+const std::string& URIHandler::getConfigPath() const
+{
+    return _impl->getConfigPath();
+}
 
 const brion::BlueConfig& URIHandler::getConfig() const
 {
@@ -490,11 +497,9 @@ ImageSourcePtr< TImage > URIHandler::newImageSource() const
     EventSourcePtr eventSource = newEventSource();
 
     ImageSourcePtr< TImage > source;
-    switch( getType( ))
+    switch( getFunctorType( ))
     {
-    case VolumeType::spikes:
-    case VolumeType::synapses:
-    case VolumeType::vsd:
+    case FunctorType::unknown:
         source = EventValueSummationImageSource< TImage >::New();
         break;
     default:
@@ -517,8 +522,6 @@ ImageSourcePtr< TImage > URIHandler::newImageSource() const
         if( !cudaCapable )
 #endif
         {
-            LBINFO << "No CUDA-capable device is detected. "
-                   << "Using CPU implementation." << std::endl;
             auto functorSource = FunctorImageSource< TImage >::New();
             auto functor = newFunctor< TImage >();
             functorSource->setFunctor( functor );
@@ -541,14 +544,14 @@ EventSourcePtr URIHandler::newEventSource() const
     {
     case VolumeType::compartments:
         return std::make_shared< CompartmentLoader >( *this );
+    case VolumeType::generic:
+        return std::make_shared< GenericLoader >( *this );
     case VolumeType::somas:
         return std::make_shared< SomaLoader >( *this );
     case VolumeType::spikes:
         return std::make_shared< SpikeLoader >( *this );
     case VolumeType::synapses:
         return std::make_shared< SynapseLoader >( *this );
-    case VolumeType::test:
-        return std::make_shared< TestLoader >( *this );
     case VolumeType::vsd:
         return std::make_shared< VSDLoader >( *this );
     default:
