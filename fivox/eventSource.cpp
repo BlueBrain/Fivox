@@ -402,15 +402,13 @@ bool EventSource::read( const std::string& filename )
             LBTHROW( std::runtime_error( "Bad version in " + filename ));
 
         const size_t numEvents = ( nElems - index ) / 5;
-        resize( numEvents );
+        if( _getBinarySize( numEvents ) < size )
+            LBTHROW( std::runtime_error( "Error while reading " +
+                      std::to_string( numEvents ) + " events from file." ));
 
+        resize( numEvents );
         for( size_t i = 0; i < numEvents; ++i )
         {
-            if( _getBinarySize( i ) < index + 4 )
-                LBTHROW( std::runtime_error( "Error while reading " +
-                             std::to_string( numEvents ) + " events from file: "
-                             "event " + std::to_string( i ) + " ill-formed." ));
-
             const Vector3f pos( fData[ index ],
                                 fData[ index + 1 ],
                                 fData[ index + 2 ]);
@@ -487,9 +485,6 @@ bool EventSource::write( const std::string& filename,
         iData[ index++ ] = version;
         for( size_t i = 0; i < numEvents; ++i )
         {
-            LBASSERTINFO( _getBinarySize( i ) >= index + 4,
-                          "Writing an invalid number of events." );
-
             fData[ index++ ] = getPositionsX()[i];
             fData[ index++ ] = getPositionsY()[i];
             fData[ index++ ] = getPositionsZ()[i];
