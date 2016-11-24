@@ -108,6 +108,13 @@ enum class SourceType
     frame  //!< e.g. compartment reports
 };
 
+/** Supported formats to read or write event files */
+enum class EventFileFormat
+{
+    ascii,
+    binary
+};
+
 /** Indicates to consider all data for potential rescaling. */
 const Vector2f FULLDATARANGE( -std::numeric_limits< float >::infinity(),
                                std::numeric_limits< float >::infinity( ));

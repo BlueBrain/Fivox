@@ -112,7 +112,7 @@ public:
             ( "decompose", po::value< fivox::Vector2ui >(),
               "'rank size' data-decomposition for parallel job submission" )
             ( "export-events", po::value< std::string >(),
-              "Name of the output events file" );
+              "Name of the output events file (binary format)" );
 //! [VoxelizeParameters]
     }
 
@@ -163,7 +163,8 @@ public:
         const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
 
         if( _vm.count( "export-events" ))
-            loader->write( _vm["export-events"].as< std::string >(), true );
+            loader->write( _vm["export-events"].as< std::string >(),
+                           fivox::EventFileFormat::binary );
 
         const std::string& datatype( _vm["datatype"].as< std::string >( ));
         if( datatype == "char" )

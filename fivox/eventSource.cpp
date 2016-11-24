@@ -24,6 +24,7 @@
 #include <fivox/version.h>
 
 #include <lunchbox/atomic.h>
+#include <lunchbox/debug.h>
 #include <lunchbox/log.h>
 #include <lunchbox/memoryMap.h>
 
@@ -375,6 +376,12 @@ size_t EventSource::getNumChunks() const
     return _getNumChunks();
 }
 
+size_t _getBinarySize( const size_t numEvents )
+{
+    return numEvents * 5 * sizeof( float ) +
+           sizeof( magic ) + sizeof( version );
+}
+
 bool EventSource::read( const std::string& filename )
 {
     lunchbox::MemoryMap binaryFile( filename );
@@ -399,6 +406,11 @@ bool EventSource::read( const std::string& filename )
 
         for( size_t i = 0; i < numEvents; ++i )
         {
+            if( _getBinarySize( i ) < index + 4 )
+                LBTHROW( std::runtime_error( "Error while reading " +
+                             std::to_string( numEvents ) + " events from file: "
+                             "event " + std::to_string( i ) + " ill-formed." ));
+
             const Vector3f pos( fData[ index ],
                                 fData[ index + 1 ],
                                 fData[ index + 2 ]);
@@ -441,6 +453,11 @@ bool EventSource::read( const std::string& filename )
             while( iss >> token )
                 event.push_back( atof( token.c_str( )));
 
+            if( event.size() != 5 )
+                LBTHROW( std::runtime_error( "Error while reading " +
+                         std::to_string( getNumEvents()) + " events from file: "
+                         "event " + std::to_string( index ) + " ill-formed." ));
+
             update( index++, Vector3f( event[0], event[1], event[2] ),
                     event[3], event[4] );
         }
@@ -451,14 +468,15 @@ bool EventSource::read( const std::string& filename )
     return file.good();
 }
 
-bool EventSource::write( const std::string& filename, const bool binary ) const
+bool EventSource::write( const std::string& filename,
+                         const EventFileFormat format ) const
 {
     const size_t numEvents = getNumEvents();
-    if( binary )
+    switch( format )
     {
-        // write binary file
-        const size_t size = sizeof( magic ) + sizeof( version ) +
-                            numEvents * 5 * sizeof( float );
+    case EventFileFormat::binary:
+    {
+        const size_t size = _getBinarySize( numEvents );
 
         lunchbox::MemoryMap file( filename, size );
         uint32_t* iData = file.getAddress< uint32_t >();
@@ -469,6 +487,9 @@ bool EventSource::write( const std::string& filename, const bool binary ) const
         iData[ index++ ] = version;
         for( size_t i = 0; i < numEvents; ++i )
         {
+            LBASSERTINFO( _getBinarySize( i ) >= index + 4,
+                          "Writing an invalid number of events." );
+
             fData[ index++ ] = getPositionsX()[i];
             fData[ index++ ] = getPositionsY()[i];
             fData[ index++ ] = getPositionsZ()[i];
@@ -478,29 +499,33 @@ bool EventSource::write( const std::string& filename, const bool binary ) const
         LBINFO << "Events file written as " << filename << std::endl;
         return true;
     }
-
-    // write ASCII file
-    std::ofstream file( filename.c_str( ));
-    if( file.is_open( ))
+    case EventFileFormat::ascii:
     {
-        file << "# Fivox events (3D position, radius and value), "
-             << "in the following format:\n"
-             << "#     posX posY posZ radius value\n"
-             << "# File version: 1\n"
-             << "# Fivox version: " << fivox::Version::getString() << "\n"
-             << "Number of events: " << numEvents
-             << std::endl;
-
-        for( size_t i = 0; i < numEvents; ++i )
+        std::ofstream file( filename.c_str( ));
+        if( file.is_open( ))
         {
-            file << getPositionsX()[i] << " "
-                 << getPositionsY()[i] << " "
-                 << getPositionsZ()[i] << " "
-                 << getRadii()[i] << " " << getValues()[i] << " " << std::endl;
+            file << "# Fivox events (3D position, radius and value), "
+                 << "in the following format:\n"
+                 << "#     posX posY posZ radius value\n"
+                 << "# File version: 1\n"
+                 << "# Fivox version: " << fivox::Version::getString() << "\n"
+                 << "Number of events: " << numEvents
+                 << std::endl;
+
+            for( size_t i = 0; i < numEvents; ++i )
+            {
+                file << getPositionsX()[i] << " "
+                     << getPositionsY()[i] << " "
+                     << getPositionsZ()[i] << " "
+                     << getRadii()[i] << " " << getValues()[i] << std::endl;
+            }
+            if( file.good( ))
+                LBINFO << "Events file written as " << filename << std::endl;
         }
-        if( file.good( ))
-            LBINFO << "Events file written as " << filename << std::endl;
+        return file.good();
     }
-    return file.good();
+    default:
+        return false;
+    }
 }
 }

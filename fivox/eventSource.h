@@ -201,6 +201,7 @@ public:
      * @throw std::runtime_error if the binary file version is incompatible.
      * @throw std::runtime_error if the number of events to load from an ASCII
      * file is 0, or not specified.
+     * @throw std::runtime_error if any of the events being read is ill-formed.
      */
     FIVOX_API bool read( const std::string& filename );
 
@@ -209,12 +210,12 @@ public:
      * of the output (binary or ASCII, see specification for reference).
      *
      * @param filename path of the file to write the events to.
-     * @param binary if true (default), a binary file will be written; otherwise
-     * write ASCII.
+     * @param format file format in which the event file will be written
+     * (EventFileFormat::ascii and EventFileFormat::binary are supported).
      * @return true if the file was succesfully written, false otherwise.
      */
     FIVOX_API bool write( const std::string& filename,
-                          bool binary = true ) const;
+                          EventFileFormat format ) const;
 
 protected:
     explicit EventSource( const URIHandler& params );
