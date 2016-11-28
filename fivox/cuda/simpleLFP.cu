@@ -51,31 +51,56 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
     // Compute directly the inverted value to gain performance in the for loop
     const float cutOffDistance = __frcp_rn( params.cutoff );
 
+    unsigned int eventsPerPass = blockDim.x;
+    if( blockIdx.x == gridDim.x - 1 )
+        eventsPerPass = numVoxels % blockDim.x;
+
+    const unsigned int nPasses = ceilf( (float)params.numEvents / (float)eventsPerPass );
+
     float current( 0.f );
-    for( unsigned int i = 0; i < params.numEvents; ++i )
+    const unsigned int sharedEventIndex = threadIdx.x * 5;
+    extern __shared__ float sharedEvents[];
+    for( unsigned int i = 0; i < nPasses; ++i )
     {
-        const float value( values[i] );
+        const unsigned int eventIndex = i * eventsPerPass + threadIdx.x;
 
-        const float distanceX = voxelPosX - eventsX[i];
-        const float distanceY = voxelPosY - eventsY[i];
-        const float distanceZ = voxelPosZ - eventsZ[i];
+        if( eventIndex >= params.numEvents )
+            break;
 
-        const float distance2( distanceX * distanceX +
-                               distanceY * distanceY +
-                               distanceZ * distanceZ );
+        sharedEvents[ sharedEventIndex ] =  eventsX[ eventIndex ];
+        sharedEvents[ sharedEventIndex + 1 ] =  eventsY[ eventIndex ];
+        sharedEvents[ sharedEventIndex + 2 ] =  eventsZ[ eventIndex ];
+        sharedEvents[ sharedEventIndex + 3 ] =  radii[ eventIndex ];
+        sharedEvents[ sharedEventIndex + 4 ] =  values[ eventIndex ];
 
-        // Use the reciprocal of sqrt
-        const float length = __frsqrt_rn( distance2 );
-        // Comparison is inverted, as we are using the reciprocal values
-        if( length < cutOffDistance )
-            continue;
+        __syncthreads();
 
-        // If center of the voxel within the event radius, use the
-        // voltage at the surface of the compartment (at 'radius' distance)
-        const float radius( radii[i] );
-        // Comparison is inverted, as we are using the reciprocal values
-        // (radius is already stored like that from the loader)
-        current += value * min( radius, length ); // mA
+        for( unsigned int j = 0; j < eventsPerPass; ++j )
+        {
+            const unsigned int index = j * 5;
+            const float value( sharedEvents[ index + 4 ]);
+
+            const float distanceX = voxelPosX - sharedEvents[ index ];
+            const float distanceY = voxelPosY - sharedEvents[ index + 1 ];
+            const float distanceZ = voxelPosZ - sharedEvents[ index + 2 ];
+
+            const float distance2( distanceX * distanceX +
+                                   distanceY * distanceY +
+                                   distanceZ * distanceZ );
+
+            // Use the reciprocal of sqrt
+            const float length = __frsqrt_rn( distance2 );
+            // Comparison is inverted, as we are using the reciprocal values
+            if( length < cutOffDistance )
+                continue;
+
+            // If center of the voxel within the event radius, use the
+            // voltage at the surface of the compartment (at 'radius' distance)
+            const float radius( sharedEvents[ index + 3 ] );
+            // Comparison is inverted, as we are using the reciprocal values
+            // (radius is already stored like that from the loader)
+            current += value * min( radius, length ); // mA
+        }
     }
     // voltageFactor =  1 / (4 * PI * conductivity),
     // with conductivity = 1 / 3.54 (siemens per meter)
@@ -104,17 +129,17 @@ float simpleLFP( const float* posX, const float* posY, const float* posZ,
                           volInfo.dimensions.z;
 
     // 1D grid of 1D blocks
-    dim3 blockSize( 512, 1 );
-    dim3 gridSize( ( numVoxels + blockSize.x * blockSize.y - 1 ) /
-                   ( blockSize.x * blockSize.y ), 1 );
+    unsigned int nThreads = 512;
+    unsigned int gridSize = ( numVoxels + nThreads - 1 ) / nThreads;
 
     cudaEvent_t start, stop;
     gpuErrchk( cudaEventCreate( &start ));
     gpuErrchk( cudaEventCreate( &stop ));
 
     gpuErrchk( cudaEventRecord( start ));
-    kernelLFP<<<gridSize, blockSize>>>( posX, posY, posZ, radii, values,
-                                        *cudaParameters, *cudaVolInfo, output );
+    kernelLFP<<< gridSize, nThreads, nThreads * 5 * sizeof(float) >>>
+                                    ( posX, posY, posZ, radii, values,
+                                      *cudaParameters, *cudaVolInfo, output );
     gpuErrchk( cudaPeekAtLastError( ));
     gpuErrchk( cudaEventRecord( stop ));
     gpuErrchk( cudaEventSynchronize( stop ));
