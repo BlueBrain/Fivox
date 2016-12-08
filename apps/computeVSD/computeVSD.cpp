@@ -263,10 +263,7 @@ public:
         }
 
         if( _vm.count( "export-point-sprites" ))
-        {
-            _writePointSpriteHeader();
             _writePointSpritePositions();
-        }
 
         for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
         {
@@ -300,14 +297,17 @@ public:
             projectVSD( output, filename );
 
             if( _vm.count( "export-point-sprites" ))
+            {
                 _writePointSpriteIntensities( filename );
+                _writePointSpriteHeader( filename );
+            }
         }
     }
 
 private:
-    void _writePointSpriteHeader() const
+    void _writePointSpriteHeader( const std::string& filename ) const
     {
-        const std::string& pshFile( _outputFile + ".psh" );
+        const std::string& pshFile( filename + ".psh" );
         std::ofstream file( pshFile.c_str( ));
         if( file.is_open( ))
         {
@@ -326,7 +326,7 @@ private:
             file << "AABBDepth=" << bbox.getSize().z() << std::endl;
 
             file << "VSDPositionFile=" << _outputFile + ".psp" << std::endl;
-            file << "VSDIntensityFile=" << _outputFile + ".psi" << std::endl;
+            file << "VSDIntensityFile=" << filename + ".psi" << std::endl;
             file << "TimeStep=" << _eventSource->getDt() << std::endl;
             if( file.good( ))
                 LBINFO << "Point Sprite header written as " << pshFile
