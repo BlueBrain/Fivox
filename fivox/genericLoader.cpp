@@ -20,7 +20,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "testLoader.h"
+#include "genericLoader.h"
 #include "uriHandler.h"
 
 #include <lunchbox/log.h>
@@ -32,19 +32,27 @@
 namespace fivox
 {
 
-class TestLoader::Impl
+class GenericLoader::Impl
 {
 public:
-    explicit Impl( EventSource& output )
+    explicit Impl( EventSource& output, const URIHandler& params )
         : _output( output )
+        , _file( params.getConfigPath( ))
     {
-        _output.resize( 7 );
+        if( _file.empty( ))
+        {
+            _output.resize( 7 );
 
-        for( uint8_t y = 0; y < 5; ++y )
-            _output.update( y, Vector3f( 0.f, y * 10.f, 0.f ), 1.f );
+            for( uint8_t y = 0; y < 5; ++y )
+                _output.update( y, Vector3f( 0.f, y * 10.f, 0.f ), 1.f );
 
-        _output.update( 5, Vector3f( 3.f, 5.f, 4.f ), 1.f );
-        _output.update( 6, Vector3f( 5.f, 2.f, 1.f ), 1.f );
+            _output.update( 5, Vector3f( 3.f, 5.f, 4.f ), 1.f );
+            _output.update( 6, Vector3f( 5.f, 2.f, 1.f ), 1.f );
+
+            return;
+        }
+
+        _output.read( _file );
     }
 
     ssize_t load()
@@ -57,25 +65,26 @@ public:
     }
 
     EventSource& _output;
+    const std::string& _file;
 };
 
-TestLoader::TestLoader( const URIHandler& params )
+GenericLoader::GenericLoader( const URIHandler& params )
     : EventSource( params )
-    , _impl( new TestLoader::Impl( *this ))
+    , _impl( new GenericLoader::Impl( *this, params ))
 {
     if( getDt() < 0.f )
         setDt( 1.f );
 }
 
-TestLoader::~TestLoader()
+GenericLoader::~GenericLoader()
 {}
 
-Vector2f TestLoader::_getTimeRange() const
+Vector2f GenericLoader::_getTimeRange() const
 {
     return Vector2f( 0.f, 100.f );
 }
 
-ssize_t TestLoader::_load( const size_t /*chunkIndex*/,
+ssize_t GenericLoader::_load( const size_t /*chunkIndex*/,
                            const size_t /*numChunks*/ )
 {
     return _impl->load();

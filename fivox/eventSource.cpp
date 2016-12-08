@@ -21,9 +21,14 @@
 
 #include "eventSource.h"
 #include "uriHandler.h"
+#include <fivox/version.h>
 
 #include <lunchbox/atomic.h>
+#include <lunchbox/debug.h>
 #include <lunchbox/log.h>
+#include <lunchbox/memoryMap.h>
+
+#include <fstream>
 
 #ifdef USE_BOOST_GEOMETRY
 #  include <lunchbox/lock.h>
@@ -47,6 +52,8 @@ static const size_t minElemInNode = 16;
 
 namespace fivox
 {
+static const uint32_t magic = 0xfebf;
+static const uint32_t version = 1;
 
 class EventSource::Impl
 {
@@ -369,4 +376,151 @@ size_t EventSource::getNumChunks() const
     return _getNumChunks();
 }
 
+size_t _getBinarySize( const size_t numEvents )
+{
+    return numEvents * 5 * sizeof( float ) +
+           sizeof( magic ) + sizeof( version );
+}
+
+bool EventSource::read( const std::string& filename )
+{
+    lunchbox::MemoryMap binaryFile( filename );
+    const size_t size = binaryFile.getSize();
+
+    const size_t nElems = size / sizeof( uint32_t );
+    if( nElems == 0 )
+        LBTHROW( std::runtime_error( filename + " is empty" ));
+
+    const uint32_t* iData = binaryFile.getAddress< uint32_t >();
+    const float* fData = binaryFile.getAddress< float >();
+
+    size_t index = 0;
+    if( iData[ index ] == magic )
+    {
+        index++;
+        if( index >= nElems || iData[ index++ ] != version )
+            LBTHROW( std::runtime_error( "Bad version in " + filename ));
+
+        const size_t numEvents = ( nElems - index ) / 5;
+        if( _getBinarySize( numEvents ) < size )
+            LBTHROW( std::runtime_error( "Error while reading " +
+                      std::to_string( numEvents ) + " events from file." ));
+
+        resize( numEvents );
+        for( size_t i = 0; i < numEvents; ++i )
+        {
+            const Vector3f pos( fData[ index ],
+                                fData[ index + 1 ],
+                                fData[ index + 2 ]);
+            index += 3;
+            const float radius( fData[ index++ ]);
+            const float value( fData[ index++ ]);
+            update( i, pos, radius, value );
+        }
+
+        LBINFO << "Loaded " << numEvents << " events from binary file "
+               << filename << std::endl;
+        return true;
+    }
+
+    std::string line;
+    std::ifstream file( filename );
+    if( file.is_open( ))
+    {
+        while( std::getline( file, line ))
+        {
+            if( line[0] == '#' || line[0] == '\n' )
+                continue;
+
+            if( line.find( "Number of events: ") != std::string::npos )
+            {
+                const auto pos = line.find_last_of( " \t" );
+                resize( atoi( line.substr( pos + 1 ).c_str( )));
+                continue;
+            }
+
+            if( getNumEvents() == 0 )
+                LBTHROW( std::runtime_error(
+                             "No events to load. Please check that the number "
+                             "of events in the specified file is > 0" ));
+
+            // split the line in tokens (separated by white spaces)
+            std::vector< float > event;
+            std::string token;
+            std::istringstream iss( line );
+            while( iss >> token )
+                event.push_back( atof( token.c_str( )));
+
+            if( event.size() != 5 )
+                LBTHROW( std::runtime_error( "Error while reading " +
+                         std::to_string( getNumEvents()) + " events from file: "
+                         "event " + std::to_string( index ) + " ill-formed." ));
+
+            update( index++, Vector3f( event[0], event[1], event[2] ),
+                    event[3], event[4] );
+        }
+        file.close();
+        LBINFO << "Loaded " << getNumEvents() << " events from ASCII file "
+               << filename << std::endl;
+    }
+    return file.good();
+}
+
+bool EventSource::write( const std::string& filename,
+                         const EventFileFormat format ) const
+{
+    const size_t numEvents = getNumEvents();
+    switch( format )
+    {
+    case EventFileFormat::binary:
+    {
+        const size_t size = _getBinarySize( numEvents );
+
+        lunchbox::MemoryMap file( filename, size );
+        uint32_t* iData = file.getAddress< uint32_t >();
+        float* fData = file.getAddress< float >();
+        size_t index = 0;
+
+        iData[ index++ ] = magic;
+        iData[ index++ ] = version;
+        for( size_t i = 0; i < numEvents; ++i )
+        {
+            fData[ index++ ] = getPositionsX()[i];
+            fData[ index++ ] = getPositionsY()[i];
+            fData[ index++ ] = getPositionsZ()[i];
+            fData[ index++ ] = getRadii()[i];
+            fData[ index++ ] = getValues()[i];
+        }
+        LBINFO << "Events file written as " << filename << std::endl;
+        return true;
+    }
+    case EventFileFormat::ascii:
+    {
+        std::ofstream file( filename.c_str( ));
+        if( file.is_open( ))
+        {
+            file << "# Fivox events (3D position, radius and value), "
+                 << "in the following format:\n"
+                 << "#     posX posY posZ radius value\n"
+                 << "# File version: 1\n"
+                 << "# Fivox version: " << fivox::Version::getString() << "\n"
+                 << "Number of events: " << numEvents
+                 << std::endl;
+
+            for( size_t i = 0; i < numEvents; ++i )
+            {
+                file << getPositionsX()[i] << " "
+                     << getPositionsY()[i] << " "
+                     << getPositionsZ()[i] << " "
+                     << getRadii()[i] << " " << getValues()[i] << std::endl;
+            }
+            if( file.good( ))
+                LBINFO << "Events file written as " << filename << std::endl;
+        }
+        return file.good();
+    }
+    default:
+        return false;
+    }
+}
 }

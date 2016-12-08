@@ -82,8 +82,10 @@ public:
             ( "volume", po::value< std::string >(),
 //! [VolumeParameters] @anchor VolumeParameters
               "Volume URI with parameters in the form:\n"
+              "- Generic events from file:\n"
+              "    fivox://EventsFile\n"
               "- Compartment reports:\n"
-              "    fivox[compartments]://BlueConfig?report=string&target=string\n"
+              "    fivoxcompartments://BlueConfig?report=string&target=string\n"
               "- Soma reports:\n"
               "    fivoxsomas://BlueConfig?report=string&target=string\n"
               "- Spike reports:\n"
@@ -96,7 +98,7 @@ public:
               "    fivoxvsd://BlueConfig?report=string&target=string\n"
               "\n"
               "Parameters for all types :\n"
-              "- BlueConfig: BlueConfig file path\n"
+              "- BlueConfig: BlueConfig file absolute path\n"
               "              (default: BBPTestData)\n"
               "- target: name of the BlueConfig target (default: CircuitTarget)\n"
               "- preTarget: target for presynaptic neurons for synapse densities (default: unset)\n"

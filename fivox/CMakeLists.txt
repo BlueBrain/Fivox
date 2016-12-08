@@ -13,6 +13,7 @@ set(FIVOX_PUBLIC_HEADERS
   eventSource.h
   fieldFunctor.h
   frequencyFunctor.h
+  genericLoader.h
   imageSource.h
   imageSource.hxx
   progressObserver.h
@@ -20,7 +21,6 @@ set(FIVOX_PUBLIC_HEADERS
   somaLoader.h
   spikeLoader.h
   synapseLoader.h
-  testLoader.h
   types.h
   uriHandler.h
   volumeHandler.h
@@ -37,11 +37,11 @@ endif()
 set(FIVOX_SOURCES
   compartmentLoader.cpp
   eventSource.cpp
+  genericLoader.cpp
   progressObserver.cpp
   somaLoader.cpp
   spikeLoader.cpp
   synapseLoader.cpp
-  testLoader.cpp
   uriHandler.cpp
   volumeHandler.cpp
   vsdLoader.cpp
