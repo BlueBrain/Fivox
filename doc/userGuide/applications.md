@@ -1,4 +1,4 @@
-Applications
+Applications {#applications}
 ============
 
 High-level description of the main applications currently supported by Fivox.

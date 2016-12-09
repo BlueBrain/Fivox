@@ -3,6 +3,10 @@ Changelog {#changelog}
 
 # git master {#master}
 
+# Release 0.6 (09-12-2016) {#Release06}
+
+* [#74](https://github.com/BlueBrain/Fivox/pull/74)
+  Bug fix in compute-vsd. Only one .psh file was generated.
 * [#69](https://github.com/BlueBrain/Fivox/pull/69)
   Add option in compute-vsd tool to export the VSD events as point sprite files
 * [#65](https://github.com/BlueBrain/Fivox/pull/65)
