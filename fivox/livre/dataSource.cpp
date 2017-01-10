@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *
@@ -30,8 +30,9 @@
 #include <livre/core/data/MemoryUnit.h>
 #include <livre/core/version.h>
 
-#include <lunchbox/scopedMutex.h>
 #include <lunchbox/pluginRegisterer.h>
+#include <lunchbox/scopedMutex.h>
+#include <lunchbox/string.h>
 
 extern "C" int LunchboxPluginGetVersion() { return LIVRECORE_VERSION_ABI; }
 extern "C" bool LunchboxPluginRegister()
@@ -252,6 +253,13 @@ bool DataSource::handles( const livre::DataSourcePluginData& data )
     const std::string& scheme = data.getURI().getScheme();
     return scheme.substr( 0, fivox.size( )) == fivox;
 }
+
+std::string DataSource::getDescription()
+{
+    return std::string( "Field volumes: fivox*://\n" ) +
+           lunchbox::string::prepend( URIHandler::getHelp(), "  " );
+}
+
 
 bool DataSource::update()
 {

@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *                          Daniel.Nachbaur@epfl.ch
@@ -184,6 +184,9 @@ public:
 
     /** @return description of the volume from the provided URI paramters. */
     FIVOX_API std::string getDescription() const;
+
+    /** @return an exhaustive list of the URIs accepted. */
+    FIVOX_API static std::string getHelp();
 
     /** @return a new image source for the given parameters and pixel type. */
     FIVOX_API template< class TImage > ImageSourcePtr< TImage > newImageSource()

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *
@@ -48,6 +48,7 @@ public:
      * @return true if the URI and read mode are handled.
      */
     static bool handles( const livre::DataSourcePluginData& data );
+    static std::string getDescription();
 
     /**
      * Updates the data source. Fivox data sources can be data streams,
