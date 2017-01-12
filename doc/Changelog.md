@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#77](https://github.com/BlueBrain/Fivox/pull/77)
+  Enable CUDA implementation of the lfp computation.
+
 # Release 0.6 (09-12-2016) {#Release06}
 
 * [#74](https://github.com/BlueBrain/Fivox/pull/74)
