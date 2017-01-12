@@ -56,6 +56,7 @@ make
 All command line applications support the following parameters:
 
 @snippet apps/commandLineApplication.h AppParameters
+@snippet fivox/uriHandler.cpp VolumeParameters
 
 The voxelize command line tool also supports:
 

@@ -484,6 +484,57 @@ std::string URIHandler::getDescription() const
     return _impl->getDescription();
 }
 
+std::string URIHandler::getHelp()
+{
+    return
+//! [VolumeParameters] @anchor VolumeParameters
+        R"(- Compartment reports: fivox[compartments]://BlueConfig?report=string&target=string
+- Soma reports: fivoxsomas://BlueConfig?report=string&target=string
+- Spike reports: fivoxspikes://BlueConfig?duration=float&spikes=path&target=string
+- Synapse densities: fivoxsynapses://BlueConfig?target=string
+- Synapse densities for pathways: fivoxsynapses://BlueConfig?preTarget=string&postTarget=string
+- Voltage-sensitive dye reports: fivoxvsd://BlueConfig?report=string&target=string
+
+Parameters for all types :
+- BlueConfig: BlueConfig file path (default: BBPTestData)
+- target: name of the BlueConfig target (default: CircuitTarget)
+- preTarget: target for presynaptic neurons for synapse densities (default: unset)
+- postTarget: target for postsynaptic neurons for synapse densities (default: unset)
+- gidFraction: take random cells from a fraction [0,1] of the given target (default: 1)
+- inputMin/inputMax: minimum and maximum input values to be considered for rescaling
+  (defaults: [0.0, 2.0] for Spikes
+             [0.0, maxDensity] for Synapses
+             [-80.0, 0.0] for Compartments
+             [-15.0, 0.0] for Somas with TestData, [-80.0, 0.0] otherwise
+             [-0.0000147, 0.00225] for LFP with TestData, [-10.0, 10.0] otherwise
+             [-100000.0, 300.0] for VSD)
+- functor: type of functor to sample the data into the voxels (defaults: 'density' for Synapses, 'frequency' for Spikes, 'field' for Compartments, Somas and VSD)
+- maxBlockSize: maximum memory usage allowed for one block in bytes (default: 64MB)
+- cutoff: the cutoff distance in micrometers (default: 100)
+- extend: the additional distance, in micrometers, by which the original data volume will be extended in every dimension (default: 0, the volume extent matches the bounding box of the data events). Changing this parameter will result in more volumetric data, and therefore more computation time
+- reference: path to a reference volume to take its size and resolution, overwrites the 'size' and 'resolution' parameter
+- size: size in voxels along the largest dimension of the volume, overwrites the 'resolution' parameter
+- resolution: number of voxels per micrometer (default: 0.0625 for densities, otherwise 0.1)
+
+Parameters for Compartments:
+- report: name of the compartment report (default: 'voltage'; 'allvoltage' if BlueConfig is BBPTestData)
+- dt: timestep between requested frames in milliseconds (default: report dt)
+
+Parameters for Somas:
+- report: name of the soma report (default: 'soma'; 'voltage' if BlueConfig is BBPTestData)
+- dt: timestep between requested frames in milliseconds (default: report dt)
+
+Parameters for Spikes:
+- duration: time window in milliseconds to load spikes (default: 10)
+- spikes: path to an alternate out.dat/out.spikes file (default: SpikesPath specified in the BlueConfig)
+
+Parameters for VSD:
+- report: name of the voltage report (default: 'soma'; 'voltage' if BlueConfig is BBPTestData)
+- areas: path to an area report file (default: path to TestData areas if BlueConfig is BBPTestData)
+- dt: timestep between requested frames in milliseconds (default: report dt))";
+//! [VolumeParameters]
+}
+
 template< class TImage >
 ImageSourcePtr< TImage > URIHandler::newImageSource() const
 {

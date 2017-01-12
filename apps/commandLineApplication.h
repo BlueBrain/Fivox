@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2015-2016, EPFL/Blue Brain Project
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *                          Stefan.Eilemann@epfl.ch
  *                          Daniel.Nachbaur@epfl.ch
@@ -33,22 +33,24 @@
 
 #include <fivox/fivox.h>
 #include <boost/program_options.hpp>
+#include <lunchbox/string.h>
+#include <lunchbox/term.h>
 
 namespace po = boost::program_options;
 
 namespace vmml
 {
-std::istream& operator>>( std::istream& is, Vector3f& vec )
+std::istream& operator >> ( std::istream& is, Vector3f& vec )
 {
     return is >> std::skipws >> vec.x() >> vec.y() >> vec.z();
 }
 
-std::istream& operator>>( std::istream& is, Vector2f& vec )
+std::istream& operator >> ( std::istream& is, Vector2f& vec )
 {
     return is >> std::skipws >> vec.x() >> vec.y();
 }
 
-std::istream& operator>>( std::istream& is, Vector2ui& vec )
+std::istream& operator >> ( std::istream& is, Vector2ui& vec )
 {
     return is >> std::skipws >> vec.x() >> vec.y();
 }
@@ -56,7 +58,6 @@ std::istream& operator>>( std::istream& is, Vector2ui& vec )
 
 namespace
 {
-typedef fivox::FloatVolume::Pointer VolumePtr;
 typedef fivox::ImageSource< fivox::FloatVolume > ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 
@@ -72,87 +73,17 @@ class CommandLineApplication
 {
 public:
     CommandLineApplication( const std::string& caption )
-        : _options( caption, 140 /*line len*/ )
+        : _options( caption, lunchbox::term::getSize().first )
         , _uri( "fivox://" )
     {
+        const std::string volumeHelp =
+            std::string( "Volume URI with parameters in the form:\n" ) +
+            lunchbox::string::prepend( fivox::URIHandler::getHelp(), "  " );
         _options.add_options()
 //! [AppParameters] @anchor CommandLineApplication
             ( "help,h", "Show help message" )
             ( "version,v", "Show program name and version" )
-            ( "volume", po::value< std::string >(),
-//! [VolumeParameters] @anchor VolumeParameters
-              "Volume URI with parameters in the form:\n"
-              "- Compartment reports:\n"
-              "    fivox[compartments]://BlueConfig?report=string&target=string\n"
-              "- Soma reports:\n"
-              "    fivoxsomas://BlueConfig?report=string&target=string\n"
-              "- Spike reports:\n"
-              "    fivoxspikes://BlueConfig?duration=float&spikes=path&target=string\n"
-              "- Synapse densities:\n"
-              "    fivoxsynapses://BlueConfig?target=string\n"
-              "- Synapse densities for pathways:\n"
-              "    fivoxsynapses://BlueConfig?preTarget=string&postTarget=string\n"
-              "- Voltage-sensitive dye reports:\n"
-              "    fivoxvsd://BlueConfig?report=string&target=string\n"
-              "\n"
-              "Parameters for all types :\n"
-              "- BlueConfig: BlueConfig file path\n"
-              "              (default: BBPTestData)\n"
-              "- target: name of the BlueConfig target (default: CircuitTarget)\n"
-              "- preTarget: target for presynaptic neurons for synapse densities (default: unset)\n"
-              "- postTarget: target for postsynaptic neurons for synapse densities (default: unset)\n"
-              "- gidFraction: take random cells from a fraction [0,1] of the given target (default: 1)\n"
-              "- inputMin/inputMax: minimum and maximum input values to be considered for rescaling\n"
-              "                     (defaults: [0.0, 2.0] for Spikes\n"
-              "                                [0.0, maxDensity] for Synapses\n"
-              "                                [-80.0, 0.0] for Compartments\n"
-              "                                [-15.0, 0.0] for Somas with TestData, [-80.0, 0.0] otherwise\n"
-              "                                [-0.0000147, 0.00225] for LFP with TestData, [-10.0, 10.0] otherwise\n"
-              "                                [-100000.0, 300.0] for VSD)\n"
-              "- functor: type of functor to sample the data into the voxels\n"
-              "             (defaults: \"density\" for Synapses,\n"
-              "                        \"frequency\" for Spikes,\n"
-              "                        \"field\" for Compartments, Somas and VSD)\n"
-              "- maxBlockSize: maximum memory usage allowed for one block in bytes\n"
-              "                (default: 64MB)\n"
-              "- cutoff: the cutoff distance in micrometers (default: 100).\n"
-              "- extend: the additional distance, in micrometers, by which the\n"
-              "          original data volume will be extended in every dimension\n"
-              "          (default: 0, the volume extent matches the bounding box\n"
-              "          of the data events). Changing this parameter will result\n"
-              "          in more volumetric data, and therefore more computation\n"
-              "          time\n"
-              "- reference: path to a reference volume to take its size and resolution,\n"
-              "             overwrites the 'size' and 'resolution' parameter\n"
-              "- size: size in voxels along the largest dimension of the volume, overwrites the 'resolution' parameter\n"
-              "- resolution: number of voxels per micrometer (default: 0.0625 for densities, otherwise 0.1)\n"
-              "\n"
-              "Parameters for Compartments:\n"
-              "- report: name of the compartment report\n"
-              "          (default: 'voltage'; 'allvoltage' if BlueConfig is BBPTestData)\n"
-              "- dt: timestep between requested frames in milliseconds\n"
-              "      (default: report dt)\n"
-              "\n"
-              "Parameters for Somas:\n"
-              "- report: name of the soma report\n"
-              "          (default: 'soma'; 'voltage' if BlueConfig is BBPTestData)\n"
-              "- dt: timestep between requested frames in milliseconds\n"
-              "      (default: report dt)\n"
-              "\n"
-              "Parameters for Spikes:\n"
-              "- duration: time window in milliseconds to load spikes (default: 10)\n"
-              "- spikes: path to an alternate out.dat/out.spikes file\n"
-              "          (default: SpikesPath specified in the BlueConfig)\n"
-              "\n"
-              "Parameters for VSD:\n"
-              "- report: name of the voltage report\n"
-              "          (default: 'soma'; 'voltage' if BlueConfig is BBPTestData)\n"
-              "- areas: path to an area report file"
-              "         (default: path to TestData areas if BlueConfig is BBPTestData)\n"
-              "- dt: timestep between requested frames in milliseconds\n"
-              "      (default: report dt)\n"
-//! [VolumeParameters]
-              )
+            ( "volume", po::value< std::string >(), volumeHelp.c_str( ))
             ( "time,t", po::value< float >(),
               "Timestamp to load in the report" )
             ( "times", po::value< fivox::Vector2f >(),
@@ -232,10 +163,7 @@ public:
     }
 
     /** @return the volume URI */
-    const fivox::URI& getURI() const
-    {
-        return _uri;
-    }
+    const fivox::URI& getURI() const { return _uri; }
 
 protected:
     po::options_description _options;
