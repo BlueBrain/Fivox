@@ -8,7 +8,8 @@ cuda_include_directories(${PROJECT_SOURCE_DIR}/fivox/cuda)
 set(CUDA_SOURCES simpleLFP.cu)
 
 common_cuda_compile_options()
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -D_FORCE_INLINES
+                                        -gencode arch=compute_20,code=sm_20
                                         -gencode arch=compute_30,code=sm_30
                                         -gencode arch=compute_35,code=sm_35
                                         -gencode arch=compute_50,code=sm_50")

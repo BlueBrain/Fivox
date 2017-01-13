@@ -29,8 +29,7 @@ common_find_package(BBPTestData)
 common_find_package(Boost REQUIRED COMPONENTS unit_test_framework
                                               program_options system)
 common_find_package(Brion REQUIRED)
-#CUDA is currently disabled because there is a bug.
-#common_find_package(CUDA 4.0)
+common_find_package(CUDA 4.0)
 common_find_package(ITK REQUIRED SYSTEM)
 common_find_package(Lexis)
 common_find_package(Livre)

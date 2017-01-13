@@ -51,31 +51,32 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
     // Compute directly the inverted value to gain performance in the for loop
     const float cutOffDistance = __frcp_rn( params.cutoff );
 
-    unsigned int eventsPerPass = blockDim.x;
-    if( blockIdx.x == gridDim.x - 1 )
-        eventsPerPass = numVoxels % blockDim.x;
-
-    const unsigned int nPasses = ceilf( (float)params.numEvents / (float)eventsPerPass );
+    const unsigned int activeThreads = min(blockDim.x,
+                                           numVoxels - blockIdx.x * blockDim.x);
+    const unsigned int nPasses =
+        ( params.numEvents + activeThreads - 1 )  / activeThreads;
 
     float current( 0.f );
     const unsigned int sharedEventIndex = threadIdx.x * 5;
     extern __shared__ float sharedEvents[];
     for( unsigned int i = 0; i < nPasses; ++i )
     {
-        const unsigned int eventIndex = i * eventsPerPass + threadIdx.x;
+        const unsigned int eventIndex = i * activeThreads + threadIdx.x;
+
+        if( eventIndex < params.numEvents )
+        {
+            sharedEvents[ sharedEventIndex ] =  eventsX[ eventIndex ];
+            sharedEvents[ sharedEventIndex + 1 ] =  eventsY[ eventIndex ];
+            sharedEvents[ sharedEventIndex + 2 ] =  eventsZ[ eventIndex ];
+            sharedEvents[ sharedEventIndex + 3 ] =  radii[ eventIndex ];
+            sharedEvents[ sharedEventIndex + 4 ] =  values[ eventIndex ];
+        }
+        __syncthreads();
 
         if( eventIndex >= params.numEvents )
             break;
 
-        sharedEvents[ sharedEventIndex ] =  eventsX[ eventIndex ];
-        sharedEvents[ sharedEventIndex + 1 ] =  eventsY[ eventIndex ];
-        sharedEvents[ sharedEventIndex + 2 ] =  eventsZ[ eventIndex ];
-        sharedEvents[ sharedEventIndex + 3 ] =  radii[ eventIndex ];
-        sharedEvents[ sharedEventIndex + 4 ] =  values[ eventIndex ];
-
-        __syncthreads();
-
-        for( unsigned int j = 0; j < eventsPerPass; ++j )
+        for( unsigned int j = 0; j < activeThreads; ++j )
         {
             const unsigned int index = j * 5;
             const float value( sharedEvents[ index + 4 ]);
@@ -101,6 +102,7 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
             // (radius is already stored like that from the loader)
             current += value * min( radius, length ); // mA
         }
+        __syncthreads();
     }
     // voltageFactor =  1 / (4 * PI * conductivity),
     // with conductivity = 1 / 3.54 (siemens per meter)
@@ -116,7 +118,7 @@ float simpleLFP( const float* posX, const float* posY, const float* posZ,
 {
     cuda::Parameters* cudaParameters;
     cuda::VolumeInfo* cudaVolInfo;
-    gpuErrchk( cudaMalloc( (void**)&cudaParameters, sizeof( cuda::Parameters)));
+    gpuErrchk( cudaMalloc( (void**)&cudaParameters, sizeof( cuda::Parameters )));
     gpuErrchk( cudaMalloc( (void**)&cudaVolInfo, sizeof( cuda::VolumeInfo )));
 
     gpuErrchk( cudaMemcpy( cudaParameters, &parameters,
