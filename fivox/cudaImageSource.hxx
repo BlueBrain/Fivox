@@ -51,8 +51,7 @@ void CudaImageSource< TImage >::GenerateData()
 
     volInfo.voxelSize = image->GetSpacing()[0];
 
-    const auto& origin = Superclass::getBoundingBox().getCenter() -
-                         Superclass::getSizeInMicrometer() * 0.5f;
+    const auto& origin = image->GetOrigin();
     volInfo.origin.x = origin[0];
     volInfo.origin.y = origin[1];
     volInfo.origin.z = origin[2];

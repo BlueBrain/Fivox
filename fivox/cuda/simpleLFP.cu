@@ -1,6 +1,7 @@
 
 /* Copyright (c) 2014-2016, EPFL/Blue Brain Project
  *                          Jafet.VillafrancaDiaz@epfl.ch
+ *                          grigori.chevtchenko@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
  *
@@ -31,18 +32,18 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
                            float* __restrict__ output )
 {
     // 1D grid of 1D blocks
-    const int threadId = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned int threadId = blockIdx.x * blockDim.x + threadIdx.x;
     const unsigned int numVoxels = volInfo.dimensions.x *
                                    volInfo.dimensions.y *
                                    volInfo.dimensions.z;
     if( threadId >= numVoxels )
         return;
 
-    const int xIndex = threadId % volInfo.dimensions.x;
-    const int yIndex = ( threadId / volInfo.dimensions.x )
-                       % volInfo.dimensions.y;
-    const int zIndex = (( threadId / volInfo.dimensions.x )
-                        / volInfo.dimensions.y ) % volInfo.dimensions.z;
+    const unsigned int xIndex = threadId % volInfo.dimensions.x;
+    const unsigned int yIndex = ( threadId / volInfo.dimensions.x )
+                                % volInfo.dimensions.y;
+    const unsigned int zIndex = (( threadId / volInfo.dimensions.x )
+                                / volInfo.dimensions.y ) % volInfo.dimensions.z;
 
     const float voxelPosX = xIndex * volInfo.voxelSize + volInfo.origin.x;
     const float voxelPosY = yIndex * volInfo.voxelSize + volInfo.origin.y;
@@ -51,8 +52,8 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
     // Compute directly the inverted value to gain performance in the for loop
     const float cutOffDistance = __frcp_rn( params.cutoff );
 
-    const unsigned int activeThreads = min(blockDim.x,
-                                           numVoxels - blockIdx.x * blockDim.x);
+    const unsigned int activeThreads = min( blockDim.x, numVoxels -
+                                            blockIdx.x * blockDim.x );
     const unsigned int nPasses =
         ( params.numEvents + activeThreads - 1 )  / activeThreads;
 
@@ -73,11 +74,11 @@ __global__ void kernelLFP( const float* __restrict__ eventsX,
         }
         __syncthreads();
 
-        if( eventIndex >= params.numEvents )
-            break;
-
         for( unsigned int j = 0; j < activeThreads; ++j )
         {
+            if( i * activeThreads + j >= params.numEvents )
+                break;
+
             const unsigned int index = j * 5;
             const float value( sharedEvents[ index + 4 ]);
 
@@ -126,9 +127,9 @@ float simpleLFP( const float* posX, const float* posY, const float* posZ,
     gpuErrchk( cudaMemcpy( cudaVolInfo, &volInfo, sizeof( cuda::VolumeInfo ),
                            cudaMemcpyHostToDevice ));
 
-    const int numVoxels = volInfo.dimensions.x *
-                          volInfo.dimensions.y *
-                          volInfo.dimensions.z;
+    const unsigned int numVoxels = volInfo.dimensions.x *
+                                   volInfo.dimensions.y *
+                                   volInfo.dimensions.z;
 
     // 1D grid of 1D blocks
     unsigned int nThreads = 512;
