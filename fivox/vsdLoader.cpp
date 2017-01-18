@@ -77,7 +77,7 @@ public:
         for( size_t i = 0; i != voltages->size(); ++i )
         {
             const float voltage = ( *voltages )[i];
-            _updateEventValue( i, _spikeFilter ? std::min(voltage, _apThreshold)
+            _updateEventValue( i, _spikeFilter ? std::min(voltage, _apThreshold )
                                                : voltage, ( *_areas )[i] );
         }
         return voltages->size();

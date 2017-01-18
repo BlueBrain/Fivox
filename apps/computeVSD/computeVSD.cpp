@@ -328,7 +328,11 @@ private:
 
             file << "VSDPositionFile=" << _outputFile + ".psp" << std::endl;
             file << "VSDIntensityFile=" << filename + ".psi" << std::endl;
-            file << "TimeStep=" << _eventSource->getDt() << std::endl;
+
+            // Should be called TimeStamp but need to remain TimeStep because of
+            // compatibility issues.
+            file << "TimeStep=" << _eventSource->getCurrentTime() << std::endl;
+
             if( file.good( ))
                 LBINFO << "Point Sprite header written as " << pshFile
                        << std::endl;

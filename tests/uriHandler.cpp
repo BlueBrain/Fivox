@@ -48,7 +48,7 @@ inline std::ostream& operator << ( std::ostream& os, const VolumeType& type )
 
 BOOST_AUTO_TEST_CASE(compartment_defaults)
 {
-    const fivox::URIHandler handler( fivox::URI( "fivox://" ));
+    const fivox::URIHandler handler( fivox::URI( "fivoxcompartments://" ));
     BOOST_CHECK_EQUAL( handler.getType(), fivox::VolumeType::compartments );
     BOOST_CHECK_EQUAL( handler.getConfig().getCircuitSource(),
                  brion::BlueConfig( BBP_TEST_BLUECONFIG3 ).getCircuitSource( ));
@@ -61,21 +61,23 @@ BOOST_AUTO_TEST_CASE(compartment_defaults)
 
 BOOST_AUTO_TEST_CASE(compartment_full_circuit)
 {
-    const fivox::URIHandler handler( fivox::URI( "fivox://?target=*" ));
+    const fivox::URIHandler handler(
+                fivox::URI( "fivoxcompartments://?target=*" ));
     BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
 }
 
 BOOST_AUTO_TEST_CASE(compartment_empty_target)
 {
     BOOST_CHECK_THROW(
-                fivox::URIHandler handler( fivox::URI( "fivox://?target=EmptyTarget" )),
-                std::runtime_error );
+        fivox::URIHandler handler(
+                       fivox::URI( "fivoxcompartments://?target=EmptyTarget" )),
+        std::runtime_error );
 }
 
 BOOST_AUTO_TEST_CASE(compartment_parameters)
 {
-    const fivox::URIHandler handler(
-        fivox::URI( "fivoxcompartment://?report=simulation&dt=0.2&target=Column" ));
+    const fivox::URIHandler handler( fivox::URI(
+               "fivoxcompartments://?report=simulation&dt=0.2&target=Column" ));
     BOOST_CHECK_EQUAL( handler.getGIDs().size(), 1000 );
     BOOST_CHECK_EQUAL( handler.getReport(), "simulation" );
     BOOST_CHECK_EQUAL( handler.getDt(), 0.2f );
@@ -84,11 +86,11 @@ BOOST_AUTO_TEST_CASE(compartment_parameters)
 BOOST_AUTO_TEST_CASE(compartment_targets)
 {
     const fivox::URIHandler handler1(
-        fivox::URI( "fivoxcompartment://?target=mini50" ));
+        fivox::URI( "fivoxcompartments://?target=mini50" ));
     BOOST_CHECK_EQUAL( handler1.getGIDs().size(), 50 );
 
     const fivox::URIHandler handler2(
-        fivox::URI( "fivoxcompartment://?target=Layer1&report=simulation" ));
+        fivox::URI( "fivoxcompartments://?target=Layer1&report=simulation" ));
     BOOST_CHECK_EQUAL( handler2.getGIDs().size(), 20 );
     BOOST_CHECK_EQUAL( handler2.getReport(), "simulation" );
 }

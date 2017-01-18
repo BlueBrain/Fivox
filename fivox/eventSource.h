@@ -187,6 +187,36 @@ public:
     /** @return the maximum number of chunks provided by the data source. */
     FIVOX_API size_t getNumChunks() const;
 
+    /**
+     * Read events from the specified file. It will first try to read it as a
+     * binary file, checking the expected magic number; if not found, it will
+     * read it as an ASCII, in the expected format (see specification).
+     *
+     * The contents of the file will be used to set the events in the
+     * EventSource.
+     *
+     * @param filename path of the file to read the events from.
+     * @return true if the events were read correctly, false otherwise.
+     * @throw std::runtime_error if the specified file is empty.
+     * @throw std::runtime_error if the binary file version is incompatible.
+     * @throw std::runtime_error if the number of events to load from an ASCII
+     * file is 0, or not specified.
+     * @throw std::runtime_error if any of the events being read is ill-formed.
+     */
+    FIVOX_API bool read( const std::string& filename );
+
+    /**
+     * Write events to the specified file. It is possible to specify the format
+     * of the output (binary or ASCII, see specification for reference).
+     *
+     * @param filename path of the file to write the events to.
+     * @param format file format in which the event file will be written
+     * (EventFileFormat::ascii and EventFileFormat::binary are supported).
+     * @return true if the file was succesfully written, false otherwise.
+     */
+    FIVOX_API bool write( const std::string& filename,
+                          EventFileFormat format ) const;
+
 protected:
     explicit EventSource( const URIHandler& params );
 
