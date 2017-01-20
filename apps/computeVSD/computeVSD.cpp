@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2015-2016, EPFL/Blue Brain Project
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project
  *                          Jafet.VillafrancaDiaz@epfl.ch
  *                          Stefan.Eilemann@epfl.ch
  *                          Daniel.Nachbaur@epfl.ch
@@ -75,7 +75,7 @@ public:
               "down until y=0 (default: 2081.75641787 micrometers)." )
             ( "interpolate-attenuation",
               "Interpolate the attenuation from the dye curve." )
-            ( "sigma", po::value< double >()->default_value( 0.0045 ),
+            ( "sigma", po::value< double >()->default_value( 0.0045, "0.0045" ),
               "Absorption + scattering coefficient (units per micrometer) in "
               "the Beer-Lambert law. Must be a positive value "
               "(default: 0.0045).")
