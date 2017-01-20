@@ -1,4 +1,4 @@
-# Copyright (c) BBP/EPFL 2014-2016
+# Copyright (c) BBP/EPFL 2014-2017
 #               Stefan.Eilemann@epfl.ch
 #
 # This file is part of Fivox <https://github.com/BlueBrain/Fivox>
@@ -12,13 +12,13 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
                               ${CMAKE_SOURCE_DIR}/CMake/common)
 
 include(GitExternal)
-include(ITKSettings)
 
 set(FIVOX_DESCRIPTION "ITK library to sample events into regular volumes")
 set(FIVOX_MAINTAINER
   "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(FIVOX_LICENSE LGPL)
 set(FIVOXLFP_DIR ${PROJECT_SOURCE_DIR}/fivox/lfp)
+set(FIVOX_DEP_DEPENDS libinsighttoolkit4-dev)
 
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(Common)
@@ -46,12 +46,6 @@ endif()
 common_find_package_post()
 
 include(${ITK_USE_FILE})
-# eile: For some unfathomable reason, the list of libraries contains
-# these tokens which cause the subsequent lib target to disappear from
-# the link line. Removing the tokens fixes the build, although I have
-# not fully understood the issue.
-list(REMOVE_ITEM ITK_LIBRARIES optimized debug)
-
 add_subdirectory(fivox)
 add_subdirectory(apps)
 add_subdirectory(tests)

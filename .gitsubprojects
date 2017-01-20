@@ -1,5 +1,4 @@
 # -*- mode: cmake -*-
-git_subproject(ITK https://github.com/BlueBrain/ITK.git 53fd7a7)
 git_subproject(vmmlib https://github.com/Eyescale/vmmlib.git 8795629)
 git_subproject(Lunchbox https://github.com/Eyescale/Lunchbox.git 3a1a704)
 git_subproject(ZeroEQ https://github.com/HBPVIS/ZeroEQ.git f96640f)
