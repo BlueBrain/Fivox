@@ -72,9 +72,10 @@ typedef ImageSource::Pointer ImageSourcePtr;
 class CommandLineApplication
 {
 public:
-    CommandLineApplication( const std::string& caption )
+    CommandLineApplication( const std::string& caption,
+                            const std::string& defaultURI = "fivox://" )
         : _options( caption, lunchbox::term::getSize().first )
-        , _uri( "fivox://" )
+        , _uri( defaultURI )
     {
         const std::string volumeHelp =
             std::string( "Volume URI with parameters in the form:\n" ) +

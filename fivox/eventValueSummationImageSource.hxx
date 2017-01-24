@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project
  *                          Daniel.Nachbaur@epfl.ch
  *
  * This file is part of Fivox <https://github.com/BlueBrain/Fivox>
@@ -98,7 +98,8 @@ void EventValueSummationImageSource< TImage >::GenerateData()
     }
 
     LBINFO << "Voxelized " << totalEvents << " events for "
-           << numChunks << " chunks, max value " << maxValue << std::endl;
+           << numChunks << " chunks, max value "
+           << size_t( maxValue ) << std::endl;
 }
 
 } // end namespace fivox
