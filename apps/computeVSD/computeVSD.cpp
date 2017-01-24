@@ -48,7 +48,8 @@ class ComputeVSD : public CommandLineApplication
 public:
     ComputeVSD()
         : CommandLineApplication( "A tool to compute 2D projections of VSD "
-                                  "signals using the Beer-Lambert law." )
+                                  "signals using the Beer-Lambert law.",
+                                  "fivoxvsd://" )
         , _outputFile( "image" )
     {
         _options.add_options()
