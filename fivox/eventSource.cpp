@@ -82,6 +82,7 @@ public:
 
     explicit Impl( const URIHandler& params )
         : dt( params.getDt( ))
+        , duration( params.getDuration( ))
         , currentTime( -1.f )
         , cutOffDistance( params.getCutoffDistance( ))
         , alignBoundary( 32 )
@@ -274,6 +275,7 @@ public:
     }
 
     float dt;
+    float duration;
     float currentTime;
     const float cutOffDistance;
 
@@ -445,18 +447,16 @@ Vector2ui EventSource::getFrameRange() const
     switch( _getType( ))
     {
     case SourceType::event:
-        if( _hasEnded( ))
-        {
-            if( interval.x() == interval.y() && _impl->numEvents == 0 )
-                // Do not return (0, 1) for empty sources.
-                return Vector2ui( 0, 0 );
-            return Vector2ui( std::floor( interval.x() / getDt( )),
-                              std::floor( interval.y() / getDt() + 1 ));
-        }
-        else
-            // Return only full frames [t, t+dt)
-            return Vector2ui( std::floor( interval.x() / getDt( )),
-                              std::floor( interval.y() / getDt( )));
+    {
+        const float endTime = interval.y( ) - getDuration();
+        if( endTime < interval.x( ))
+            return Vector2ui( 0, 0 );
+        // If the source end time is t it means that the frame starting and
+        // floor(t/dt) is complete, we add 1 frame because the frame range is
+        // open on the right.
+        return Vector2ui( std::floor( interval.x() / getDt( )),
+                          std::floor( endTime / getDt( )) + 1);
+    }
     case SourceType::frame:
     default:
         return Vector2ui( std::floor( interval.x() / getDt( )),
@@ -478,6 +478,11 @@ float EventSource::getDt() const
 void EventSource::setDt( const float dt )
 {
     _impl->dt = dt;
+}
+
+float EventSource::getDuration() const
+{
+    return _impl->duration;
 }
 
 float EventSource::getCurrentTime() const

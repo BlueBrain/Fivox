@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#82](https://github.com/BlueBrain/Fivox/pull/82)
+  Frame duration moved from SpikeLoader internals to a public attribute of
+  EventSource.
 * [#81](https://github.com/BlueBrain/Fivox/pull/81)
   Replace TestLoader by GenericLoader, adding the possibility to load events
   from file

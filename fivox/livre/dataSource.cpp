@@ -111,6 +111,7 @@ public:
     bool update( livre::VolumeInformation& info )
     {
         EventSourcePtr loader = source->getEventSource();
+        lunchbox::ScopedWrite mutex( _lock );
         const Vector2ui& frameRange = loader->getFrameRange();
 
         if( info.frameRange == frameRange )

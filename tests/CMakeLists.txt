@@ -8,7 +8,6 @@ include_directories(${CMAKE_SOURCE_DIR}) # some tests need private headers
 set(TEST_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
   ${Boost_SYSTEM_LIBRARY} Fivox)
 
-common_find_package(Monsteer) # for streaming plugin
 if(TARGET BrionMonsteerSpikeReport)
   list(APPEND TEST_LIBRARIES BrionMonsteerSpikeReport)
 endif()

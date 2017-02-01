@@ -159,9 +159,15 @@ public:
 
     /**
      * @return the dt used for frame-to-time conversion in the data source,
-     *         default is -1.0 and should be set accordingly in constructor.
      */
     FIVOX_API float getDt() const;
+
+    /**
+     * @return the frame duration. In general this will be equal to dt, but
+     *         it can be larger for discrete event sources or in combination of
+     *         functors that do data aggregation in a time window.
+     */
+    FIVOX_API float getDuration() const;
 
     /** @return the current time from setTime() in milliseconds. */
     FIVOX_API float getCurrentTime() const;
@@ -234,12 +240,6 @@ protected:
 
     /** @return the type of this event source, needed for getFrameRange() */
     virtual SourceType _getType() const = 0;
-
-    /**
-     * @return whether all data from the source is available or it's
-     * an ongoing stream, needed for getFrameRange()
-     */
-    virtual bool _hasEnded() const = 0;
 
     /** @sa EventSource::getNumChunks() */
     virtual size_t _getNumChunks() const = 0;
