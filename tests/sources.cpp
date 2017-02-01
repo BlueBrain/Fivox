@@ -32,11 +32,14 @@
 
 #define BOOST_TEST_MODULE Sources
 
+#include <boost/filesystem.hpp>
+
 #include "test.h"
 #include <fivox/compartmentLoader.h>
 #include <fivox/eventFunctor.h>
 #include <fivox/helpers.h>
 #include <fivox/imageSource.h>
+#include <fivox/genericLoader.h>
 #ifdef FIVOX_USE_LFP
 #  include <fivox/lfp/lfpFunctor.h>
 #endif
@@ -65,6 +68,46 @@ namespace
 
 const std::string _monsteerPluginScheme( "monsteer" );
 const size_t _minResolution = 8;
+
+void testGenericEvents( fivox::EventSourcePtr eventsource )
+{
+    boost::filesystem::path tempFile = boost::filesystem::unique_path();
+    std::string asciiFile = boost::filesystem::temp_directory_path().string()
+                            + "/" + tempFile.string() + ".ascii";
+    std::string binaryFile = boost::filesystem::temp_directory_path().string()
+                             + "/" + tempFile.string() + ".binary";
+
+    BOOST_CHECK( eventsource->write( asciiFile,
+                                     fivox::EventFileFormat::ascii ));
+    BOOST_CHECK( eventsource->write( binaryFile,
+                                     fivox::EventFileFormat::binary ));
+
+    fivox::URIHandler asciiSourceURI( servus::URI( "fivox://" + asciiFile ));
+    fivox::GenericLoader asciiSource( asciiSourceURI );
+
+    fivox::URIHandler binarySourceURI( servus::URI( "fivox://" + binaryFile ));
+    fivox::GenericLoader binarySource( binarySourceURI );
+
+    BOOST_CHECK_EQUAL( eventsource->getNumEvents( ),
+                       asciiSource.getNumEvents( ));
+    BOOST_CHECK_EQUAL( eventsource->getNumEvents( ),
+                       binarySource.getNumEvents( ));
+
+    for( uint32_t i = 0; i < asciiSource.getNumEvents( ); ++i )
+    {
+        BOOST_CHECK_CLOSE( asciiSource.getValues()[i],
+                           eventsource->getValues()[i], 0.001f );
+    }
+
+    for( uint32_t i = 0; i < binarySource.getNumEvents( ); ++i )
+    {
+        BOOST_CHECK_CLOSE( binarySource.getValues()[i],
+                           eventsource->getValues()[i], 0.001f );
+    }
+
+    boost::filesystem::remove( asciiFile );
+    boost::filesystem::remove( binaryFile );
+}
 
 template< typename Image >
 inline float _testKernel(
@@ -191,6 +234,7 @@ struct SourcesFixture
                       << ',' << std::setw(15)
                       << size*size*size / 1024.f / 1024.f / t2 << std::endl;
         }
+        testGenericEvents( filter1->getEventSource( ));
     }
 };
 }
@@ -201,15 +245,15 @@ BOOST_AUTO_TEST_CASE( fivoxVoltages_source )
 {
     // Compartment report 'voltages' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivox://" ), 5.455078125f, -0.062685228640475543,
-                vmml::Vector2ui( 0, 100 ));
+    testSource( fivox::URI( "fivoxcompartments://" ), 5.455078125f,
+                -0.062685228640475543, vmml::Vector2ui( 0, 100 ));
 }
 
 BOOST_AUTO_TEST_CASE( fivoxSomas_source )
 {
     // Soma report 'somas' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivoxSomas://" ), 0.f,
+    testSource( fivox::URI( "fivoxsomas://" ), 0.f,
                 -0.0016181814135052264, vmml::Vector2ui( 0, 100 ));
 }
 
@@ -218,7 +262,7 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 {
     // Compartment currents report 'currents' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivox://?functor=lfp" ), 0.f,
+    testSource( fivox::URI( "fivoxcompartments://?functor=lfp" ), 0.f,
                 3.3634767649011466e-09f, vmml::Vector2ui( 0, 100 ));
 }
 #endif
@@ -226,20 +270,20 @@ BOOST_AUTO_TEST_CASE( fivoxLFP_source )
 BOOST_AUTO_TEST_CASE( fivoxSpikes_source )
 {
     // Spikes report timestamps range between 0.725 and 9.975 ms
-    testSource( fivox::URI( "fivoxSpikes://?duration=1&dt=1&target=Column" ),
+    testSource( fivox::URI( "fivoxspikes://?duration=1&dt=1&target=Column" ),
                 0.005859375f, 0.005859375f, vmml::Vector2ui( 0, 9 ));
 }
 
 BOOST_AUTO_TEST_CASE( fivoxSynapses_source )
 {
     // Synapse reports don't have time support and return a 1-frame interval
-    testSource( fivox::URI( "fivoxSynapses://?target=Column" ), 7.42578125f,
+    testSource( fivox::URI( "fivoxsynapses://?target=Column" ), 7.42578125f,
                 437.92578125f, vmml::Vector2ui( 0, 1 ));
 }
 
 BOOST_AUTO_TEST_CASE( fivoxVSD_source )
 {
-    testSource( fivox::URI( "fivoxVSD://?target=allmini50" ),
+    testSource( fivox::URI( "fivoxvsd://?target=allmini50" ),
                 12.703125, -85293.598821282387f, vmml::Vector2ui( 0, 100 ));
 }
 

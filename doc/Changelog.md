@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#81](https://github.com/BlueBrain/Fivox/pull/81)
+  Replace TestLoader by GenericLoader, adding the possibility to load events
+  from file
 * [#77](https://github.com/BlueBrain/Fivox/pull/77),
   [#78](https://github.com/BlueBrain/Fivox/pull/78)
   Enable CUDA implementation of the lfp computation.

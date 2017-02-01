@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef FIVOX_TESTLOADER_H
-#define FIVOX_TESTLOADER_H
+#ifndef FIVOX_GENERICLOADER_H
+#define FIVOX_GENERICLOADER_H
 
 #include <fivox/api.h>
 #include <fivox/eventSource.h> // base class
@@ -26,20 +26,20 @@
 namespace fivox
 {
 /**
- * Create a set of dummy events, arranged in a vertical straight line,
- * to be sampled by an EventFunctor.
+ * Load a set of events from file, if specified. Otherwise, generate a set of
+ * dummy events arranged in a vertical straight line.
  */
-class TestLoader : public EventSource
+class GenericLoader : public EventSource
 {
 public:
     /**
-    * Construct a new test event source.
+    * Construct a new generic event source.
     *
     * @param params the URIHandler object containing the parameters
     * to define the event source
     */
-    FIVOX_API explicit TestLoader( const URIHandler& params );
-    FIVOX_API virtual ~TestLoader();
+    FIVOX_API explicit GenericLoader( const URIHandler& params );
+    FIVOX_API virtual ~GenericLoader();
 
 private:
     /** @name Abstract interface implementation */
