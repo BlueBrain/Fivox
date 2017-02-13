@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project
  *                          Stefan.Eilemann@epfl.ch
  *                          Daniel.Nachbaur@epfl.ch
  *
@@ -31,7 +31,6 @@
 #include <fstream>
 
 #ifdef USE_BOOST_GEOMETRY
-#  include <lunchbox/lock.h>
 #  include <lunchbox/scopedMutex.h>
 #  include <boost/geometry.hpp>
 #  include <boost/geometry/geometries/box.hpp>

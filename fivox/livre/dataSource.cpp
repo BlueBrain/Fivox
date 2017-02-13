@@ -128,7 +128,7 @@ public:
     Vector3f _borders;
 
 private:
-    mutable lunchbox::Lock _lock;
+    mutable std::mutex _lock;
 };
 
 DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
