@@ -24,59 +24,57 @@
 
 #include <future>
 
-
 namespace fivox
 {
-
 class SynapseLoader::Impl
 {
 public:
-    Impl( EventSource& output, const URIHandler& params )
-        : _output( output )
-        , _circuit( params.getConfig( ))
-        , _preGIDs( params.getPreGIDs( ))
-        , _postGIDs( params.getGIDs( ))
-        , _synapses( _loadSynapseStream( ))
-        , _numChunks( _synapses.getRemaining( ))
+    Impl(EventSource& output, const URIHandler& params)
+        : _output(output)
+        , _circuit(params.getConfig())
+        , _preGIDs(params.getPreGIDs())
+        , _postGIDs(params.getGIDs())
+        , _synapses(_loadSynapseStream())
+        , _numChunks(_synapses.getRemaining())
     {
-        if( !params.getReferenceVolume().empty( ))
+        if (!params.getReferenceVolume().empty())
             return;
 
         // compute circuit bounding box as we don't have any synapses at this
         // point
         const auto& gids = _circuit.getGIDs();
-        const brion::Vector3fs& positions = _circuit.getPositions( gids );
+        const brion::Vector3fs& positions = _circuit.getPositions(gids);
 
         AABBf bbox;
-        for( const auto& position : positions )
-            bbox.merge( position );
-        _output.setBoundingBox( bbox );
+        for (const auto& position : positions)
+            bbox.merge(position);
+        _output.setBoundingBox(bbox);
     }
 
     brain::SynapsesStream _loadSynapseStream()
     {
-        if( _preGIDs.empty( ))
-            return _circuit.getAfferentSynapses( _postGIDs,
-                                            brain::SynapsePrefetch::positions );
+        if (_preGIDs.empty())
+            return _circuit.getAfferentSynapses(
+                _postGIDs, brain::SynapsePrefetch::positions);
 
-        return _circuit.getProjectedSynapses( _preGIDs, _postGIDs,
-                                            brain::SynapsePrefetch::positions );
+        return _circuit.getProjectedSynapses(_preGIDs, _postGIDs,
+                                             brain::SynapsePrefetch::positions);
     }
 
-    ssize_t load( const size_t /*chunkIndex*/, const size_t numChunks )
+    ssize_t load(const size_t /*chunkIndex*/, const size_t numChunks)
     {
         // prefetching the next chunk (instead of synchronously waiting here)
         // turned out to be slower in real life...
-        const brain::Synapses synapses = _synapses.read( numChunks ).get();
-        if( _synapses.eos( ))
+        const brain::Synapses synapses = _synapses.read(numChunks).get();
+        if (_synapses.eos())
             _synapses = _loadSynapseStream();
-        _output.resize( synapses.size( ));
+        _output.resize(synapses.size());
         const float* __restrict__ posx = synapses.preSurfaceXPositions();
         const float* __restrict__ posy = synapses.preSurfaceYPositions();
         const float* __restrict__ posz = synapses.preSurfaceZPositions();
-        for( size_t i = 0; i < synapses.size(); ++i )
-            _output.update( i, Vector3f( posx[i], posy[i], posz[i] ),
-                            /*radius*/ 0.f, /*value*/ 1.f );
+        for (size_t i = 0; i < synapses.size(); ++i)
+            _output.update(i, Vector3f(posx[i], posy[i], posz[i]),
+                           /*radius*/ 0.f, /*value*/ 1.f);
 
         return synapses.size();
     }
@@ -89,29 +87,29 @@ public:
     const size_t _numChunks;
 };
 
-SynapseLoader::SynapseLoader( const URIHandler& params )
-    : EventSource( params )
-    , _impl( new Impl( *this, params ))
+SynapseLoader::SynapseLoader(const URIHandler& params)
+    : EventSource(params)
+    , _impl(new Impl(*this, params))
 {
-    setDt( 1.f );
+    setDt(1.f);
 }
 
 SynapseLoader::~SynapseLoader()
-{}
+{
+}
 
 Vector2f SynapseLoader::_getTimeRange() const
 {
-    return Vector2f( 0.f, 1.f );
+    return Vector2f(0.f, 1.f);
 }
 
-ssize_t SynapseLoader::_load( const size_t chunkIndex, const size_t numChunks )
+ssize_t SynapseLoader::_load(const size_t chunkIndex, const size_t numChunks)
 {
-    return _impl->load( chunkIndex, numChunks );
+    return _impl->load(chunkIndex, numChunks);
 }
 
 size_t SynapseLoader::_getNumChunks() const
 {
     return _impl->_numChunks;
 }
-
 }

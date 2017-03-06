@@ -26,12 +26,11 @@
 
 namespace fivox
 {
-
 /** Samples events into the given voxel counting magnitude per volume. */
-template< typename TImage >
-class DensityFunctor : public EventFunctor< TImage >
+template <typename TImage>
+class DensityFunctor : public EventFunctor<TImage>
 {
-    typedef EventFunctor< TImage > Super;
+    typedef EventFunctor<TImage> Super;
     typedef typename Super::TPixel TPixel;
     typedef typename Super::TPoint TPoint;
     typedef typename Super::TSpacing TSpacing;
@@ -39,45 +38,45 @@ class DensityFunctor : public EventFunctor< TImage >
 public:
     FIVOX_API DensityFunctor()
         : Super()
-    {}
+    {
+    }
     FIVOX_API virtual ~DensityFunctor() {}
-
     FIVOX_API void beforeGenerate() override
     {
-        if( Super::_source ) Super::_source->buildRTree();
+        if (Super::_source)
+            Super::_source->buildRTree();
     }
 
-    FIVOX_API TPixel operator()( const TPoint& point, const TSpacing& spacing )
-        const override;
+    FIVOX_API TPixel operator()(const TPoint& point,
+                                const TSpacing& spacing) const override;
 };
 
-template< class TImage > inline typename DensityFunctor< TImage >::TPixel
-DensityFunctor< TImage >::operator()( const TPoint& itkPoint,
-                                      const TSpacing& itkSpacing ) const
+template <class TImage>
+inline typename DensityFunctor<TImage>::TPixel DensityFunctor<TImage>::
+    operator()(const TPoint& itkPoint, const TSpacing& itkSpacing) const
 {
-    if( !Super::_source )
+    if (!Super::_source)
         return 0;
 
     Vector3f point;
     Vector3f spacing_2;
-    const size_t components = std::min( itkPoint.Size(), 3u );
-    for( size_t i = 0; i < components; ++i )
+    const size_t components = std::min(itkPoint.Size(), 3u);
+    for (size_t i = 0; i < components; ++i)
     {
         point[i] = itkPoint[i];
         spacing_2[i] = itkSpacing[i] * 0.5;
     }
 
-    const AABBf region( point - spacing_2, point + spacing_2 );
-    const EventValues& values = Super::_source->findEvents( region );
+    const AABBf region(point - spacing_2, point + spacing_2);
+    const EventValues& values = Super::_source->findEvents(region);
 
     float sum = 0.f;
-    for( const float& value : values )
+    for (const float& value : values)
         sum += value;
 
-    sum /= std::abs( spacing_2.product() * 8.f );
+    sum /= std::abs(spacing_2.product() * 8.f);
     return sum;
 }
-
 }
 
 #endif

@@ -21,16 +21,17 @@
 #ifndef FIVOX_FIELDFUNCTOR_H
 #define FIVOX_FIELDFUNCTOR_H
 
+#include <brion/types.h>
 #include <fivox/api.h>
 #include <fivox/eventFunctor.h> // base class
-#include <brion/types.h>
 
 namespace fivox
 {
 /** Samples spatial events into the given pixel using a squared falloff. */
-template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
+template <typename TImage>
+class FieldFunctor : public EventFunctor<TImage>
 {
-    typedef EventFunctor< TImage > Super;
+    typedef EventFunctor<TImage> Super;
     typedef typename Super::TPixel TPixel;
     typedef typename Super::TPoint TPoint;
     typedef typename Super::TSpacing TSpacing;
@@ -38,17 +39,18 @@ template< typename TImage > class FieldFunctor : public EventFunctor< TImage >
 public:
     FIVOX_API FieldFunctor()
         : Super()
-    {}
+    {
+    }
     FIVOX_API virtual ~FieldFunctor() {}
-
-    FIVOX_API TPixel operator()( const TPoint& point, const TSpacing& spacing )
-        const override;
+    FIVOX_API TPixel operator()(const TPoint& point,
+                                const TSpacing& spacing) const override;
 };
 
-template< class TImage > inline typename FieldFunctor< TImage >::TPixel
-FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
+template <class TImage>
+inline typename FieldFunctor<TImage>::TPixel FieldFunctor<TImage>::operator()(
+    const TPoint& point, const TSpacing&) const
 {
-    if( !Super::_source )
+    if (!Super::_source)
         return 0;
 
     const float cutOffDistance = Super::_source->getCutOffDistance();
@@ -62,44 +64,43 @@ FieldFunctor< TImage >::operator()( const TPoint& point, const TSpacing& ) const
     const float* __restrict__ radii = Super::_source->getRadii();
     const float* __restrict__ values = Super::_source->getValues();
 
-    const float px( point[0] ), py( point[1] ), pz( point[2] );
+    const float px(point[0]), py(point[1]), pz(point[2]);
 
     // Compute directly the inverted value to gain performance in the for loop
-    const float squaredCutoff = 1.f / ( cutOffDistance * cutOffDistance );
-    float voltage1( 0.f ), voltage2( 0.f );
+    const float squaredCutoff = 1.f / (cutOffDistance * cutOffDistance);
+    float voltage1(0.f), voltage2(0.f);
 
-    // Tell the compiler that memory accesses are aligned (done in
-    // EventSource::resize) so it is able to make optimizations
-    #pragma vector aligned
-    for( size_t i = 0; i < size; ++i )
+// Tell the compiler that memory accesses are aligned (done in
+// EventSource::resize) so it is able to make optimizations
+#pragma vector aligned
+    for (size_t i = 0; i < size; ++i)
     {
         const float distanceX = px - posx[i];
         const float distanceY = py - posy[i];
         const float distanceZ = pz - posz[i];
 
-        const float distance2( 1.f / ( distanceX * distanceX +
-                                       distanceY * distanceY +
-                                       distanceZ * distanceZ ));
+        const float distance2(1.f /
+                              (distanceX * distanceX + distanceY * distanceY +
+                               distanceZ * distanceZ));
 
         // Comparison is inverted, as we are using the reciprocal values
-        if( distance2 < squaredCutoff )
+        if (distance2 < squaredCutoff)
             continue;
 
-        const float value( values[i] );
+        const float value(values[i]);
 
         // If center of the voxel within the event radius, use the
         // voltage at the surface of the compartment (at 'radius' distance)
-        const float radius( radii[i] );
+        const float radius(radii[i]);
         // Comparison is inverted, as we are using the reciprocal values
         // (radius is already inverted from the loader)
-        if( distance2 > radius * radius )
+        if (distance2 > radius * radius)
             voltage1 += value * radius; // mV
         else
             voltage2 += value * distance2; // mV
     }
     return voltage1 + voltage2;
 }
-
 }
 
 #endif

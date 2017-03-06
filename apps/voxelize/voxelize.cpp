@@ -36,9 +36,8 @@
 
 namespace
 {
-
-void _getNameAndExtension( const std::string& filePath,
-                           std::string& outputName, std::string& extension )
+void _getNameAndExtension(const std::string& filePath, std::string& outputName,
+                          std::string& extension)
 {
     outputName = filePath;
     extension = ".mhd";
@@ -46,42 +45,42 @@ void _getNameAndExtension( const std::string& filePath,
     std::string fileName = filePath;
     // Consider only the filename to check whether there is an extension or not
     const std::size_t slashPos = filePath.find_last_of("/");
-    if( slashPos != std::string::npos )
-        fileName = filePath.substr( slashPos + 1 );
+    if (slashPos != std::string::npos)
+        fileName = filePath.substr(slashPos + 1);
 
-    if( fileName.find_last_of(".") != std::string::npos ) // has extension
+    if (fileName.find_last_of(".") != std::string::npos) // has extension
     {
         const std::size_t extensionPos = filePath.find_last_of(".");
-        outputName = filePath.substr( 0, extensionPos );
-        extension = filePath.substr( extensionPos );
+        outputName = filePath.substr(0, extensionPos);
+        extension = filePath.substr(extensionPos);
     }
 }
 
-template< typename T >
-void _sample( ImageSourcePtr source, const vmml::Vector2ui& frameRange,
-              const fivox::URIHandler& params, const std::string& filePath )
+template <typename T>
+void _sample(ImageSourcePtr source, const vmml::Vector2ui& frameRange,
+             const fivox::URIHandler& params, const std::string& filePath)
 {
     VolumePtr input = source->GetOutput();
-    VolumeWriter< T > writer( input, params.getInputRange( ));
+    VolumeWriter<T> writer(input, params.getInputRange());
 
     std::string outputName, extension;
-    _getNameAndExtension( filePath, outputName, extension );
+    _getNameAndExtension(filePath, outputName, extension);
 
-    const size_t numDigits = std::to_string( frameRange.y( )).length();
-    for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
+    const size_t numDigits = std::to_string(frameRange.y()).length();
+    for (uint32_t i = frameRange.x(); i < frameRange.y(); ++i)
     {
-        source->getEventSource()->setFrame( i );
+        source->getEventSource()->setFrame(i);
 
         std::string volumeName = outputName + extension;
-        if( frameRange.y() - frameRange.x() > 1 )
+        if (frameRange.y() - frameRange.x() > 1)
         {
             std::ostringstream os;
-            os << outputName << std::setfill('0') << std::setw(numDigits)
-               << i << extension;
+            os << outputName << std::setfill('0') << std::setw(numDigits) << i
+               << extension;
             volumeName = os.str();
         }
 
-        writer->SetFileName( volumeName );
+        writer->SetFileName(volumeName);
         source->Modified();
         writer->Update(); // Run pipeline to write volume
         LBINFO << "Volume written as " << volumeName << std::endl;
@@ -93,44 +92,47 @@ class Voxelize : public CommandLineApplication
 {
 public:
     Voxelize()
-        : CommandLineApplication( "Generate volumes for offline rendering in "
-                                  "ParaView or other volume rendering "
-                                  "applications" )
-        , _outputFile( "volume" )
-        , _decompose( 0, 1 )
+        : CommandLineApplication(
+              "Generate volumes for offline rendering in "
+              "ParaView or other volume rendering "
+              "applications")
+        , _outputFile("volume")
+        , _decompose(0, 1)
     {
+        // clang-format off
         _options.add_options()
 //! [VoxelizeParameters] @anchor Voxelize
-            ( "datatype,d", po::value< std::string >()->default_value("float"),
-              "Type of the data in the output volume "
-              "[float (default), int, short, char]" )
-            ( "size,s", po::value< size_t >(),
-              "Deprecated; use size in volume URI instead." )
-            ( "output,o", po::value< std::string >(),
-              "Name of the output volume file (mhd and raw); contains frame "
-              "number if --frames or --times" )
-            ( "decompose", po::value< fivox::Vector2ui >(),
-              "'rank size' data-decomposition for parallel job submission" )
-            ( "export-events", po::value< std::string >(),
-              "Name of the output events file (binary format)" );
+            ("datatype,d", po::value<std::string>()->default_value("float"),
+             "Type of the data in the output volume "
+             "[float (default), int, short, char]")
+            ("size,s", po::value<size_t>(),
+             "Deprecated; use size in volume URI instead.")
+            ("output,o", po::value<std::string>(),
+             "Name of the output volume file (mhd and raw); contains frame "
+             "number if --frames or --times")
+            ("decompose", po::value<fivox::Vector2ui>(),
+             "'rank size' data-decomposition for parallel job submission")
+            ("export-events", po::value<std::string>(),
+             "Name of the output events file (binary format)");
 //! [VoxelizeParameters]
+        // clang-format on
     }
 
-    bool parse( int argc, char* argv[] ) final
+    bool parse(int argc, char* argv[]) final
     {
-        if( !CommandLineApplication::parse( argc, argv ))
+        if (!CommandLineApplication::parse(argc, argv))
             return false;
 
-        if( _vm.count( "output" ))
-            _outputFile = _vm["output"].as< std::string >();
+        if (_vm.count("output"))
+            _outputFile = _vm["output"].as<std::string>();
 
-        if( _vm.count( "decompose" ))
+        if (_vm.count("decompose"))
         {
-            _decompose = _vm["decompose"].as< fivox::Vector2ui >();
+            _decompose = _vm["decompose"].as<fivox::Vector2ui>();
 
-            const size_t numDigits = std::to_string( _decompose[1] ).length();
+            const size_t numDigits = std::to_string(_decompose[1]).length();
             std::ostringstream os;
-            os << "_" << std::setfill('0') << std::setw( numDigits )
+            os << "_" << std::setfill('0') << std::setw(numDigits)
                << _decompose[0] << "_" << _decompose[1];
             _outputFile += os.str();
         }
@@ -142,50 +144,50 @@ public:
         ::fivox::URI uri = getURI();
 
         // for compatibility
-        if( _vm.count( "size" ))
-            uri.addQuery( "size", std::to_string( _vm["size"].as< size_t >( )));
+        if (_vm.count("size"))
+            uri.addQuery("size", std::to_string(_vm["size"].as<size_t>()));
 
-        const ::fivox::URIHandler params( uri );
-        auto source = params.newImageSource< fivox::FloatVolume >();
+        const ::fivox::URIHandler params(uri);
+        auto source = params.newImageSource<fivox::FloatVolume>();
 
-        const fivox::Vector3f& extent( source->getSizeInMicrometer( ));
-        const size_t size( std::ceil( source->getSizeInVoxel().find_max( )));
+        const fivox::Vector3f& extent(source->getSizeInMicrometer());
+        const size_t size(std::ceil(source->getSizeInVoxel().find_max()));
 
-        const fivox::VolumeHandler volumeHandler( size, extent );
+        const fivox::VolumeHandler volumeHandler(size, extent);
         VolumePtr output = source->GetOutput();
 
-        output->SetRegions( volumeHandler.computeRegion( _decompose ));
-        output->SetSpacing( volumeHandler.computeSpacing( ));
+        output->SetRegions(volumeHandler.computeRegion(_decompose));
+        output->SetSpacing(volumeHandler.computeSpacing());
         const fivox::AABBf& bbox = source->getBoundingBox();
-        output->SetOrigin( volumeHandler.computeOrigin( bbox.getCenter( )));
+        output->SetOrigin(volumeHandler.computeOrigin(bbox.getCenter()));
 
         ::fivox::EventSourcePtr loader = source->getEventSource();
-        const fivox::Vector2ui frameRange( getFrameRange( loader->getDt( )));
+        const fivox::Vector2ui frameRange(getFrameRange(loader->getDt()));
 
-        if( _vm.count( "export-events" ))
-            loader->write( _vm["export-events"].as< std::string >(),
-                           fivox::EventFileFormat::binary );
+        if (_vm.count("export-events"))
+            loader->write(_vm["export-events"].as<std::string>(),
+                          fivox::EventFileFormat::binary);
 
-        const std::string& datatype( _vm["datatype"].as< std::string >( ));
-        if( datatype == "char" )
+        const std::string& datatype(_vm["datatype"].as<std::string>());
+        if (datatype == "char")
         {
             LBINFO << "Sampling volume as char (uint8_t) data" << std::endl;
-            _sample< uint8_t >( source, frameRange, params, _outputFile );
+            _sample<uint8_t>(source, frameRange, params, _outputFile);
         }
-        else if( datatype == "short" )
+        else if (datatype == "short")
         {
             LBINFO << "Sampling volume as short (uint16_t) data" << std::endl;
-            _sample< uint16_t >( source, frameRange, params, _outputFile );
+            _sample<uint16_t>(source, frameRange, params, _outputFile);
         }
-        else if( datatype == "int" )
+        else if (datatype == "int")
         {
             LBINFO << "Sampling volume as int (uint32_t) data" << std::endl;
-            _sample< uint32_t >( source, frameRange, params, _outputFile );
+            _sample<uint32_t>(source, frameRange, params, _outputFile);
         }
         else
         {
             LBINFO << "Sampling volume as floating point data" << std::endl;
-            _sample< float >( source, frameRange, params, _outputFile );
+            _sample<float>(source, frameRange, params, _outputFile);
         }
     }
 
@@ -194,10 +196,10 @@ private:
     ::fivox::Vector2ui _decompose;
 };
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
     Voxelize app;
-    if( !app.parse( argc, argv ))
+    if (!app.parse(argc, argv))
         return EXIT_SUCCESS;
 
     app.sample();

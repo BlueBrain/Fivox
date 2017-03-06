@@ -22,36 +22,35 @@
 #define FIVOX_IMAGESOURCE_H
 
 #include <fivox/api.h>
-#include <fivox/types.h>
 #include <fivox/progressObserver.h> // member
+#include <fivox/types.h>
 
 #include <itkImageSource.h> // base class
 
 namespace fivox
 {
-
 /** Base class for any image source to sample data from an event source. */
-template< typename TImage >
-class ImageSource : public itk::ImageSource< TImage >
+template <typename TImage>
+class ImageSource : public itk::ImageSource<TImage>
 {
 public:
     /** Standard class typedefs. */
-    typedef ImageSource                              Self;
-    typedef itk::ImageSource< TImage >               Superclass;
-    typedef itk::SmartPointer< Self >                Pointer;
-    typedef itk::SmartPointer< const Self >          ConstPointer;
+    typedef ImageSource Self;
+    typedef itk::ImageSource<TImage> Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self)
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(ImageSource, itk::ImageSource)
+        /** Run-time type information (and related methods). */
+        itkTypeMacro(ImageSource, itk::ImageSource)
 
-    /** Typedef to describe the output image region types. */
-    typedef TImage                          ImageType;
-    typedef typename ImageType::RegionType  ImageRegionType;
+        /** Typedef to describe the output image region types. */
+        typedef TImage ImageType;
+    typedef typename ImageType::RegionType ImageRegionType;
 
-    typedef typename ImageType::Pointer      ImagePointer;
+    typedef typename ImageType::Pointer ImagePointer;
     typedef typename ImageType::ConstPointer ImageConstPointer;
 
     /** Typedef to describe the type of pixel. */
@@ -59,27 +58,26 @@ public:
 
     /** Typedef to describe the output and input image index and size types. */
     typedef typename ImageType::IndexType ImageIndexType;
-    typedef typename ImageType::SizeType  ImageSizeType;
+    typedef typename ImageType::SizeType ImageSizeType;
 
     /** ImageDimension enumeration */
-    itkStaticConstMacro( ImageDimension, unsigned int,
-                         ImageType::ImageDimension );
+    itkStaticConstMacro(ImageDimension, unsigned int,
+                        ImageType::ImageDimension);
 
     /** Set the event source that is used for sampling into the volume. */
-    FIVOX_API void setEventSource( EventSourcePtr source )
+    FIVOX_API void setEventSource(EventSourcePtr source)
     {
         _eventSource = source;
     }
 
     /** @return the event source used for sampling. */
     FIVOX_API EventSourcePtr getEventSource() { return _eventSource; }
-
     /**
      * Setup size and resolution of output volume depending on user input.
      *
      * setEventSource() must be called before.
      */
-    FIVOX_API void setup( const URIHandler& params );
+    FIVOX_API void setup(const URIHandler& params);
 
     /** @return the bounding box of the data in micrometers. */
     FIVOX_API const AABBf& getBoundingBox() const;
@@ -95,10 +93,10 @@ public:
 
 protected:
     ImageSource();
-    ImageSource( const Self& ) = delete;
-    void operator=( const Self& ) = delete;
+    ImageSource(const Self&) = delete;
+    void operator=(const Self&) = delete;
 
-    void PrintSelf( std::ostream & os, itk::Indent indent ) const override;
+    void PrintSelf(std::ostream& os, itk::Indent indent) const override;
 
     EventSourcePtr _eventSource;
     ProgressObserver::Pointer _progressObserver;
@@ -110,7 +108,7 @@ protected:
 };
 } // end namespace fivox
 
-#  ifndef ITK_MANUAL_INSTANTIATION
-#    include "imageSource.hxx"
-#  endif
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "imageSource.hxx"
+#endif
 #endif

@@ -25,43 +25,43 @@
 #include "helpers.h"
 #include "uriHandler.h"
 
-#include <brion/brion.h>
 #include <brain/circuit.h>
 #include <brain/neuron/morphology.h>
 #include <brain/neuron/section.h>
 #include <brain/neuron/soma.h>
+#include <brion/brion.h>
 
 #ifndef NDEBUG
-# define DEBUG_INVERSE_MAPPING
+#define DEBUG_INVERSE_MAPPING
 #endif
 
 namespace fivox
 {
-
 class CompartmentLoader::Impl
 {
 public:
-    Impl( EventSource& output, const URIHandler& params )
-        : _output( output )
-        , _report( params.getConfig().getReportSource( params.getReport( )),
-                   brion::MODE_READ, params.getGIDs( ))
+    Impl(EventSource& output, const URIHandler& params)
+        : _output(output)
+        , _report(params.getConfig().getReportSource(params.getReport()),
+                  brion::MODE_READ, params.getGIDs())
     {
-        const brain::Circuit circuit( params.getConfig( ));
-        const auto morphologies = circuit.loadMorphologies(
-            params.getGIDs(), brain::Circuit::Coordinates::global );
+        const brain::Circuit circuit(params.getConfig());
+        const auto morphologies =
+            circuit.loadMorphologies(params.getGIDs(),
+                                     brain::Circuit::Coordinates::global);
 
-        helpers::addCompartmentEvents( morphologies, _report, output );
+        helpers::addCompartmentEvents(morphologies, _report, output);
     }
 
     ssize_t load()
     {
         const brion::floatsPtr values =
-                _report.loadFrame( _output.getCurrentTime( ));
-        if( !values )
+            _report.loadFrame(_output.getCurrentTime());
+        if (!values)
             return -1;
 
-        for( size_t i = 0; i != values->size(); ++i )
-            _output[i] = ( *values )[i];
+        for (size_t i = 0; i != values->size(); ++i)
+            _output[i] = (*values)[i];
 
         return values->size();
     }
@@ -70,27 +70,26 @@ public:
     brion::CompartmentReport _report;
 };
 
-CompartmentLoader::CompartmentLoader( const URIHandler& params )
-    : EventSource( params )
-    , _impl( new CompartmentLoader::Impl( *this, params ))
+CompartmentLoader::CompartmentLoader(const URIHandler& params)
+    : EventSource(params)
+    , _impl(new CompartmentLoader::Impl(*this, params))
 {
-    if( getDt() < 0.f )
-        setDt( _impl->_report.getTimestep( ));
+    if (getDt() < 0.f)
+        setDt(_impl->_report.getTimestep());
 }
 
 CompartmentLoader::~CompartmentLoader()
-{}
+{
+}
 
 Vector2f CompartmentLoader::_getTimeRange() const
 {
-    return Vector2f( _impl->_report.getStartTime(),
-                     _impl->_report.getEndTime( ));
+    return Vector2f(_impl->_report.getStartTime(), _impl->_report.getEndTime());
 }
 
-ssize_t CompartmentLoader::_load( const size_t /*chunkIndex*/,
-                                  const size_t /*numChunks*/ )
+ssize_t CompartmentLoader::_load(const size_t /*chunkIndex*/,
+                                 const size_t /*numChunks*/)
 {
     return _impl->load();
 }
-
 }

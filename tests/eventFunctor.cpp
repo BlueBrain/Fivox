@@ -32,11 +32,11 @@
 #define BOOST_TEST_MODULE EventFunctor
 
 #include "test.h"
+#include <fivox/eventFunctor.h>
 #include <fivox/eventSource.h>
 #include <fivox/functorImageSource.h>
-#include <fivox/eventFunctor.h>
-#include <itkTimeProbe.h>
 #include <iomanip>
+#include <itkTimeProbe.h>
 
 #ifdef NDEBUG
 static const size_t maxSize = 512;
@@ -46,71 +46,74 @@ static const size_t maxSize = 128;
 
 namespace
 {
-template< class TImage >
-class MeaningFunctor : public fivox::EventFunctor< TImage >
+template <class TImage>
+class MeaningFunctor : public fivox::EventFunctor<TImage>
 {
-    typedef fivox::EventFunctor< TImage > Super;
-public:
-    MeaningFunctor() : Super() {}
-    virtual ~MeaningFunctor() {}
+    typedef fivox::EventFunctor<TImage> Super;
 
-    typename Super::TPixel operator()( const typename Super::TPoint&,
-                                       const typename Super::TSpacing& ) const
+public:
+    MeaningFunctor()
+        : Super()
+    {
+    }
+    virtual ~MeaningFunctor() {}
+    typename Super::TPixel operator()(const typename Super::TPoint&,
+                                      const typename Super::TSpacing&) const
     {
         return 42.f;
     }
 };
 
-template< typename T, size_t dim >
-inline void _testEventFunctor( const size_t size )
+template <typename T, size_t dim>
+inline void _testEventFunctor(const size_t size)
 {
-    typedef itk::Image< T, dim > Image;
-    typedef MeaningFunctor< Image > Functor;
-    typedef fivox::FunctorImageSource< Image > Filter;
+    typedef itk::Image<T, dim> Image;
+    typedef MeaningFunctor<Image> Functor;
+    typedef fivox::FunctorImageSource<Image> Filter;
 
     typename Filter::Pointer filter = Filter::New();
     typename Image::Pointer output = filter->GetOutput();
-    _setSize< Image >( output, size );
+    _setSize<Image>(output, size);
 
-    filter->setFunctor( std::make_shared<Functor>( ));
+    filter->setFunctor(std::make_shared<Functor>());
     filter->Update();
 
     typename Image::IndexType index;
-    index.Fill( size/2 );
+    index.Fill(size / 2);
 
-    const typename Image::PixelType& pixel = output->GetPixel( index );
-    BOOST_CHECK_EQUAL( pixel, T(  42.f ));
+    const typename Image::PixelType& pixel = output->GetPixel(index);
+    BOOST_CHECK_EQUAL(pixel, T(42.f));
 }
 }
 
 BOOST_AUTO_TEST_CASE(EventFunctor)
 {
 #ifdef NDEBUG
-    std::cout.setf( std::ios::right, std::ios::adjustfield );
-    std::cout.precision( 5 );
+    std::cout.setf(std::ios::right, std::ios::adjustfield);
+    std::cout.precision(5);
     std::cout << "Static fill, byte MVox/sec, float MVox/sec" << std::endl;
 #endif
 
-    for( size_t i = 1; i <= maxSize; i = i << 1 )
+    for (size_t i = 1; i <= maxSize; i = i << 1)
     {
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testEventFunctor< unsigned char, 3 >( i );
+            _testEventFunctor<unsigned char, 3>(i);
             clock.Stop();
 #ifdef NDEBUG
-            std::cout << std::setw( 11 ) << i << ',' << std::setw(14)
-                      << i*i*i / 1024.f / 1024.f / clock.GetTotal();
+            std::cout << std::setw(11) << i << ',' << std::setw(14)
+                      << i * i * i / 1024.f / 1024.f / clock.GetTotal();
 #endif
         }
         {
             itk::TimeProbe clock;
             clock.Start();
-            _testEventFunctor< float, 3 >( i );
+            _testEventFunctor<float, 3>(i);
             clock.Stop();
 #ifdef NDEBUG
             std::cout << ',' << std::setw(15)
-                      << i*i*i / 1024.f / 1024.f / clock.GetTotal()
+                      << i * i * i / 1024.f / 1024.f / clock.GetTotal()
                       << std::endl;
 #endif
         }

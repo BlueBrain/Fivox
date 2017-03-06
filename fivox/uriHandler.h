@@ -23,14 +23,13 @@
 #ifndef FIVOX_URIHANDLER_H
 #define FIVOX_URIHANDLER_H
 
-#include <fivox/api.h>
 #include <brion/types.h>
+#include <fivox/api.h>
 #include <fivox/types.h>
 #include <memory>
 
 namespace fivox
 {
-
 /**
  * Process an URI to provide all the parameters specified in it.
  *
@@ -45,7 +44,7 @@ public:
      *
      * @param parameters URI containing the parameters in the specified form
      */
-    FIVOX_API explicit URIHandler( const URI& parameters );
+    FIVOX_API explicit URIHandler(const URI& parameters);
     FIVOX_API virtual ~URIHandler(); //!< Destruct this parameter processor
 
     /**
@@ -196,23 +195,22 @@ public:
     FIVOX_API static std::string getHelp();
 
     /** @return a new image source for the given parameters and pixel type. */
-    FIVOX_API template< class TImage > ImageSourcePtr< TImage > newImageSource()
-        const;
+    FIVOX_API template <class TImage>
+    ImageSourcePtr<TImage> newImageSource() const;
 
     /** @return a new functor for the given parameters and pixel type. */
-    FIVOX_API template< class TImage > EventFunctorPtr< TImage > newFunctor()
-        const;
+    FIVOX_API template <class TImage>
+    EventFunctorPtr<TImage> newFunctor() const;
 
     /** @return a new event source for the given parameters. */
     FIVOX_API EventSourcePtr newEventSource() const;
 
 private:
     class Impl;
-    std::unique_ptr< Impl > _impl;
+    std::unique_ptr<Impl> _impl;
 };
 
-std::ostream& operator << ( std::ostream&, const URIHandler& );
-
+std::ostream& operator<<(std::ostream&, const URIHandler&);
 }
 
 #endif

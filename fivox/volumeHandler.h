@@ -49,7 +49,7 @@ public:
      * @param extent 3D vector containing the width, height and depth of the
      * volume in micrometers
      */
-    FIVOX_API VolumeHandler( const size_t size, const vmml::Vector3f& extent );
+    FIVOX_API VolumeHandler(const size_t size, const vmml::Vector3f& extent);
 
     /**
      * Compute the region of interest of the volume
@@ -59,8 +59,8 @@ public:
      * @return an itk::Image::RegionType containing the starting index and size
      * of the computed region of interest
      */
-    FIVOX_API FloatVolume::RegionType computeRegion( const Vector2ui& decompose)
-        const;
+    FIVOX_API FloatVolume::RegionType computeRegion(
+        const Vector2ui& decompose) const;
 
     /**
      * Compute the spacing of the volume
@@ -77,15 +77,13 @@ public:
      * @return an itk::Image::PointType containing the 3D position of the
      * volume origin
      */
-    FIVOX_API FloatVolume::PointType computeOrigin( const Vector3f& center )
-        const;
+    FIVOX_API FloatVolume::PointType computeOrigin(
+        const Vector3f& center) const;
 
-    FIVOX_API void setSize( const size_t size ) { _size = size; }
+    FIVOX_API void setSize(const size_t size) { _size = size; }
     FIVOX_API float getSize() const { return _size; }
-
-    FIVOX_API void setExtent( const Vector3f& extent ) { _extent = extent; }
+    FIVOX_API void setExtent(const Vector3f& extent) { _extent = extent; }
     FIVOX_API const Vector3f& getExtent() const { return _extent; }
-
 private:
     size_t _size;
     Vector3f _extent;

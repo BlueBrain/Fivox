@@ -26,24 +26,22 @@
 
 namespace fivox
 {
-
-template< typename TImage > class ScaleFilter
+template <typename TImage>
+class ScaleFilter
 {
     typedef fivox::FloatVolume::Pointer VolumePtr;
-    typedef itk::IntensityWindowingImageFilter
-        < fivox::FloatVolume, TImage > IntensityWindowingImageFilter;
+    typedef itk::IntensityWindowingImageFilter<fivox::FloatVolume, TImage>
+        IntensityWindowingImageFilter;
 
-    typedef itk::RescaleIntensityImageFilter< fivox::FloatVolume,
-                                              TImage > RescaleFilter;
+    typedef itk::RescaleIntensityImageFilter<fivox::FloatVolume, TImage>
+        RescaleFilter;
     typedef typename TImage::PixelType T;
 
 public:
     /**
      * Default constructor (used in VolumeWriter< float >)
      */
-    FIVOX_API ScaleFilter()
-    {}
-
+    FIVOX_API ScaleFilter() {}
     /**
      * ScaleFilter constructor that takes as parameters the volume to be scaled
      * and the input data range
@@ -52,32 +50,31 @@ public:
      * @param dataRange Vector2f containing the lower and upper limits for the
      *                  input data range
      */
-    FIVOX_API ScaleFilter( VolumePtr input, const fivox::Vector2f& dataRange )
+    FIVOX_API ScaleFilter(VolumePtr input, const fivox::Vector2f& dataRange)
     {
-        if( dataRange == fivox::FULLDATARANGE )
+        if (dataRange == fivox::FULLDATARANGE)
         {
             LBINFO << "Scale volume into ["
-                   << size_t(std::numeric_limits< T >::min( )) << ", "
-                   << size_t(std::numeric_limits< T >::max( ))
+                   << size_t(std::numeric_limits<T>::min()) << ", "
+                   << size_t(std::numeric_limits<T>::max())
                    << "] from data range" << std::endl;
             _rescale = RescaleFilter::New();
-            _rescale->SetInput( input );
+            _rescale->SetInput(input);
             return;
         }
 
-        LBINFO << "Scale volume into ["
-               << size_t(std::numeric_limits< T >::min( )) << ", "
-               << size_t(std::numeric_limits< T >::max( ))
+        LBINFO << "Scale volume into [" << size_t(std::numeric_limits<T>::min())
+               << ", " << size_t(std::numeric_limits<T>::max())
                << "] from values in [" << dataRange[0] << ", " << dataRange[1]
                << "]" << std::endl;
 
         _scaler = IntensityWindowingImageFilter::New();
-        _scaler->SetInput( input );
+        _scaler->SetInput(input);
 
-        _scaler->SetWindowMinimum( dataRange[0] );
-        _scaler->SetWindowMaximum( dataRange[1] );
-        _scaler->SetOutputMinimum( std::numeric_limits< T >::min( ));
-        _scaler->SetOutputMaximum( std::numeric_limits< T >::max( ));
+        _scaler->SetWindowMinimum(dataRange[0]);
+        _scaler->SetWindowMaximum(dataRange[1]);
+        _scaler->SetOutputMinimum(std::numeric_limits<T>::min());
+        _scaler->SetOutputMaximum(std::numeric_limits<T>::max());
     }
 
     FIVOX_API typename TImage::Pointer GetOutput()
@@ -87,7 +84,7 @@ public:
 
     FIVOX_API void Update()
     {
-        if( _scaler )
+        if (_scaler)
             _scaler->Update();
         else
             _rescale->Update();

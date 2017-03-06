@@ -33,47 +33,49 @@
 
 namespace fivox
 {
-VolumeHandler::VolumeHandler( const size_t size, const vmml::Vector3f& extent )
-    : _size( size )
-    , _extent( extent )
-{}
-
-FloatVolume::RegionType
-VolumeHandler::computeRegion( const Vector2ui& decompose ) const
+VolumeHandler::VolumeHandler(const size_t size, const vmml::Vector3f& extent)
+    : _size(size)
+    , _extent(extent)
 {
-    const size_t begin = float( _size ) / float( decompose[1] ) *
-                         float( decompose[0] );
-    const size_t end = size_t( float( _size ) / float( decompose[1] ) *
-                               float( decompose[0] + 1 )) - 1;
+}
+
+FloatVolume::RegionType VolumeHandler::computeRegion(
+    const Vector2ui& decompose) const
+{
+    const size_t begin =
+        float(_size) / float(decompose[1]) * float(decompose[0]);
+    const size_t end =
+        size_t(float(_size) / float(decompose[1]) * float(decompose[0] + 1)) -
+        1;
 
     const size_t maxExtentIndex = _extent.find_max_index();
 
     FloatVolume::IndexType vIndex;
-    vIndex.Fill( 0 );
-    vIndex[ maxExtentIndex ] = begin;
+    vIndex.Fill(0);
+    vIndex[maxExtentIndex] = begin;
 
     FloatVolume::SizeType vSize;
-    vSize[ maxExtentIndex ] = end - begin + 1;
-    for( size_t i = 0; i < 3; ++i )
+    vSize[maxExtentIndex] = end - begin + 1;
+    for (size_t i = 0; i < 3; ++i)
     {
-        if( i != maxExtentIndex )
+        if (i != maxExtentIndex)
             vSize[i] = _size * _extent[i] / _extent.find_max();
     }
-    return FloatVolume::RegionType( vIndex, vSize );
+    return FloatVolume::RegionType(vIndex, vSize);
 }
 
 FloatVolume::SpacingType VolumeHandler::computeSpacing() const
 {
     FloatVolume::SpacingType spacing;
-    spacing.Fill( _extent.find_max() / float( _size ));
+    spacing.Fill(_extent.find_max() / float(_size));
 
     return spacing;
 }
 
-FloatVolume::PointType
-VolumeHandler::computeOrigin( const Vector3f& center ) const
+FloatVolume::PointType VolumeHandler::computeOrigin(
+    const Vector3f& center) const
 {
-    const Vector3f& position( center - _extent * 0.5f );
+    const Vector3f& position(center - _extent * 0.5f);
 
     typename FloatVolume::PointType origin;
     origin[0] = position[0];
@@ -82,5 +84,4 @@ VolumeHandler::computeOrigin( const Vector3f& center ) const
 
     return origin;
 }
-
 }

@@ -32,9 +32,9 @@
 #define BOOST_TEST_MODULE lfpValidation
 
 #include "test.h"
+#include <fivox/eventFunctor.h>
 #include <fivox/eventSource.h>
 #include <fivox/imageSource.h>
-#include <fivox/eventFunctor.h>
 #include <fivox/uriHandler.h>
 
 #include <itkImageFileWriter.h>
@@ -50,40 +50,42 @@
 const float expectedValue = 2.36366f;
 const float expectedValue2 = 2.81135f;
 
-BOOST_AUTO_TEST_CASE( LfpValidation )
+BOOST_AUTO_TEST_CASE(LfpValidation)
 {
-    const fivox::URIHandler params( fivox::URI(
-                   "fivox://?resolution=1&cutoff=100&functor=lfp&extend=100" ));
-    auto volumeSource = params.newImageSource< fivox::FloatVolume >();
+    const fivox::URIHandler params(
+        fivox::URI("fivox://?resolution=1&cutoff=100&functor=lfp&extend=100"));
+    auto volumeSource = params.newImageSource<fivox::FloatVolume>();
 
     typedef fivox::FloatVolume Image;
     itk::Size<3> size = {{205, 240, 204}};
     Image::RegionType region;
-    region.SetSize( size );
+    region.SetSize(size);
 
     fivox::FloatVolume::Pointer volume = volumeSource->GetOutput();
-    volume->SetRegions( region );
+    volume->SetRegions(region);
 
     // set up size and origin for loaded data
     fivox::EventSourcePtr source = volumeSource->getEventSource();
-    source->setFrame( 90u );
+    source->setFrame(90u);
     const fivox::AABBf& bbox = source->getBoundingBox();
-    const fivox::Vector3f& extent( bbox.getSize() +
-                                   params.getExtendDistance() * 2.f );
+    const fivox::Vector3f& extent(bbox.getSize() +
+                                  params.getExtendDistance() * 2.f);
     const fivox::Vector3f& position = bbox.getCenter() - extent * 0.5;
 
     Image::SpacingType spacing;
-    spacing.Fill( 1.0 / params.getResolution( ));
-    volume->SetSpacing( spacing );
+    spacing.Fill(1.0 / params.getResolution());
+    volume->SetSpacing(spacing);
 
     Image::PointType origin;
     origin[0] = position[0];
     origin[1] = position[1];
     origin[2] = position[2];
-    volume->SetOrigin( origin );
+    volume->SetOrigin(origin);
     volumeSource->Modified();
     volumeSource->Update();
 
-    BOOST_CHECK_CLOSE( volume->GetPixel({{ 150, 150, 150 }}), expectedValue, 0.001f/*%*/ );
-    BOOST_CHECK_CLOSE( volume->GetPixel({{ 50, 80, 80 }}), expectedValue2, 0.001f/*%*/ );
+    BOOST_CHECK_CLOSE(volume->GetPixel({{150, 150, 150}}), expectedValue,
+                      0.001f /*%*/);
+    BOOST_CHECK_CLOSE(volume->GetPixel({{50, 80, 80}}), expectedValue2,
+                      0.001f /*%*/);
 }

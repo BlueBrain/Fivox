@@ -24,47 +24,49 @@
 
 #include <fivox/api.h>
 
+#include <algorithm>
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <algorithm>
 
 namespace fivox
 {
-
 /** Attentuation curve access for depth-based interpolation. @sa VSDLoader */
 class AttenuationCurve
 {
 public:
     /** Construct an empty attenuation curve */
-    FIVOX_API AttenuationCurve() : _thickness( 1.f ) {}
+    FIVOX_API AttenuationCurve()
+        : _thickness(1.f)
+    {
+    }
 
     /**
      * @param dyeCurveFile Dye attenuation file.
      * @param thickness Thickness of the circuit.
      */
-    FIVOX_API AttenuationCurve( const std::string& dyeCurveFile,
-                                const float thickness )
-        : _thickness( thickness )
+    FIVOX_API AttenuationCurve(const std::string& dyeCurveFile,
+                               const float thickness)
+        : _thickness(thickness)
     {
-        if( dyeCurveFile.empty( ))
+        if (dyeCurveFile.empty())
             return;
 
-        std::ifstream ifs( dyeCurveFile );
+        std::ifstream ifs(dyeCurveFile);
 
-        if( !ifs.is_open( ))
+        if (!ifs.is_open())
             return;
 
         std::string line;
-        while( std::getline( ifs, line ))
-            _dyeCurve.push_back( atof( line.c_str( )));
+        while (std::getline(ifs, line))
+            _dyeCurve.push_back(atof(line.c_str()));
 
-        if( _dyeCurve.empty( ))
+        if (_dyeCurve.empty())
             return;
 
-        const float maxAttn = *std::max_element( _dyeCurve.begin(),
-                                                 _dyeCurve.end( ));
-        for( float& dyeAttn : _dyeCurve )
+        const float maxAttn =
+            *std::max_element(_dyeCurve.begin(), _dyeCurve.end());
+        for (float& dyeAttn : _dyeCurve)
             dyeAttn = dyeAttn / maxAttn;
     }
 
@@ -82,35 +84,34 @@ public:
      * @return the interpolated attenuation value according to depth; 1 if there
      * is no attenuation curve or it is empty.
      */
-    FIVOX_API float getAttenuation( const float yCoord,
-                                    const bool interpolate = false ) const
+    FIVOX_API float getAttenuation(const float yCoord,
+                                   const bool interpolate = false) const
     {
-        if( _dyeCurve.empty() || _thickness <= 0.f )
+        if (_dyeCurve.empty() || _thickness <= 0.f)
             return 1.0f;
 
-        if( yCoord >= _thickness )
+        if (yCoord >= _thickness)
             return _dyeCurve[0];
 
         const float depth = _thickness - yCoord;
-        if( _dyeCurve.size() == 1 || depth >= _thickness )
-            return _dyeCurve[ _dyeCurve.size() - 1 ];
+        if (_dyeCurve.size() == 1 || depth >= _thickness)
+            return _dyeCurve[_dyeCurve.size() - 1];
 
-        const float depthDelta = _thickness / ( _dyeCurve.size() - 1 );
+        const float depthDelta = _thickness / (_dyeCurve.size() - 1);
         const size_t index = depth / depthDelta;
 
-        const float attenuation = _dyeCurve[ index + 1 ];
-        if( !interpolate )
+        const float attenuation = _dyeCurve[index + 1];
+        if (!interpolate)
             return attenuation;
 
         // parameter used for performing linear interpolation
         const float t = (depth - depthDelta * index) / depthDelta;
-        return t * attenuation + ( 1.f - t ) * _dyeCurve[ index ];
+        return t * attenuation + (1.f - t) * _dyeCurve[index];
     }
 
 private:
     std::vector<float> _dyeCurve;
     float _thickness;
 };
-
 }
 #endif

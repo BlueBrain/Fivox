@@ -38,20 +38,20 @@ public:
     * @param params the URIHandler object containing the parameters
     * to define the event source
     */
-    FIVOX_API explicit GenericLoader( const URIHandler& params );
+    FIVOX_API explicit GenericLoader(const URIHandler& params);
     FIVOX_API virtual ~GenericLoader();
 
 private:
     /** @name Abstract interface implementation */
     //@{
     Vector2f _getTimeRange() const final;
-    ssize_t _load( size_t chunkIndex, size_t numChunks ) final;
+    ssize_t _load(size_t chunkIndex, size_t numChunks) final;
     SourceType _getType() const final { return SourceType::frame; }
     size_t _getNumChunks() const final { return 1; }
     //@}
 
     class Impl;
-    std::unique_ptr< Impl > _impl;
+    std::unique_ptr<Impl> _impl;
 };
 }
 

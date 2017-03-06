@@ -47,7 +47,7 @@ public:
      *
      * @param numEvents the number of events that the EventSource will hold
      */
-    FIVOX_API void resize( size_t numEvents );
+    FIVOX_API void resize(size_t numEvents);
 
     /**
      * Get a reference to the value of an event contained in the EventSource
@@ -57,7 +57,7 @@ public:
      * @return value of the event stored in the EventSource with the
      * specified index.
      */
-    FIVOX_API float& operator[]( size_t index );
+    FIVOX_API float& operator[](size_t index);
 
     /** @return the number of events */
     FIVOX_API size_t getNumEvents() const;
@@ -88,14 +88,14 @@ public:
      * @return The values of the events contained in the area. Empty if no RTree
      * available (depends on boost::geometry)
      */
-    FIVOX_API EventValues findEvents( const AABBf& area ) const;
+    FIVOX_API EventValues findEvents(const AABBf& area) const;
 
     /**
      * Set bounding box of upcoming events. This overwrites any existing
      * bounding box. It can be used to set a bounding box before
      * loading/updating any events.
      */
-    FIVOX_API void setBoundingBox( const AABBf& boundingBox );
+    FIVOX_API void setBoundingBox(const AABBf& boundingBox);
 
     /** @return the bounding box of all events. */
     FIVOX_API const AABBf& getBoundingBox() const;
@@ -116,7 +116,8 @@ public:
      * @param rad the event radius
      * @param val the event value, set to 0 if not specified
      */
-    FIVOX_API void update( size_t i, const Vector3f& pos, float rad, float val = 0.f );
+    FIVOX_API void update(size_t i, const Vector3f& pos, float rad,
+                          float val = 0.f);
 
     /**
      * @internal Called before data is read. Not thread safe.
@@ -134,14 +135,14 @@ public:
      *              0) depends on the actual data source.
      * @return true if the frame is within the range of the data source.
      */
-    FIVOX_API bool setFrame( uint32_t frame );
+    FIVOX_API bool setFrame(uint32_t frame);
 
     /**
      * Given a timestamp, update the event source with new events to be sampled.
      *
      * @param time The time stamp (ms) to be loaded.
      */
-    FIVOX_API void setTime( float time );
+    FIVOX_API void setTime(float time);
 
     /**
      * Gets the valid frame range according to data. The valid frames are in the
@@ -155,7 +156,7 @@ public:
      * @return Checks the frame range, if the frame is satisfying [a, b)
      * range, returns true
      */
-    FIVOX_API bool isInFrameRange( uint32_t frame );
+    FIVOX_API bool isInFrameRange(uint32_t frame);
 
     /**
      * @return the dt used for frame-to-time conversion in the data source,
@@ -181,7 +182,7 @@ public:
      * @throw std::runtime_error if numChunks is 0.
      * @throw std::out_of_range if chunkIndex and/or numChunks are out of range.
      */
-    FIVOX_API ssize_t load( size_t chunkIndex, size_t numChunks );
+    FIVOX_API ssize_t load(size_t chunkIndex, size_t numChunks);
 
     /**
      * Load and update all events of the current frame.
@@ -209,7 +210,7 @@ public:
      * file is 0, or not specified.
      * @throw std::runtime_error if any of the events being read is ill-formed.
      */
-    FIVOX_API bool read( const std::string& filename );
+    FIVOX_API bool read(const std::string& filename);
 
     /**
      * Write events to the specified file. It is possible to specify the format
@@ -220,15 +221,15 @@ public:
      * (EventFileFormat::ascii and EventFileFormat::binary are supported).
      * @return true if the file was succesfully written, false otherwise.
      */
-    FIVOX_API bool write( const std::string& filename,
-                          EventFileFormat format ) const;
+    FIVOX_API bool write(const std::string& filename,
+                         EventFileFormat format) const;
 
 protected:
-    explicit EventSource( const URIHandler& params );
+    explicit EventSource(const URIHandler& params);
 
     EventSource() = delete;
-    EventSource( const EventSource& ) = delete;
-    EventSource& operator=( const EventSource& ) = delete;
+    EventSource(const EventSource&) = delete;
+    EventSource& operator=(const EventSource&) = delete;
 
     /** @name Abstract interface */
     //@{
@@ -236,7 +237,7 @@ protected:
     virtual Vector2f _getTimeRange() const = 0;
 
     /** @sa EventSource::load( size_t, size_t ) */
-    virtual ssize_t _load( size_t chunkIndex, size_t numChunks ) = 0;
+    virtual ssize_t _load(size_t chunkIndex, size_t numChunks) = 0;
 
     /** @return the type of this event source, needed for getFrameRange() */
     virtual SourceType _getType() const = 0;
@@ -251,11 +252,11 @@ protected:
      *
      * This should be called by derived classes in their constructor.
      */
-    void setDt( float dt );
+    void setDt(float dt);
 
 private:
     class Impl;
-    std::unique_ptr< Impl > _impl;
+    std::unique_ptr<Impl> _impl;
 };
 
 } // end namespace fivox

@@ -27,9 +27,9 @@
 
 namespace fivox
 {
-
 /** Samples spatial events into the given voxel. */
-template< class TImage > class EventFunctor
+template <class TImage>
+class EventFunctor
 {
 public:
     typedef typename TImage::PixelType TPixel;
@@ -38,19 +38,15 @@ public:
 
     FIVOX_API EventFunctor() {}
     FIVOX_API virtual ~EventFunctor() {}
-
-    FIVOX_API void setEventSource( EventSourcePtr source ) { _source = source; }
-
+    FIVOX_API void setEventSource(EventSourcePtr source) { _source = source; }
     /** Called before threads are starting to voxelize */
     FIVOX_API virtual void beforeGenerate() {}
-
-    FIVOX_API virtual TPixel operator()( const TPoint& point,
-                                         const TSpacing& spacing ) const = 0;
+    FIVOX_API virtual TPixel operator()(const TPoint& point,
+                                        const TSpacing& spacing) const = 0;
 
 protected:
     EventSourcePtr _source;
 };
-
 }
 
 #endif

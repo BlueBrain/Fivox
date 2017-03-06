@@ -25,14 +25,13 @@
 
 namespace fivox
 {
-
 /**
 * Generate volume data sampling BBP simulation reports.
 */
 class DataSource : public livre::DataSourcePlugin
 {
 public:
-    explicit DataSource( const livre::DataSourcePluginData& data );
+    explicit DataSource(const livre::DataSourcePluginData& data);
     virtual ~DataSource();
 
     /**
@@ -40,14 +39,14 @@ public:
      * @return the data related to the node. If there is no data an
      * empty MemoryPtr is returned.
      */
-    livre::MemoryUnitPtr getData( const livre::LODNode& node ) override;
+    livre::MemoryUnitPtr getData(const livre::LODNode& node) override;
 
     /**
      * Check whether the plugin supports the given URI and read mode.
      * @param data includes the URI and read mode.
      * @return true if the URI and read mode are handled.
      */
-    static bool handles( const livre::DataSourcePluginData& data );
+    static bool handles(const livre::DataSourcePluginData& data);
     static std::string getDescription();
 
     /**
@@ -60,10 +59,10 @@ public:
 
 private:
     class Impl;
-    std::unique_ptr< Impl > _impl;
-    livre::LODNode internalNodeToLODNode( const livre::NodeId& internalNode ) const final;
+    std::unique_ptr<Impl> _impl;
+    livre::LODNode internalNodeToLODNode(
+        const livre::NodeId& internalNode) const final;
 };
-
 }
 
 #endif
