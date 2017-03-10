@@ -33,15 +33,15 @@
 
 namespace
 {
-template< typename TImage >
-inline void _setSize( typename TImage::Pointer image, const size_t size )
+template <typename TImage>
+inline void _setSize(typename TImage::Pointer image, const size_t size)
 {
     typename TImage::SizeType vSize;
-    vSize.Fill( size );
+    vSize.Fill(size);
 
     typename TImage::RegionType region;
-    region.SetSize( vSize );
+    region.SetSize(vSize);
 
-    image->SetRegions( region );
+    image->SetRegions(region);
 }
 }

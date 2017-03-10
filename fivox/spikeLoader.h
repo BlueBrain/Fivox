@@ -37,20 +37,20 @@ public:
     * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    FIVOX_API explicit SpikeLoader( const URIHandler& params );
+    FIVOX_API explicit SpikeLoader(const URIHandler& params);
     FIVOX_API virtual ~SpikeLoader();
 
 private:
     /** @name Abstract interface implementation */
     //@{
     Vector2f _getTimeRange() const final;
-    ssize_t _load( size_t chunkIndex, size_t numChunks ) final;
+    ssize_t _load(size_t chunkIndex, size_t numChunks) final;
     SourceType _getType() const final { return SourceType::event; }
     size_t _getNumChunks() const final { return 1; }
     //@}
 
     class Impl;
-    std::unique_ptr< Impl > _impl;
+    std::unique_ptr<Impl> _impl;
 };
 }
 

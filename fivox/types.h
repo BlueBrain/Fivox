@@ -22,17 +22,19 @@
 #define FIVOX_TYPES_H
 
 #include <brion/types.h>
+#include <memory>
+#include <vector>
 #include <vmmlib/aabb.hpp>
 #include <vmmlib/types.hpp>
 #include <vmmlib/vector.hpp>
-#include <memory>
-#include <vector>
 
 // ITK forward decls
 namespace itk
 {
-template< typename, unsigned > class Image;
-template< typename > class SmartPointer;
+template <typename, unsigned>
+class Image;
+template <typename>
+class SmartPointer;
 }
 
 /**
@@ -46,20 +48,22 @@ namespace fivox
 {
 class EventSource;
 class URIHandler;
-template< class TImage > class EventFunctor;
-template< typename TImage > class ImageSource;
+template <class TImage>
+class EventFunctor;
+template <typename TImage>
+class ImageSource;
 
-typedef std::shared_ptr< EventSource > EventSourcePtr;
-typedef std::shared_ptr< const EventSource > ConstEventSourcePtr;
+typedef std::shared_ptr<EventSource> EventSourcePtr;
+typedef std::shared_ptr<const EventSource> ConstEventSourcePtr;
 
-typedef itk::Image< uint8_t, 3 > ByteVolume;
-typedef itk::Image< float, 3 > FloatVolume;
+typedef itk::Image<uint8_t, 3> ByteVolume;
+typedef itk::Image<float, 3> FloatVolume;
 
 struct EventsDeleter
 {
-    void operator()( float* events ){ free( events ); }
+    void operator()(float* events) { free(events); }
 };
-typedef std::unique_ptr< float, EventsDeleter > Events;
+typedef std::unique_ptr<float, EventsDeleter> Events;
 typedef brion::floats EventValues;
 
 using vmml::Vector2f;
@@ -70,11 +74,11 @@ using vmml::AABBf;
 
 using servus::URI;
 
-template< typename TImage >
-using ImageSourcePtr = itk::SmartPointer< ImageSource< TImage >>;
+template <typename TImage>
+using ImageSourcePtr = itk::SmartPointer<ImageSource<TImage>>;
 
-template< typename TImage >
-using EventFunctorPtr = std::shared_ptr< EventFunctor< TImage >>;
+template <typename TImage>
+using EventFunctorPtr = std::shared_ptr<EventFunctor<TImage>>;
 
 /** Supported data sources */
 enum class VolumeType
@@ -116,9 +120,8 @@ enum class EventFileFormat
 };
 
 /** Indicates to consider all data for potential rescaling. */
-const Vector2f FULLDATARANGE( -std::numeric_limits< float >::infinity(),
-                               std::numeric_limits< float >::infinity( ));
-
+const Vector2f FULLDATARANGE(-std::numeric_limits<float>::infinity(),
+                             std::numeric_limits<float>::infinity());
 }
 
 #endif

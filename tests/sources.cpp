@@ -37,17 +37,17 @@
 #include "test.h"
 #include <fivox/compartmentLoader.h>
 #include <fivox/eventFunctor.h>
+#include <fivox/genericLoader.h>
 #include <fivox/helpers.h>
 #include <fivox/imageSource.h>
-#include <fivox/genericLoader.h>
 #ifdef FIVOX_USE_LFP
-#  include <fivox/lfp/lfpFunctor.h>
+#include <fivox/lfp/lfpFunctor.h>
 #endif
+#include <brion/spikeReport.h>
 #include <fivox/somaLoader.h>
 #include <fivox/spikeLoader.h>
 #include <fivox/synapseLoader.h>
 #include <fivox/uriHandler.h>
-#include <brion/spikeReport.h>
 
 #include <BBP/TestDatasets.h>
 
@@ -55,8 +55,8 @@
 #include <itkStatisticsImageFilter.h>
 #include <itkTimeProbe.h>
 
-#include <lunchbox/sleep.h>
 #include <lunchbox/pluginRegisterer.h>
+#include <lunchbox/sleep.h>
 
 #include <iomanip>
 
@@ -65,76 +65,71 @@
 
 namespace
 {
-
-const std::string _monsteerPluginScheme( "monsteer" );
+const std::string _monsteerPluginScheme("monsteer");
 const size_t _minResolution = 8;
 
-void testGenericEvents( fivox::EventSourcePtr eventsource )
+void testGenericEvents(fivox::EventSourcePtr eventsource)
 {
     boost::filesystem::path tempFile = boost::filesystem::unique_path();
-    std::string asciiFile = boost::filesystem::temp_directory_path().string()
-                            + "/" + tempFile.string() + ".ascii";
-    std::string binaryFile = boost::filesystem::temp_directory_path().string()
-                             + "/" + tempFile.string() + ".binary";
+    std::string asciiFile = boost::filesystem::temp_directory_path().string() +
+                            "/" + tempFile.string() + ".ascii";
+    std::string binaryFile = boost::filesystem::temp_directory_path().string() +
+                             "/" + tempFile.string() + ".binary";
 
-    BOOST_CHECK( eventsource->write( asciiFile,
-                                     fivox::EventFileFormat::ascii ));
-    BOOST_CHECK( eventsource->write( binaryFile,
-                                     fivox::EventFileFormat::binary ));
+    BOOST_CHECK(eventsource->write(asciiFile, fivox::EventFileFormat::ascii));
+    BOOST_CHECK(eventsource->write(binaryFile, fivox::EventFileFormat::binary));
 
-    fivox::URIHandler asciiSourceURI( servus::URI( "fivox://" + asciiFile ));
-    fivox::GenericLoader asciiSource( asciiSourceURI );
+    fivox::URIHandler asciiSourceURI(servus::URI("fivox://" + asciiFile));
+    fivox::GenericLoader asciiSource(asciiSourceURI);
 
-    fivox::URIHandler binarySourceURI( servus::URI( "fivox://" + binaryFile ));
-    fivox::GenericLoader binarySource( binarySourceURI );
+    fivox::URIHandler binarySourceURI(servus::URI("fivox://" + binaryFile));
+    fivox::GenericLoader binarySource(binarySourceURI);
 
-    BOOST_CHECK_EQUAL( eventsource->getNumEvents( ),
-                       asciiSource.getNumEvents( ));
-    BOOST_CHECK_EQUAL( eventsource->getNumEvents( ),
-                       binarySource.getNumEvents( ));
+    BOOST_CHECK_EQUAL(eventsource->getNumEvents(), asciiSource.getNumEvents());
+    BOOST_CHECK_EQUAL(eventsource->getNumEvents(), binarySource.getNumEvents());
 
-    for( uint32_t i = 0; i < asciiSource.getNumEvents( ); ++i )
+    for (uint32_t i = 0; i < asciiSource.getNumEvents(); ++i)
     {
-        BOOST_CHECK_CLOSE( asciiSource.getValues()[i],
-                           eventsource->getValues()[i], 0.001f );
+        BOOST_CHECK_CLOSE(asciiSource.getValues()[i],
+                          eventsource->getValues()[i], 0.001f);
     }
 
-    for( uint32_t i = 0; i < binarySource.getNumEvents( ); ++i )
+    for (uint32_t i = 0; i < binarySource.getNumEvents(); ++i)
     {
-        BOOST_CHECK_CLOSE( binarySource.getValues()[i],
-                           eventsource->getValues()[i], 0.001f );
+        BOOST_CHECK_CLOSE(binarySource.getValues()[i],
+                          eventsource->getValues()[i], 0.001f);
     }
 
-    boost::filesystem::remove( asciiFile );
-    boost::filesystem::remove( binaryFile );
+    boost::filesystem::remove(asciiFile);
+    boost::filesystem::remove(binaryFile);
 }
 
-template< typename Image >
-inline float _testKernel(
-        fivox::ImageSourcePtr< Image > filter, const size_t size,
-        const float expectedValue, const vmml::Vector2ui& range )
+template <typename Image>
+inline float _testKernel(fivox::ImageSourcePtr<Image> filter, const size_t size,
+                         const float expectedValue,
+                         const vmml::Vector2ui& range)
 {
     typename Image::Pointer output = filter->GetOutput();
-    _setSize< Image >( output, size );
+    _setSize<Image>(output, size);
 
     // set up size and origin for loaded data
     fivox::EventSourcePtr source = filter->getEventSource();
-    source->setTime( 0.f );
+    source->setTime(0.f);
     const fivox::AABBf& bbox = source->getBoundingBox();
     const fivox::Vector3f& position = bbox.getMin();
     const float extent = bbox.getSize().find_max();
-    BOOST_CHECK_GT( extent, 0.f );
-    BOOST_CHECK_EQUAL( source->getFrameRange(), range );
+    BOOST_CHECK_GT(extent, 0.f);
+    BOOST_CHECK_EQUAL(source->getFrameRange(), range);
 
     typename Image::SpacingType spacing;
-    spacing.Fill( extent / float( size ));
-    output->SetSpacing( spacing );
+    spacing.Fill(extent / float(size));
+    output->SetSpacing(spacing);
 
     typename Image::PointType origin;
     origin[0] = position[0];
     origin[1] = position[1];
     origin[2] = position[2];
-    output->SetOrigin( origin );
+    output->SetOrigin(origin);
     filter->Modified();
 
     itk::TimeProbe clock;
@@ -144,26 +139,26 @@ inline float _testKernel(
 #else
     std::ostringstream os;
     fivox::EventSource& sourceRef = *source;
-    os << size << '_' << typeid( sourceRef ).name() << '_'
-       << typeid( Image ).name() << ".mhd";
+    os << size << '_' << typeid(sourceRef).name() << '_' << typeid(Image).name()
+       << ".mhd";
 
-    typedef itk::ImageFileWriter< Image > Writer;
+    typedef itk::ImageFileWriter<Image> Writer;
     typename Writer::Pointer writer = Writer::New();
-    writer->SetInput( filter->GetOutput( ));
-    writer->SetFileName( os.str( ));
+    writer->SetInput(filter->GetOutput());
+    writer->SetFileName(os.str());
     writer->Update();
 #endif
     clock.Stop();
 
-    if( size == _minResolution )
+    if (size == _minResolution)
     {
-        typedef itk::StatisticsImageFilter< Image > StatisticsFilterType;
+        typedef itk::StatisticsImageFilter<Image> StatisticsFilterType;
         typename StatisticsFilterType::Pointer stat =
             StatisticsFilterType::New();
-        stat->SetInput( output );
+        stat->SetInput(output);
         stat->Update();
 
-        BOOST_CHECK_CLOSE( stat->GetMean(), expectedValue, 1/*%*/ );
+        BOOST_CHECK_CLOSE(stat->GetMean(), expectedValue, 1 /*%*/);
     }
 
     return clock.GetTotal();
@@ -172,187 +167,189 @@ inline float _testKernel(
 struct SourcesFixture
 {
     SourcesFixture()
-        : argv( boost::unit_test::framework::master_test_suite().argv)
-        , unitTest( std::string( argv[0] ).find( "perf-" ) ==
-                    std::string::npos )
-        , maxSize( unitTest ? _minResolution : 1024 )
-        , maxThreads( unitTest ? 0 : 16 )
+        : argv(boost::unit_test::framework::master_test_suite().argv)
+        , unitTest(std::string(argv[0]).find("perf-") == std::string::npos)
+        , maxSize(unitTest ? _minResolution : 1024)
+        , maxThreads(unitTest ? 0 : 16)
     {
-        std::cout.setf( std::ios::right, std::ios::adjustfield );
-        std::cout.precision( 5 );
+        std::cout.setf(std::ios::right, std::ios::adjustfield);
+        std::cout.precision(5);
         std::cout << "    Test, byte MVox/sec, float MVox/sec" << std::endl;
     }
 
-    char**const argv;
+    char** const argv;
     const bool unitTest;
     const size_t maxSize;
     const size_t maxThreads;
 
-    void testSource( const fivox::URI& uri,
-                     const float byteRef, const float floatRef,
-                     const vmml::Vector2ui& rangeRef )
+    void testSource(const fivox::URI& uri, const float byteRef,
+                    const float floatRef, const vmml::Vector2ui& rangeRef)
     {
-        const fivox::URIHandler params( uri );
-        auto filter1 = params.newImageSource< fivox::ByteVolume >();
-        auto filter2 = params.newImageSource< fivox::FloatVolume >();
+        const fivox::URIHandler params(uri);
+        auto filter1 = params.newImageSource<fivox::ByteVolume>();
+        auto filter2 = params.newImageSource<fivox::FloatVolume>();
 
         std::cout << "   Size, " << uri << "," << std::endl;
-        for( size_t j = _minResolution; j <= maxSize; j = j << 1 )
+        for (size_t j = _minResolution; j <= maxSize; j = j << 1)
         {
             const float t1 =
-                _testKernel< fivox::ByteVolume >( filter1, j, byteRef, rangeRef );
+                _testKernel<fivox::ByteVolume>(filter1, j, byteRef, rangeRef);
             const float t2 =
-                _testKernel< fivox::FloatVolume >( filter2, j, floatRef, rangeRef );
-            std::cout << std::setw( 8 ) << j << ',' << std::setw(14)
-                      << j*j*j / 1024.f / 1024.f / t1 << ',' << std::setw(15)
-                      << j*j*j / 1024.f / 1024.f / t2 << std::endl;
+                _testKernel<fivox::FloatVolume>(filter2, j, floatRef, rangeRef);
+            std::cout << std::setw(8) << j << ',' << std::setw(14)
+                      << j * j * j / 1024.f / 1024.f / t1 << ','
+                      << std::setw(15) << j * j * j / 1024.f / 1024.f / t2
+                      << std::endl;
         }
 
-        if( maxThreads )
+        if (maxThreads)
             std::cout << "Threads, " << uri << "," << std::endl;
         const size_t size = maxSize >> 2;
-        for( size_t j = 1; j <= maxThreads; j = j << 1 )
+        for (size_t j = 1; j <= maxThreads; j = j << 1)
         {
-            filter1->SetNumberOfThreads( maxThreads * j );
-            filter2->SetNumberOfThreads( maxThreads * j );
+            filter1->SetNumberOfThreads(maxThreads * j);
+            filter2->SetNumberOfThreads(maxThreads * j);
 
-            float t1 =
-                _testKernel< fivox::ByteVolume >( filter1, size, byteRef, rangeRef );
-            float t2 =
-                _testKernel< fivox::FloatVolume >( filter2, size, floatRef, rangeRef );
+            float t1 = _testKernel<fivox::ByteVolume>(filter1, size, byteRef,
+                                                      rangeRef);
+            float t2 = _testKernel<fivox::FloatVolume>(filter2, size, floatRef,
+                                                       rangeRef);
             std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
-                      << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
-                      << ',' << std::setw(15)
-                      << size*size*size / 1024.f / 1024.f / t2 << std::endl;
+                      << std::setw(14)
+                      << size * size * size / 1024.f / 1024.f / t1 << ','
+                      << std::setw(15)
+                      << size * size * size / 1024.f / 1024.f / t2 << std::endl;
 
-            filter1->SetNumberOfThreads( maxThreads / j );
-            filter2->SetNumberOfThreads( maxThreads / j );
-            t1 = _testKernel< fivox::ByteVolume >( filter1, size, byteRef, rangeRef );
-            t2 = _testKernel< fivox::FloatVolume >( filter2, size, floatRef, rangeRef );
+            filter1->SetNumberOfThreads(maxThreads / j);
+            filter2->SetNumberOfThreads(maxThreads / j);
+            t1 = _testKernel<fivox::ByteVolume>(filter1, size, byteRef,
+                                                rangeRef);
+            t2 = _testKernel<fivox::FloatVolume>(filter2, size, floatRef,
+                                                 rangeRef);
             std::cout << std::setw(7) << filter1->GetNumberOfThreads() << ','
-                      << std::setw(14) << size*size*size / 1024.f / 1024.f / t1
-                      << ',' << std::setw(15)
-                      << size*size*size / 1024.f / 1024.f / t2 << std::endl;
+                      << std::setw(14)
+                      << size * size * size / 1024.f / 1024.f / t1 << ','
+                      << std::setw(15)
+                      << size * size * size / 1024.f / 1024.f / t2 << std::endl;
         }
-        testGenericEvents( filter1->getEventSource( ));
+        testGenericEvents(filter1->getEventSource());
     }
 };
 }
 
-BOOST_FIXTURE_TEST_SUITE( sources, SourcesFixture )
+BOOST_FIXTURE_TEST_SUITE(sources, SourcesFixture)
 
-BOOST_AUTO_TEST_CASE( fivoxVoltages_source )
+BOOST_AUTO_TEST_CASE(fivoxVoltages_source)
 {
     // Compartment report 'voltages' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivoxcompartments://" ), 5.455078125f,
-                -0.062685228640475543, vmml::Vector2ui( 0, 100 ));
+    testSource(fivox::URI("fivoxcompartments://"), 5.455078125f,
+               -0.062685228640475543, vmml::Vector2ui(0, 100));
 }
 
-BOOST_AUTO_TEST_CASE( fivoxSomas_source )
+BOOST_AUTO_TEST_CASE(fivoxSomas_source)
 {
     // Soma report 'somas' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivoxsomas://" ), 0.f,
-                -0.0016181814135052264, vmml::Vector2ui( 0, 100 ));
+    testSource(fivox::URI("fivoxsomas://"), 0.f, -0.0016181814135052264,
+               vmml::Vector2ui(0, 100));
 }
 
 #ifdef FIVOX_USE_LFP
-BOOST_AUTO_TEST_CASE( fivoxLFP_source )
+BOOST_AUTO_TEST_CASE(fivoxLFP_source)
 {
     // Compartment currents report 'currents' (binary) contains timestamps
     // between 0 and 100 with a Dt=0.1 => data range is 0.0 to 10.0 ms
-    testSource( fivox::URI( "fivoxcompartments://?functor=lfp" ), 0.f,
-                3.3634767649011466e-09f, vmml::Vector2ui( 0, 100 ));
+    testSource(fivox::URI("fivoxcompartments://?functor=lfp"), 0.f,
+               3.3634767649011466e-09f, vmml::Vector2ui(0, 100));
 }
 #endif
 
-BOOST_AUTO_TEST_CASE( fivoxSpikes_source )
+BOOST_AUTO_TEST_CASE(fivoxSpikes_source)
 {
     // Spikes report timestamps range between 0.725 and 9.975 ms
-    testSource( fivox::URI( "fivoxspikes://?duration=1&dt=1&target=Column" ),
-                0.005859375f, 0.005859375f, vmml::Vector2ui( 0, 9 ));
+    testSource(fivox::URI("fivoxspikes://?duration=1&dt=1&target=Column"),
+               0.005859375f, 0.005859375f, vmml::Vector2ui(0, 9));
 }
 
-BOOST_AUTO_TEST_CASE( fivoxSynapses_source )
+BOOST_AUTO_TEST_CASE(fivoxSynapses_source)
 {
     // Synapse reports don't have time support and return a 1-frame interval
-    testSource( fivox::URI( "fivoxsynapses://?target=Column" ), 7.42578125f,
-                437.92578125f, vmml::Vector2ui( 0, 1 ));
+    testSource(fivox::URI("fivoxsynapses://?target=Column"), 7.42578125f,
+               437.92578125f, vmml::Vector2ui(0, 1));
 }
 
-BOOST_AUTO_TEST_CASE( fivoxVSD_source )
+BOOST_AUTO_TEST_CASE(fivoxVSD_source)
 {
-    testSource( fivox::URI( "fivoxvsd://?target=allmini50" ),
-                12.703125, -85293.598821282387f, vmml::Vector2ui( 0, 100 ));
+    testSource(fivox::URI("fivoxvsd://?target=allmini50"), 12.703125,
+               -85293.598821282387f, vmml::Vector2ui(0, 100));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 #if FIVOX_USE_MONSTEER
 
-BOOST_AUTO_TEST_CASE( fivoxSpikes_stream_source_frame_range )
+BOOST_AUTO_TEST_CASE(fivoxSpikes_stream_source_frame_range)
 {
-    brion::SpikeReport spikeWriter(
-        servus::URI( _monsteerPluginScheme + "://127.0.0.1" ),
-        brion::MODE_WRITE );
+    brion::SpikeReport spikeWriter(servus::URI(_monsteerPluginScheme +
+                                               "://127.0.0.1"),
+                                   brion::MODE_WRITE);
     servus::URI uri = spikeWriter.getURI();
-    uri.setScheme( _monsteerPluginScheme );
+    uri.setScheme(_monsteerPluginScheme);
 
-    fivox::URIHandler params(
-        fivox::URI( "fivoxspikes://?dt=0.1&duration=1&spikes=" +
-                    std::to_string( uri )));
-    auto filter = params.newImageSource< fivox::FloatVolume >();
+    fivox::URIHandler params(fivox::URI(
+        "fivoxspikes://?dt=0.1&duration=1&spikes=" + std::to_string(uri)));
+    auto filter = params.newImageSource<fivox::FloatVolume>();
     fivox::EventSourcePtr source = filter->getEventSource();
 
-    lunchbox::sleep( STARTUP_DELAY );
+    lunchbox::sleep(STARTUP_DELAY);
 
     brion::Spikes spikes;
-    for( uint32_t i = 0; i <= 50; ++i )
-        spikes.push_back( std::make_pair( i / 100.0f, i ));
-    spikeWriter.write( spikes );
+    for (uint32_t i = 0; i <= 50; ++i)
+        spikes.push_back(std::make_pair(i / 100.0f, i));
+    spikeWriter.write(spikes);
 
     // Time range: [0, 0.5](ms)
     // Since duration=1(ms), no full frames are available: [0,0)
-    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 0 ));
+    BOOST_CHECK_EQUAL(source->getFrameRange(), fivox::Vector2ui(0, 0));
 
     spikes.clear();
-    for( uint32_t i = 51; i <= 100; ++i )
-        spikes.push_back( std::make_pair( i / 100.0f, i ));
-    spikeWriter.write( spikes );
+    for (uint32_t i = 51; i <= 100; ++i)
+        spikes.push_back(std::make_pair(i / 100.0f, i));
+    spikeWriter.write(spikes);
 
-    lunchbox::sleep( WRITE_DELAY );
+    lunchbox::sleep(WRITE_DELAY);
     // The time window [0.0, 1.0) becomes available
-    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 1 ));
+    BOOST_CHECK_EQUAL(source->getFrameRange(), fivox::Vector2ui(0, 1));
 
     spikes.clear();
-    for( uint32_t i = 101; i <= 120; ++i )
-        spikes.push_back( std::make_pair( i / 100.0f, i ));
-    spikeWriter.write( spikes );
+    for (uint32_t i = 101; i <= 120; ++i)
+        spikes.push_back(std::make_pair(i / 100.0f, i));
+    spikeWriter.write(spikes);
 
-    lunchbox::sleep( WRITE_DELAY );
+    lunchbox::sleep(WRITE_DELAY);
     // The time window [0.3, 1.3) is still not complete, but [0.2, 1.2) is.
-    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 3 ));
+    BOOST_CHECK_EQUAL(source->getFrameRange(), fivox::Vector2ui(0, 3));
 
     spikes.clear();
-    for( uint32_t i = 121; i <= 149; ++i )
-        spikes.push_back( std::make_pair( i / 100.0f, i ));
-    spikeWriter.write( spikes );
-    lunchbox::sleep( WRITE_DELAY );
+    for (uint32_t i = 121; i <= 149; ++i)
+        spikes.push_back(std::make_pair(i / 100.0f, i));
+    spikeWriter.write(spikes);
+    lunchbox::sleep(WRITE_DELAY);
     // The time window [0.5, 1.5) is still not complete, but [0.4, 1.4) is.
-    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 5 ));
+    BOOST_CHECK_EQUAL(source->getFrameRange(), fivox::Vector2ui(0, 5));
 
     spikes.clear();
-    for( uint32_t i = 150; i <= 200; ++i )
-        spikes.push_back( std::make_pair( i / 100.0f, i ));
-    spikeWriter.write( spikes );
+    for (uint32_t i = 150; i <= 200; ++i)
+        spikes.push_back(std::make_pair(i / 100.0f, i));
+    spikeWriter.write(spikes);
     // After closing the report all spikes are made available, even for the
     // time window.
     spikeWriter.close();
-    lunchbox::sleep( WRITE_DELAY );
+    lunchbox::sleep(WRITE_DELAY);
     // Time range: [0, 2.0](ms)
     // Since duration=1(ms) and dt=0.1(ms), 11 full frames are available: [0,11)
-    BOOST_CHECK_EQUAL( source->getFrameRange(), fivox::Vector2ui( 0, 11 ));
+    BOOST_CHECK_EQUAL(source->getFrameRange(), fivox::Vector2ui(0, 11));
 }
 
 #endif

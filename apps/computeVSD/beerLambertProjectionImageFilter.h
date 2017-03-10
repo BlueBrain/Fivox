@@ -21,8 +21,8 @@
 #ifndef FIVOX_BEERLAMBERTPROJECTIONIMAGEFILTER_H
 #define FIVOX_BEERLAMBERTPROJECTIONIMAGEFILTER_H
 
-#include <itkProjectionImageFilter.h>
 #include <itkConceptChecking.h>
+#include <itkProjectionImageFilter.h>
 
 #include <fivox/types.h>
 
@@ -33,107 +33,103 @@
  */
 namespace Functor
 {
-template< typename TInputPixel, typename TAccumulate >
+template <typename TInputPixel, typename TAccumulate>
 class BeerLambertAccumulator
 {
-
 public:
-    typedef typename itk::NumericTraits< TInputPixel >::RealType RealType;
+    typedef typename itk::NumericTraits<TInputPixel>::RealType RealType;
 
-    explicit BeerLambertAccumulator( itk::SizeValueType size )
+    explicit BeerLambertAccumulator(itk::SizeValueType size)
     {
         m_Size = size;
-        m_Values.reserve( size );
+        m_Values.reserve(size);
     }
 
-    ~BeerLambertAccumulator(){}
-
+    ~BeerLambertAccumulator() {}
     inline void Initialize()
     {
-        m_Sum = itk::NumericTraits< TAccumulate >::ZeroValue();
+        m_Sum = itk::NumericTraits<TAccumulate>::ZeroValue();
         m_Values.clear();
     }
 
-    inline void operator()( const TInputPixel& input )
+    inline void operator()(const TInputPixel& input)
     {
         // assume that values are being computed in order (top-down)
         const double depth = m_PixelSize * m_Values.size();
 
-        m_Sum += input * std::exp( -m_Sigma * depth );
-        m_Values.push_back( input );
+        m_Sum += input * std::exp(-m_Sigma * depth);
+        m_Values.push_back(input);
     }
 
-    inline RealType GetValue()
-    {
-        return m_Sum;
-    }
-
+    inline RealType GetValue() { return m_Sum; }
     double m_PixelSize;
     double m_Sigma;
 
 private:
     TAccumulate m_Sum;
     itk::SizeValueType m_Size;
-    std::vector< TInputPixel > m_Values;
+    std::vector<TInputPixel> m_Values;
 };
 } // end namespace Function
 
-template< typename TInputImage, typename TOutputImage,
-          typename TAccumulate =
-          typename itk::NumericTraits<
-              typename TOutputImage::PixelType >::AccumulateType >
-class BeerLambertProjectionImageFilter :
-        public itk::ProjectionImageFilter< TInputImage, TOutputImage,
-            Functor::BeerLambertAccumulator< typename TInputImage::PixelType,
-                                             TAccumulate > >
+template <typename TInputImage, typename TOutputImage,
+          typename TAccumulate = typename itk::NumericTraits<
+              typename TOutputImage::PixelType>::AccumulateType>
+class BeerLambertProjectionImageFilter
+    : public itk::ProjectionImageFilter<
+          TInputImage, TOutputImage,
+          Functor::BeerLambertAccumulator<typename TInputImage::PixelType,
+                                          TAccumulate>>
 {
 public:
     typedef BeerLambertProjectionImageFilter Self;
 
-    typedef itk::ProjectionImageFilter< TInputImage, TOutputImage,
-        Functor::BeerLambertAccumulator< typename TInputImage::PixelType,
-                                         TAccumulate > > Superclass;
+    typedef itk::ProjectionImageFilter<
+        TInputImage, TOutputImage,
+        Functor::BeerLambertAccumulator<typename TInputImage::PixelType,
+                                        TAccumulate>>
+        Superclass;
 
     typedef TInputImage InputImageType;
     typedef typename InputImageType::PixelType InputPixelType;
 
-    typedef itk::SmartPointer< Self > Pointer;
-    typedef itk::SmartPointer< const Self > ConstPointer;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     typedef typename Superclass::AccumulatorType AccumulatorType;
 
     /** Runtime information support. */
-    itkTypeMacro( BeerLambertProjectionImageFilter, ProjectionImageFilter );
+    itkTypeMacro(BeerLambertProjectionImageFilter, ProjectionImageFilter);
 
     /** Method for creation through the object factory. */
-    itkNewMacro( Self );
+    itkNewMacro(Self);
 
     /** Set the size (in micrometers) of each input pixel. Defaults to 1.0. */
-    itkSetMacro( PixelSize, double );
+    itkSetMacro(PixelSize, double);
 
     /** Get the size (in micrometers) of each input pixel. Defaults to 1.0. */
-    itkGetConstMacro( PixelSize, double );
+    itkGetConstMacro(PixelSize, double);
 
     /** Set the absorption + scattering coefficient (units per micrometer).
      * Defaults to 1.0. */
-    itkSetMacro( Sigma, double );
+    itkSetMacro(Sigma, double);
 
     /** Get the absorption + scattering coefficient (units per micrometer).
      * Defaults to 1.0. */
-    itkGetConstMacro( Sigma, double );
+    itkGetConstMacro(Sigma, double);
 
 protected:
     BeerLambertProjectionImageFilter()
-        : m_PixelSize( 1.0 )
-        , m_Sigma( 1.0 )
-    {}
+        : m_PixelSize(1.0)
+        , m_Sigma(1.0)
+    {
+    }
 
     virtual ~BeerLambertProjectionImageFilter() {}
-
-    virtual AccumulatorType NewAccumulator( itk::SizeValueType size ) const
+    virtual AccumulatorType NewAccumulator(itk::SizeValueType size) const
         ITK_OVERRIDE
     {
-        AccumulatorType accumulator( size );
+        AccumulatorType accumulator(size);
 
         accumulator.m_PixelSize = m_PixelSize;
         accumulator.m_Sigma = m_Sigma;
@@ -141,8 +137,8 @@ protected:
     }
 
 private:
-    BeerLambertProjectionImageFilter( const Self & ) = delete;
-    void operator=( const Self & ) = delete;
+    BeerLambertProjectionImageFilter(const Self&) = delete;
+    void operator=(const Self&) = delete;
 
     /** Micrometers per input pixel */
     double m_PixelSize;

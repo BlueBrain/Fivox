@@ -44,7 +44,7 @@ public:
     * to define the event source
     * @throw H5::exception or std::exception on error
     */
-    FIVOX_API explicit VSDLoader( const URIHandler& params );
+    FIVOX_API explicit VSDLoader(const URIHandler& params);
     FIVOX_API virtual ~VSDLoader(); //!< Destruct this vsd event source
 
     /**
@@ -52,7 +52,7 @@ public:
     *
     * @param curve The attenuation curve to apply
     */
-    FIVOX_API void setCurve( const AttenuationCurve& curve );
+    FIVOX_API void setCurve(const AttenuationCurve& curve);
 
     /**
      * Enable the interpolation of the attenuation values from the dye curve
@@ -61,7 +61,7 @@ public:
      * applying them; false to use the attenuation values as they are in the
      * dye curve file
      */
-    FIVOX_API void setInterpolation( bool interpolate );
+    FIVOX_API void setInterpolation(bool interpolate);
 
     /**
      * @return All GIDs loaded
@@ -78,7 +78,7 @@ public:
     *
     * @param millivolts resting potential in mV
     */
-    FIVOX_API void setRestingPotential( float millivolts );
+    FIVOX_API void setRestingPotential(float millivolts);
 
     /**
     * Set the multiplier for surface area in background fluorescence term value
@@ -86,14 +86,14 @@ public:
     * @param factor multiplier for surface area in background fluorescence term
     * value
     */
-    FIVOX_API void setAreaMultiplier( float factor );
+    FIVOX_API void setAreaMultiplier(float factor);
 
     /**
      * Enable the spike filtering
      * @param enable true to enable spike filtering; false to use the input
      * voltages as they are
      */
-    FIVOX_API void setSpikeFilter( bool enable );
+    FIVOX_API void setSpikeFilter(bool enable);
 
     /**
      * When the spike filtering is enabled, use this to set the action potential
@@ -101,19 +101,19 @@ public:
      *
      * @param apThreshold action potential threshold, in millivolts
      */
-    FIVOX_API void setApThreshold( float apThreshold );
+    FIVOX_API void setApThreshold(float apThreshold);
 
 private:
     /** @name Abstract interface implementation */
     //@{
     Vector2f _getTimeRange() const final;
-    ssize_t _load( size_t chunkIndex, size_t numChunks ) final;
+    ssize_t _load(size_t chunkIndex, size_t numChunks) final;
     SourceType _getType() const final { return SourceType::frame; }
     size_t _getNumChunks() const final { return 1; }
     //@}
 
     class Impl;
-    std::unique_ptr< Impl > _impl;
+    std::unique_ptr<Impl> _impl;
 };
 }
 

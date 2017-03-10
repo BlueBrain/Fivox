@@ -31,8 +31,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <fivox/fivox.h>
 #include <boost/program_options.hpp>
+#include <fivox/fivox.h>
 #include <lunchbox/string.h>
 #include <lunchbox/term.h>
 
@@ -40,17 +40,17 @@ namespace po = boost::program_options;
 
 namespace vmml
 {
-std::istream& operator >> ( std::istream& is, Vector3f& vec )
+std::istream& operator>>(std::istream& is, Vector3f& vec)
 {
     return is >> std::skipws >> vec.x() >> vec.y() >> vec.z();
 }
 
-std::istream& operator >> ( std::istream& is, Vector2f& vec )
+std::istream& operator>>(std::istream& is, Vector2f& vec)
 {
     return is >> std::skipws >> vec.x() >> vec.y();
 }
 
-std::istream& operator >> ( std::istream& is, Vector2ui& vec )
+std::istream& operator>>(std::istream& is, Vector2ui& vec)
 {
     return is >> std::skipws >> vec.x() >> vec.y();
 }
@@ -58,7 +58,7 @@ std::istream& operator >> ( std::istream& is, Vector2ui& vec )
 
 namespace
 {
-typedef fivox::ImageSource< fivox::FloatVolume > ImageSource;
+typedef fivox::ImageSource<fivox::FloatVolume> ImageSource;
 typedef ImageSource::Pointer ImageSourcePtr;
 
 /**
@@ -72,32 +72,31 @@ typedef ImageSource::Pointer ImageSourcePtr;
 class CommandLineApplication
 {
 public:
-    CommandLineApplication( const std::string& caption,
-                            const std::string& defaultURI = "fivox://" )
-        : _options( caption, lunchbox::term::getSize().first )
-        , _uri( defaultURI )
+    CommandLineApplication(const std::string& caption,
+                           const std::string& defaultURI = "fivox://")
+        : _options(caption, lunchbox::term::getSize().first)
+        , _uri(defaultURI)
     {
         const std::string volumeHelp =
-            std::string( "Volume URI with parameters in the form:\n" ) +
-            lunchbox::string::prepend( fivox::URIHandler::getHelp(), "  " );
+            std::string("Volume URI with parameters in the form:\n") +
+            lunchbox::string::prepend(fivox::URIHandler::getHelp(), "  ");
+        // clang-format off
         _options.add_options()
 //! [AppParameters] @anchor CommandLineApplication
-            ( "help,h", "Show help message" )
-            ( "version,v", "Show program name and version" )
-            ( "volume", po::value< std::string >(), volumeHelp.c_str( ))
-            ( "time,t", po::value< float >(),
-              "Timestamp to load in the report" )
-            ( "times", po::value< fivox::Vector2f >(),
-              "Time range [start end) to load in the report" )
-            ( "frame,f", po::value< unsigned >(),
-              "Frame to load in the report" )
-            ( "frames", po::value< fivox::Vector2ui >(),
-              "Frame range [start end) to load in the report" );
+            ("help,h", "Show help message")
+            ("version,v", "Show program name and version")
+            ("volume", po::value<std::string>(), volumeHelp.c_str())
+            ("time,t", po::value<float>(), "Timestamp to load in the report")
+            ("times", po::value<fivox::Vector2f>(),
+             "Time range [start end) to load in the report")
+            ("frame,f", po::value<unsigned>(), "Frame to load in the report")
+            ("frames", po::value<fivox::Vector2ui>(),
+             "Frame range [start end) to load in the report");
 //! [AppParameters]
+        // clang-format on
     }
 
     virtual ~CommandLineApplication() {}
-
     /**
      * Parse the command line options, taking as parameters the count and list
      * of arguments (input for boost::program_options::parse_command_line)
@@ -106,26 +105,26 @@ public:
      * options is not needed anymore (e.g. when using --help or --version), true
      * otherwise
      */
-    virtual bool parse( int argc, char* argv[] )
+    virtual bool parse(int argc, char* argv[])
     {
-        po::store( po::parse_command_line( argc, argv, _options ), _vm );
-        po::notify( _vm );
+        po::store(po::parse_command_line(argc, argv, _options), _vm);
+        po::notify(_vm);
 
-        if( _vm.count( "help" ))
+        if (_vm.count("help"))
         {
             std::cout << _options << std::endl;
             return false;
         }
 
-        if( _vm.count( "version" ))
+        if (_vm.count("version"))
         {
             std::cout << argv[0] << " version " << fivox::Version::getString()
                       << std::endl;
             return false;
         }
 
-        if( _vm.count( "volume" ))
-            _uri = fivox::URI( _vm["volume"].as< std::string >( ));
+        if (_vm.count("volume"))
+            _uri = fivox::URI(_vm["volume"].as<std::string>());
         else
             LBINFO << "Using " << _uri << " as volume" << std::endl;
 
@@ -140,36 +139,34 @@ public:
      * the frame range when specifying only the 'time' or 'times' options
      * @return a vector of two components representing the frame range
      */
-    fivox::Vector2ui getFrameRange( const float dt ) const
+    fivox::Vector2ui getFrameRange(const float dt) const
     {
-        if( _vm.count( "time" ))
+        if (_vm.count("time"))
         {
-            const size_t frame = _vm["time"].as< float >() / dt;
-            return fivox::Vector2ui( frame, frame + 1 );
+            const size_t frame = _vm["time"].as<float>() / dt;
+            return fivox::Vector2ui(frame, frame + 1);
         }
-        if( _vm.count( "times" ))
+        if (_vm.count("times"))
         {
-            const fivox::Vector2f times = _vm["times"].as< fivox::Vector2f >();
-            return fivox::Vector2ui( times.x() / dt, times.y() / dt );
+            const fivox::Vector2f times = _vm["times"].as<fivox::Vector2f>();
+            return fivox::Vector2ui(times.x() / dt, times.y() / dt);
         }
-        if( _vm.count( "frame" ))
+        if (_vm.count("frame"))
         {
-            const size_t frame = _vm["frame"].as< unsigned >();
-            return fivox::Vector2ui( frame, frame + 1 );
+            const size_t frame = _vm["frame"].as<unsigned>();
+            return fivox::Vector2ui(frame, frame + 1);
         }
-        if( _vm.count( "frames" ))
-            return _vm["frames"].as< fivox::Vector2ui >();
+        if (_vm.count("frames"))
+            return _vm["frames"].as<fivox::Vector2ui>();
 
-        return fivox::Vector2ui( 0, 1 ); // just frame 0 by default
+        return fivox::Vector2ui(0, 1); // just frame 0 by default
     }
 
     /** @return the volume URI */
     const fivox::URI& getURI() const { return _uri; }
-
 protected:
     po::options_description _options;
     po::variables_map _vm;
     fivox::URI _uri;
 };
-
 }

@@ -26,40 +26,38 @@
 
 namespace fivox
 {
-
 /**
  * Image source iterating over all events and summing their values into the
  * voxel they fall into.
  */
-template< typename TImage >
-class EventValueSummationImageSource : public ImageSource< TImage >
+template <typename TImage>
+class EventValueSummationImageSource : public ImageSource<TImage>
 {
 public:
     /** Standard class typedefs. */
-    typedef EventValueSummationImageSource  Self;
-    typedef ImageSource< TImage >           Superclass;
-    typedef itk::SmartPointer< Self >       Pointer;
-    typedef itk::SmartPointer< const Self > ConstPointer;
+    typedef EventValueSummationImageSource Self;
+    typedef ImageSource<TImage> Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self)
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(EventValueSummationImageSource, ImageSource)
+        /** Run-time type information (and related methods). */
+        itkTypeMacro(EventValueSummationImageSource, ImageSource)
 
-protected:
-    EventValueSummationImageSource();
+            protected : EventValueSummationImageSource();
     virtual ~EventValueSummationImageSource() {}
-
-    EventValueSummationImageSource( const EventValueSummationImageSource& ) = delete;
-    void operator=( const EventValueSummationImageSource& ) = delete;
+    EventValueSummationImageSource(const EventValueSummationImageSource&) =
+        delete;
+    void operator=(const EventValueSummationImageSource&) = delete;
 
     void GenerateData() override;
 };
 
 } // end namespace fivox
 
-#  ifndef ITK_MANUAL_INSTANTIATION
-#    include "eventValueSummationImageSource.hxx"
-#  endif
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "eventValueSummationImageSource.hxx"
+#endif
 #endif

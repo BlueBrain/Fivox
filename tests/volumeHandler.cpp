@@ -34,99 +34,133 @@
 #include "test.h"
 #include <fivox/volumeHandler.h>
 
-BOOST_AUTO_TEST_CASE( VolumeHandlerRegion )
+BOOST_AUTO_TEST_CASE(VolumeHandlerRegion)
 {
     fivox::FloatVolume::RegionType region;
     fivox::FloatVolume::IndexType expectedIndex;
     fivox::FloatVolume::SizeType expectedSize;
 
     // even number of voxels
-    fivox::VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
+    fivox::VolumeHandler volumeHandler(100, fivox::Vector3f(50, 100, 42));
 
     // full volume region
-    region = volumeHandler.computeRegion( fivox::Vector2ui( 0, 1 ));
-    expectedIndex[0] = 0; expectedIndex[1] = 0; expectedIndex[2] = 0;
-    expectedSize[0] = 50; expectedSize[1] = 100; expectedSize[2] = 42;
-    BOOST_CHECK_EQUAL( region.GetIndex(), expectedIndex );
-    BOOST_CHECK_EQUAL( region.GetSize(), expectedSize );
+    region = volumeHandler.computeRegion(fivox::Vector2ui(0, 1));
+    expectedIndex[0] = 0;
+    expectedIndex[1] = 0;
+    expectedIndex[2] = 0;
+    expectedSize[0] = 50;
+    expectedSize[1] = 100;
+    expectedSize[2] = 42;
+    BOOST_CHECK_EQUAL(region.GetIndex(), expectedIndex);
+    BOOST_CHECK_EQUAL(region.GetSize(), expectedSize);
 
     // even number of regions
-    region = volumeHandler.computeRegion( fivox::Vector2ui( 1, 2 ));
-    expectedIndex[0] = 0; expectedIndex[1] = 50; expectedIndex[2] = 0;
-    expectedSize[0] = 50; expectedSize[1] = 50; expectedSize[2] = 42;
-    BOOST_CHECK_EQUAL( region.GetIndex(), expectedIndex );
-    BOOST_CHECK_EQUAL( region.GetSize(), expectedSize );
+    region = volumeHandler.computeRegion(fivox::Vector2ui(1, 2));
+    expectedIndex[0] = 0;
+    expectedIndex[1] = 50;
+    expectedIndex[2] = 0;
+    expectedSize[0] = 50;
+    expectedSize[1] = 50;
+    expectedSize[2] = 42;
+    BOOST_CHECK_EQUAL(region.GetIndex(), expectedIndex);
+    BOOST_CHECK_EQUAL(region.GetSize(), expectedSize);
 
     // odd number of regions
-    region = volumeHandler.computeRegion( fivox::Vector2ui( 1, 3 ));
-    expectedIndex[0] = 0; expectedIndex[1] = 33; expectedIndex[2] = 0;
-    expectedSize[0] = 50; expectedSize[1] = 33; expectedSize[2] = 42;
-    BOOST_CHECK_EQUAL( region.GetIndex(), expectedIndex );
-    BOOST_CHECK_EQUAL( region.GetSize(), expectedSize );
+    region = volumeHandler.computeRegion(fivox::Vector2ui(1, 3));
+    expectedIndex[0] = 0;
+    expectedIndex[1] = 33;
+    expectedIndex[2] = 0;
+    expectedSize[0] = 50;
+    expectedSize[1] = 33;
+    expectedSize[2] = 42;
+    BOOST_CHECK_EQUAL(region.GetIndex(), expectedIndex);
+    BOOST_CHECK_EQUAL(region.GetSize(), expectedSize);
 
-    region = volumeHandler.computeRegion( fivox::Vector2ui( 2, 3 ));
-    expectedIndex[0] = 0; expectedIndex[1] = 66; expectedIndex[2] = 0;
-    expectedSize[0] = 50; expectedSize[1] = 34; expectedSize[2] = 42;
-    BOOST_CHECK_EQUAL( region.GetIndex(), expectedIndex );
-    BOOST_CHECK_EQUAL( region.GetSize(), expectedSize );
+    region = volumeHandler.computeRegion(fivox::Vector2ui(2, 3));
+    expectedIndex[0] = 0;
+    expectedIndex[1] = 66;
+    expectedIndex[2] = 0;
+    expectedSize[0] = 50;
+    expectedSize[1] = 34;
+    expectedSize[2] = 42;
+    BOOST_CHECK_EQUAL(region.GetIndex(), expectedIndex);
+    BOOST_CHECK_EQUAL(region.GetSize(), expectedSize);
 
     // odd number of voxels
-    volumeHandler.setSize( 101 );
-    volumeHandler.setExtent( fivox::Vector3f( 100, 50, 42 ));
+    volumeHandler.setSize(101);
+    volumeHandler.setExtent(fivox::Vector3f(100, 50, 42));
 
     // even number of regions
-    region = volumeHandler.computeRegion( fivox::Vector2ui( 1, 2 ));
-    expectedIndex[0] = 50; expectedIndex[1] = 0; expectedIndex[2] = 0;
-    expectedSize[0] = 51; expectedSize[1] = 50; expectedSize[2] = 42;
-    BOOST_CHECK_EQUAL( region.GetIndex(), expectedIndex );
-    BOOST_CHECK_EQUAL( region.GetSize(), expectedSize );
+    region = volumeHandler.computeRegion(fivox::Vector2ui(1, 2));
+    expectedIndex[0] = 50;
+    expectedIndex[1] = 0;
+    expectedIndex[2] = 0;
+    expectedSize[0] = 51;
+    expectedSize[1] = 50;
+    expectedSize[2] = 42;
+    BOOST_CHECK_EQUAL(region.GetIndex(), expectedIndex);
+    BOOST_CHECK_EQUAL(region.GetSize(), expectedSize);
 
     // odd number of regions
-    region = volumeHandler.computeRegion( fivox::Vector2ui( 0, 3 ));
-    expectedIndex[0] = 0; expectedIndex[1] = 0; expectedIndex[2] = 0;
-    expectedSize[0] = 33; expectedSize[1] = 50; expectedSize[2] = 42;
-    BOOST_CHECK_EQUAL( region.GetIndex(), expectedIndex );
-    BOOST_CHECK_EQUAL( region.GetSize(), expectedSize );
+    region = volumeHandler.computeRegion(fivox::Vector2ui(0, 3));
+    expectedIndex[0] = 0;
+    expectedIndex[1] = 0;
+    expectedIndex[2] = 0;
+    expectedSize[0] = 33;
+    expectedSize[1] = 50;
+    expectedSize[2] = 42;
+    BOOST_CHECK_EQUAL(region.GetIndex(), expectedIndex);
+    BOOST_CHECK_EQUAL(region.GetSize(), expectedSize);
 
-    region = volumeHandler.computeRegion( fivox::Vector2ui( 2, 3 ));
-    expectedIndex[0] = 67; expectedIndex[1] = 0; expectedIndex[2] = 0;
-    expectedSize[0] = 34; expectedSize[1] = 50; expectedSize[2] = 42;
-    BOOST_CHECK_EQUAL( region.GetIndex(), expectedIndex );
-    BOOST_CHECK_EQUAL( region.GetSize(), expectedSize );
+    region = volumeHandler.computeRegion(fivox::Vector2ui(2, 3));
+    expectedIndex[0] = 67;
+    expectedIndex[1] = 0;
+    expectedIndex[2] = 0;
+    expectedSize[0] = 34;
+    expectedSize[1] = 50;
+    expectedSize[2] = 42;
+    BOOST_CHECK_EQUAL(region.GetIndex(), expectedIndex);
+    BOOST_CHECK_EQUAL(region.GetSize(), expectedSize);
 }
 
-BOOST_AUTO_TEST_CASE( VolumeHandlerSpacing )
+BOOST_AUTO_TEST_CASE(VolumeHandlerSpacing)
 {
     fivox::FloatVolume::SpacingType expectedSpacing;
-    fivox::VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
-    expectedSpacing.Fill( 1 );
-    BOOST_CHECK_EQUAL( volumeHandler.computeSpacing(), expectedSpacing );
+    fivox::VolumeHandler volumeHandler(100, fivox::Vector3f(50, 100, 42));
+    expectedSpacing.Fill(1);
+    BOOST_CHECK_EQUAL(volumeHandler.computeSpacing(), expectedSpacing);
 
-    volumeHandler.setSize( 200 );
-    expectedSpacing.Fill( 0.5 );
-    BOOST_CHECK_EQUAL( volumeHandler.computeSpacing(), expectedSpacing );
+    volumeHandler.setSize(200);
+    expectedSpacing.Fill(0.5);
+    BOOST_CHECK_EQUAL(volumeHandler.computeSpacing(), expectedSpacing);
 
-    volumeHandler.setSize( 50 );
-    expectedSpacing.Fill( 2 );
-    BOOST_CHECK_EQUAL( volumeHandler.computeSpacing(), expectedSpacing );
+    volumeHandler.setSize(50);
+    expectedSpacing.Fill(2);
+    BOOST_CHECK_EQUAL(volumeHandler.computeSpacing(), expectedSpacing);
 }
 
-BOOST_AUTO_TEST_CASE( VolumeHandlerOrigin )
+BOOST_AUTO_TEST_CASE(VolumeHandlerOrigin)
 {
     fivox::FloatVolume::PointType expectedOrigin;
-    fivox::VolumeHandler volumeHandler( 100, fivox::Vector3f( 50, 100, 42 ));
+    fivox::VolumeHandler volumeHandler(100, fivox::Vector3f(50, 100, 42));
 
-    expectedOrigin[0] = -25; expectedOrigin[1] = -50; expectedOrigin[2] = -21;
-    BOOST_CHECK_EQUAL( volumeHandler.computeOrigin( fivox::Vector3f( 0, 0, 0 )),
-                       expectedOrigin );
+    expectedOrigin[0] = -25;
+    expectedOrigin[1] = -50;
+    expectedOrigin[2] = -21;
+    BOOST_CHECK_EQUAL(volumeHandler.computeOrigin(fivox::Vector3f(0, 0, 0)),
+                      expectedOrigin);
 
-    expectedOrigin[0] = 75; expectedOrigin[1] = 50; expectedOrigin[2] = 79;
-    BOOST_CHECK_EQUAL(
-                volumeHandler.computeOrigin( fivox::Vector3f( 100, 100, 100 )),
-                expectedOrigin );
+    expectedOrigin[0] = 75;
+    expectedOrigin[1] = 50;
+    expectedOrigin[2] = 79;
+    BOOST_CHECK_EQUAL(volumeHandler.computeOrigin(
+                          fivox::Vector3f(100, 100, 100)),
+                      expectedOrigin);
 
-    expectedOrigin[0] = -75; expectedOrigin[1] = -100; expectedOrigin[2] = -71;
-    BOOST_CHECK_EQUAL(
-                volumeHandler.computeOrigin( fivox::Vector3f( -50, -50, -50 )),
-                expectedOrigin );
+    expectedOrigin[0] = -75;
+    expectedOrigin[1] = -100;
+    expectedOrigin[2] = -71;
+    BOOST_CHECK_EQUAL(volumeHandler.computeOrigin(
+                          fivox::Vector3f(-50, -50, -50)),
+                      expectedOrigin);
 }

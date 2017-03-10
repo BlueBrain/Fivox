@@ -22,14 +22,17 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
-#define gpuErrchk( ans ) { gpuAssert(( ans ), __FILE__, __LINE__); }
-inline void gpuAssert( cudaError_t code, const char *file, const int line )
+#define gpuErrchk(ans)                        \
+    {                                         \
+        gpuAssert((ans), __FILE__, __LINE__); \
+    }
+inline void gpuAssert(cudaError_t code, const char* file, const int line)
 {
-    if( code != cudaSuccess )
+    if (code != cudaSuccess)
     {
-        std::cerr << "GPUassert: " << cudaGetErrorString( code ) << ", "
-                  << file << ":" << line << std::endl;
-        exit( code );
+        std::cerr << "GPUassert: " << cudaGetErrorString(code) << ", " << file
+                  << ":" << line << std::endl;
+        exit(code);
     }
 }
 
@@ -66,8 +69,8 @@ struct VolumeInfo
  * @return the time of execution, in milliseconds, of the computation in the
  * CUDA kernel
  */
-float simpleLFP( const float* posX, const float* posY, const float* posZ,
-                 const float* radii, const float* values,
-                 const Parameters& parameters, const VolumeInfo& volInfo,
-                 float* output );
+float simpleLFP(const float* posX, const float* posY, const float* posZ,
+                const float* radii, const float* values,
+                const Parameters& parameters, const VolumeInfo& volInfo,
+                float* output);
 }

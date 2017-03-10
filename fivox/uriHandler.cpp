@@ -26,10 +26,10 @@
 #include <fivox/fieldFunctor.h>
 #include <fivox/frequencyFunctor.h>
 #ifdef FIVOX_USE_LFP
-#  include <fivox/lfp/lfpFunctor.h>
+#include <fivox/lfp/lfpFunctor.h>
 #endif
 #ifdef FIVOX_USE_CUDA
-#  include <fivox/cudaImageSource.h>
+#include <fivox/cudaImageSource.h>
 #endif
 #include <fivox/eventValueSummationImageSource.h>
 #include <fivox/functorImageSource.h>
@@ -39,15 +39,15 @@
 #include <fivox/synapseLoader.h>
 #include <fivox/vsdLoader.h>
 #ifdef FIVOX_USE_BBPTESTDATA
-#  include <BBP/TestDatasets.h>
+#include <BBP/TestDatasets.h>
 #endif
+#include <boost/lexical_cast.hpp>
 #include <lunchbox/file.h>
 #include <lunchbox/log.h>
 #include <lunchbox/uri.h>
-#include <boost/lexical_cast.hpp>
 
-#include <brion/blueConfig.h>
 #include <brain/circuit.h>
+#include <brion/blueConfig.h>
 
 namespace fivox
 {
@@ -58,103 +58,100 @@ const float _duration = 10.0f;
 const float _dt = -1.0f; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
 const float _cutoff = 100.0f; // micrometers
-const float _extend = 0.f; // micrometers
+const float _extend = 0.f;    // micrometers
 const float _gidFraction = 1.f;
 }
 
 class URIHandler::Impl
 {
 public:
-    explicit Impl( const URI& parameters )
-        : uri( parameters )
-        , useTestData( false )
+    explicit Impl(const URI& parameters)
+        : uri(parameters)
+        , useTestData(false)
     {
-        if( getType() == VolumeType::generic )
+        if (getType() == VolumeType::generic)
             return;
 
 #ifdef FIVOX_USE_BBPTESTDATA
         useTestData = uri.getPath().empty();
-        config.reset( new brion::BlueConfig( useTestData ? BBP_TEST_BLUECONFIG3
-                                                         : uri.getPath( )));
+        config.reset(new brion::BlueConfig(useTestData ? BBP_TEST_BLUECONFIG3
+                                                       : uri.getPath()));
 #else
-        config.reset( new brion::BlueConfig( uri.getPath( )));
+        config.reset(new brion::BlueConfig(uri.getPath()));
 #endif
 
-        const brain::Circuit circuit( *config );
-        const std::string target = _get( "target", _get( "postTarget",
-                         useTestData ? "mini50" : config->getCircuitTarget( )));
-        const std::string preTarget = _get( "preTarget" );
+        const brain::Circuit circuit(*config);
+        const std::string target =
+            _get("target",
+                 _get("postTarget",
+                      useTestData ? "mini50" : config->getCircuitTarget()));
+        const std::string preTarget = _get("preTarget");
         const float gidFraction = getGIDFraction();
-        if( target == "*" )
+        if (target == "*")
         {
             gids = gidFraction == 1.f ? circuit.getGIDs()
-                                      : circuit.getRandomGIDs( gidFraction );
+                                      : circuit.getRandomGIDs(gidFraction);
         }
         else
         {
-            gids = gidFraction == 1.f ? circuit.getGIDs( target )
-                                 : circuit.getRandomGIDs( gidFraction, target );
+            gids = gidFraction == 1.f
+                       ? circuit.getGIDs(target)
+                       : circuit.getRandomGIDs(gidFraction, target);
 
-            if( !preTarget.empty( ))
+            if (!preTarget.empty())
             {
-                preGIDs = gidFraction == 1.f ? circuit.getGIDs( preTarget )
-                              : circuit.getRandomGIDs( gidFraction, preTarget );
+                preGIDs = gidFraction == 1.f
+                              ? circuit.getGIDs(preTarget)
+                              : circuit.getRandomGIDs(gidFraction, preTarget);
 
-                if( preGIDs.empty( ))
-                    LBTHROW( std::runtime_error(
-                             "No GIDs found for requested target '" +
-                                 preTarget + "'" ));
+                if (preGIDs.empty())
+                    LBTHROW(std::runtime_error(
+                        "No GIDs found for requested target '" + preTarget +
+                        "'"));
             }
         }
 
-        if( gids.empty( ))
-            LBTHROW( std::runtime_error(
-                     "No GIDs found for requested target '" + target + "'" ));
+        if (gids.empty())
+            LBTHROW(std::runtime_error("No GIDs found for requested target '" +
+                                       target + "'"));
     }
 
-    const std::string& getConfigPath() const
-    {
-        return uri.getPath();
-    }
-
+    const std::string& getConfigPath() const { return uri.getPath(); }
     const brion::BlueConfig& getConfig() const
     {
-        if( !config )
-            LBTHROW( std::runtime_error(
-                     "BlueConfig was not loaded" ));
+        if (!config)
+            LBTHROW(std::runtime_error("BlueConfig was not loaded"));
 
         return *config;
     }
 
     const brion::GIDSet& getGIDs() const
     {
-        if( !config )
-            LBTHROW( std::runtime_error(
-                     "BlueConfig was not loaded" ));
+        if (!config)
+            LBTHROW(std::runtime_error("BlueConfig was not loaded"));
 
         return gids;
     }
 
     const brion::GIDSet& getPreGIDs() const
     {
-        if( !config )
-            LBTHROW( std::runtime_error(
-                     "BlueConfig was not loaded" ));
+        if (!config)
+            LBTHROW(std::runtime_error("BlueConfig was not loaded"));
 
         return preGIDs;
     }
 
     std::string getReport() const
     {
-        const std::string& report( _get( "report" ));
-        if( report.empty( ))
+        const std::string& report(_get("report"));
+        if (report.empty())
         {
-            switch( getType( ))
+            switch (getType())
             {
             case VolumeType::somas:
                 return "somas";
             default:
-                return _get( "functor" ) == "lfp" ? "currents" : "voltages";
+                return _get("functor") == "lfp" ? "currents" : "voltages";
             }
         }
         return report;
@@ -162,60 +159,58 @@ public:
 
     std::string getAreas() const
     {
-        std::string areas = _get( "areas" );
-        if( areas.empty() && getType() == VolumeType::vsd )
+        std::string areas = _get("areas");
+        if (areas.empty() && getType() == VolumeType::vsd)
         {
 #ifdef FIVOX_USE_BBPTESTDATA
-            if( useTestData )
-                return std::string( BBP_TESTDATA ) +
-                     "/circuitBuilding_1000neurons/Neurodamus_output/areas.bbp";
+            if (useTestData)
+                return std::string(BBP_TESTDATA) +
+                       "/circuitBuilding_1000neurons/Neurodamus_output/"
+                       "areas.bbp";
 #endif
-            LBTHROW( std::runtime_error( "URI parameter 'areas' missing" ));
+            LBTHROW(std::runtime_error("URI parameter 'areas' missing"));
         }
         return areas;
     }
 
-    float getDt() const { return _get( "dt", _dt ); }
-
-    std::string getSpikes() const { return _get( "spikes" ); }
-
-    float getDuration() const { return _get( "duration", _duration ); }
-
+    float getDt() const { return _get("dt", _dt); }
+    std::string getSpikes() const { return _get("spikes"); }
+    float getDuration() const { return _get("duration", _duration); }
     Vector2f getInputRange() const
     {
-        Vector2f defaultValue( brion::MINIMUM_VOLTAGE, 0.f );
-        switch( getType( ))
+        Vector2f defaultValue(brion::MINIMUM_VOLTAGE, 0.f);
+        switch (getType())
         {
         case VolumeType::compartments:
-            if( _get( "functor" ) == "lfp" )
-                defaultValue = Vector2f( -1.47e-05f, 2.25e-03f );
+            if (_get("functor") == "lfp")
+                defaultValue = Vector2f(-1.47e-05f, 2.25e-03f);
             break;
         case VolumeType::somas:
-            if( useTestData )
-                defaultValue = Vector2f( -15.f, 0.f );
+            if (useTestData)
+                defaultValue = Vector2f(-15.f, 0.f);
             break;
         case VolumeType::vsd:
-            defaultValue = Vector2f( -100000.f, 300.f );
+            defaultValue = Vector2f(-100000.f, 300.f);
             break;
         case VolumeType::spikes:
-            defaultValue = Vector2f( 0.f, 2.f );
+            defaultValue = Vector2f(0.f, 2.f);
             break;
         case VolumeType::synapses:
             defaultValue = FULLDATARANGE;
             break;
         default:
-            defaultValue = Vector2f( 0.f, 10.f );
+            defaultValue = Vector2f(0.f, 10.f);
             break;
         }
 
-        return Vector2f( _get( "inputMin", defaultValue[0] ),
-                         _get( "inputMax", defaultValue[1] ));
+        return Vector2f(_get("inputMin", defaultValue[0]),
+                        _get("inputMax", defaultValue[1]));
     }
 
     float getResolution() const
     {
         float defaultResolution = 0.1f;
-        switch( getType( ))
+        switch (getType())
         {
         case VolumeType::spikes:
         case VolumeType::synapses:
@@ -224,66 +219,67 @@ public:
         default:
             break;
         }
-        return _get( "resolution", defaultResolution );
+        return _get("resolution", defaultResolution);
     }
 
     size_t getMaxBlockSize() const
-        { return _get( "maxBlockSize", _maxBlockSize ); }
+    {
+        return _get("maxBlockSize", _maxBlockSize);
+    }
 
     float getCutoffDistance() const
-        { return std::max( _get( "cutoff", _cutoff ), 0.f ); }
+    {
+        return std::max(_get("cutoff", _cutoff), 0.f);
+    }
 
     float getExtendDistance() const
-        { return std::max( _get( "extend", _extend ), 0.f ); }
+    {
+        return std::max(_get("extend", _extend), 0.f);
+    }
 
-    float getGIDFraction() const
-        { return _get( "gidFraction", _gidFraction ); }
-
-    std::string getReferenceVolume() const
-        { return _get( "reference" ); }
-
-    size_t getSizeInVoxel() const
-        { return _get( "size", 0 ); }
-
+    float getGIDFraction() const { return _get("gidFraction", _gidFraction); }
+    std::string getReferenceVolume() const { return _get("reference"); }
+    size_t getSizeInVoxel() const { return _get("size", 0); }
     std::string getDescription() const
     {
         std::stringstream desc;
-        switch( getType( ))
+        switch (getType())
         {
         case VolumeType::generic:
             desc << "generic events from " << getConfigPath() << "'";
             break;
         case VolumeType::compartments:
         case VolumeType::somas:
-            if( getFunctorType() == FunctorType::lfp )
+            if (getFunctorType() == FunctorType::lfp)
                 desc << "local field potential in mV of ";
             else
                 desc << "membrane voltage in mV of ";
-            if( getType() == VolumeType::somas )
+            if (getType() == VolumeType::somas)
                 desc << "soma ";
             else
                 desc << "compartment ";
             desc << "report '" << getReport() << "' for target '"
-                 << _get( "target" ) << "'";
+                 << _get("target") << "'";
             break;
         case VolumeType::spikes:
-            desc << "number of spikes in " << getDuration()
-                 << "ms for target '" << _get( "target" ) << "'";
+            desc << "number of spikes in " << getDuration() << "ms for target '"
+                 << _get("target") << "'";
             break;
         case VolumeType::synapses:
         {
             desc << "number of synapses/voxel ";
-            const std::string& preTarget = _get( "preTarget" );
-            if( preTarget.empty( ))
-                desc << "for afferent synapses of target '"
-                     << _get( "target" ) << "'";
+            const std::string& preTarget = _get("preTarget");
+            if (preTarget.empty())
+                desc << "for afferent synapses of target '" << _get("target")
+                     << "'";
             else
                 desc << "for pathway from '" << preTarget << "' to '"
-                     << _get( "postTarget" ) << "'";
-        } break;
+                     << _get("postTarget") << "'";
+        }
+        break;
         case VolumeType::vsd:
             desc << "VSD (Voltage-Sensitive Dye) from " << getReport()
-                 << " for target '"  << _get( "target" ) << "'";
+                 << " for target '" << _get("target") << "'";
             break;
         default:
             return "";
@@ -295,17 +291,17 @@ public:
     VolumeType getType() const
     {
         const std::string& scheme = uri.getScheme();
-        if( scheme == "fivox" )
+        if (scheme == "fivox")
             return VolumeType::generic;
-        if( scheme == "fivoxcompartments" )
+        if (scheme == "fivoxcompartments")
             return VolumeType::compartments;
-        if( scheme == "fivoxsomas" )
+        if (scheme == "fivoxsomas")
             return VolumeType::somas;
-        if( scheme == "fivoxspikes" )
+        if (scheme == "fivoxspikes")
             return VolumeType::spikes;
-        if( scheme == "fivoxsynapses" )
+        if (scheme == "fivoxsynapses")
             return VolumeType::synapses;
-        if( scheme == "fivoxvsd" )
+        if (scheme == "fivoxvsd")
             return VolumeType::vsd;
 
         LBERROR << "Unknown URI scheme: " << scheme << std::endl;
@@ -314,17 +310,17 @@ public:
 
     FunctorType getFunctorType() const
     {
-        const std::string& functor = _get( "functor" );
-        if( functor == "density" )
+        const std::string& functor = _get("functor");
+        if (functor == "density")
             return FunctorType::density;
-        if( functor == "field" )
+        if (functor == "field")
             return FunctorType::field;
-        if( functor == "frequency" )
+        if (functor == "frequency")
             return FunctorType::frequency;
-        if( functor == "lfp" )
+        if (functor == "lfp")
             return FunctorType::lfp;
 
-        switch( getType( ))
+        switch (getType())
         {
         case VolumeType::compartments:
         case VolumeType::somas:
@@ -335,24 +331,24 @@ public:
     }
 
 private:
-    std::string _get( const std::string& param ) const
+    std::string _get(const std::string& param) const
     {
-        URI::ConstKVIter i = uri.findQuery( param );
+        URI::ConstKVIter i = uri.findQuery(param);
         return i == uri.queryEnd() ? std::string() : i->second;
     }
 
-    template< class T >
-    T _get( const std::string& param, const T defaultValue ) const
+    template <class T>
+    T _get(const std::string& param, const T defaultValue) const
     {
-        const std::string& value = _get( param );
-        if( value.empty( ))
+        const std::string& value = _get(param);
+        if (value.empty())
             return defaultValue;
 
         try
         {
-            return lexical_cast< T >( value );
+            return lexical_cast<T>(value);
         }
-        catch( boost::bad_lexical_cast& )
+        catch (boost::bad_lexical_cast&)
         {
             LBWARN << "Invalid " << param << " specified, using "
                    << defaultValue << std::endl;
@@ -362,26 +358,27 @@ private:
 
     const URI uri;
     bool useTestData;
-    std::unique_ptr< brion::BlueConfig> config;
+    std::unique_ptr<brion::BlueConfig> config;
     brion::GIDSet gids;
     brion::GIDSet preGIDs;
 };
 
 // bool specialization: param present with no value = true
-template<> bool URIHandler::Impl::_get( const std::string& param,
-                                        const bool defaultValue ) const
+template <>
+bool URIHandler::Impl::_get(const std::string& param,
+                            const bool defaultValue) const
 {
-    URI::ConstKVIter i = uri.findQuery( param );
-    if( i == uri.queryEnd( ))
+    URI::ConstKVIter i = uri.findQuery(param);
+    if (i == uri.queryEnd())
         return defaultValue;
-    if( i->second.empty( ))
+    if (i->second.empty())
         return true;
 
     try
     {
-        return lexical_cast< bool >( i->second );
+        return lexical_cast<bool>(i->second);
     }
-    catch( boost::bad_lexical_cast& )
+    catch (boost::bad_lexical_cast&)
     {
         LBWARN << "Invalid " << param << " specified, using " << defaultValue
                << std::endl;
@@ -389,12 +386,14 @@ template<> bool URIHandler::Impl::_get( const std::string& param,
     }
 }
 
-URIHandler::URIHandler( const URI& params )
-    : _impl( new URIHandler::Impl( params ))
-{}
+URIHandler::URIHandler(const URI& params)
+    : _impl(new URIHandler::Impl(params))
+{
+}
 
 URIHandler::~URIHandler()
-{}
+{
+}
 
 const std::string& URIHandler::getConfigPath() const
 {
@@ -494,7 +493,7 @@ std::string URIHandler::getDescription() const
 std::string URIHandler::getHelp()
 {
     return
-//! [VolumeParameters] @anchor VolumeParameters
+        //! [VolumeParameters] @anchor VolumeParameters
         R"(- Generic events from file: fivox://EventsFile
 - Compartment reports: fivoxcompartments://BlueConfig?report=string&target=string
 - Soma reports: fivoxsomas://BlueConfig?report=string&target=string
@@ -540,91 +539,91 @@ Parameters for VSD:
 - report: name of the voltage report (default: 'soma'; 'voltage' if BlueConfig is BBPTestData)
 - areas: path to an area report file (default: path to TestData areas if BlueConfig is BBPTestData)
 - dt: timestep between requested frames in milliseconds (default: report dt))";
-//! [VolumeParameters]
+    //! [VolumeParameters]
 }
 
-template< class TImage >
-ImageSourcePtr< TImage > URIHandler::newImageSource() const
+template <class TImage>
+ImageSourcePtr<TImage> URIHandler::newImageSource() const
 {
     EventSourcePtr eventSource = newEventSource();
 
-    ImageSourcePtr< TImage > source;
-    switch( getFunctorType( ))
+    ImageSourcePtr<TImage> source;
+    switch (getFunctorType())
     {
     case FunctorType::unknown:
-        source = EventValueSummationImageSource< TImage >::New();
+        source = EventValueSummationImageSource<TImage>::New();
         break;
     default:
 #ifdef FIVOX_USE_CUDA
         bool cudaCapable = false;
-        if( getFunctorType() == FunctorType::lfp )
+        if (getFunctorType() == FunctorType::lfp)
         {
             int deviceCount = 0;
-            if( cudaGetDeviceCount( &deviceCount ) != cudaSuccess )
+            if (cudaGetDeviceCount(&deviceCount) != cudaSuccess)
                 deviceCount = 0;
 
             cudaCapable = deviceCount > 0;
-            if( cudaCapable )
+            if (cudaCapable)
             {
                 LBINFO << "CUDA-capable device is detected. "
                        << "Using GPU implementation." << std::endl;
-                source = CudaImageSource< TImage >::New();
+                source = CudaImageSource<TImage>::New();
             }
         }
-        if( !cudaCapable )
+        if (!cudaCapable)
 #endif
         {
-            auto functorSource = FunctorImageSource< TImage >::New();
-            auto functor = newFunctor< TImage >();
-            functorSource->setFunctor( functor );
-            functor->setEventSource( eventSource );
+            auto functorSource = FunctorImageSource<TImage>::New();
+            auto functor = newFunctor<TImage>();
+            functorSource->setFunctor(functor);
+            functor->setEventSource(eventSource);
             source = functorSource;
         }
     }
 
-    LBINFO << "Ready to voxelize " << *this << ", dt = "
-           << eventSource->getDt() << std::endl;
+    LBINFO << "Ready to voxelize " << *this << ", dt = " << eventSource->getDt()
+           << std::endl;
 
-    source->setEventSource( eventSource );
-    source->setup( *this );
+    source->setEventSource(eventSource);
+    source->setup(*this);
     return source;
 }
 
 EventSourcePtr URIHandler::newEventSource() const
 {
-    switch( getType( ))
+    switch (getType())
     {
     case VolumeType::compartments:
-        return std::make_shared< CompartmentLoader >( *this );
+        return std::make_shared<CompartmentLoader>(*this);
     case VolumeType::generic:
-        return std::make_shared< GenericLoader >( *this );
+        return std::make_shared<GenericLoader>(*this);
     case VolumeType::somas:
-        return std::make_shared< SomaLoader >( *this );
+        return std::make_shared<SomaLoader>(*this);
     case VolumeType::spikes:
-        return std::make_shared< SpikeLoader >( *this );
+        return std::make_shared<SpikeLoader>(*this);
     case VolumeType::synapses:
-        return std::make_shared< SynapseLoader >( *this );
+        return std::make_shared<SynapseLoader>(*this);
     case VolumeType::vsd:
-        return std::make_shared< VSDLoader >( *this );
+        return std::make_shared<VSDLoader>(*this);
     default:
         return nullptr;
     }
 }
 
-template< class TImage >
-EventFunctorPtr< TImage > URIHandler::newFunctor() const
+template <class TImage>
+EventFunctorPtr<TImage> URIHandler::newFunctor() const
 {
-    switch( getFunctorType( ))
+    switch (getFunctorType())
     {
     case FunctorType::density:
-        return std::make_shared< DensityFunctor< TImage >>();
+        return std::make_shared<DensityFunctor<TImage>>();
     case FunctorType::field:
-        return std::make_shared< FieldFunctor< TImage >>();
+        return std::make_shared<FieldFunctor<TImage>>();
     case FunctorType::frequency:
-        return std::make_shared< FrequencyFunctor< TImage >>();
+        return std::make_shared<FrequencyFunctor<TImage>>();
 #ifdef FIVOX_USE_LFP
     case FunctorType::lfp:
-        return std::make_shared< LFPFunctor< TImage >>();
+        return std::make_shared<LFPFunctor<TImage>>();
 #endif
     case FunctorType::unknown:
     default:
@@ -632,20 +631,20 @@ EventFunctorPtr< TImage > URIHandler::newFunctor() const
     }
 }
 
-std::ostream& operator << ( std::ostream& os, const URIHandler& params )
+std::ostream& operator<<(std::ostream& os, const URIHandler& params)
 {
-    return os << params.getDescription() << ", resolution = "
-              << 1.f/params.getResolution() << " um/voxel";
+    return os << params.getDescription()
+              << ", resolution = " << 1.f / params.getResolution()
+              << " um/voxel";
 }
-
 }
 
 // template instantiations
-template fivox::ImageSourcePtr< fivox::ByteVolume >
+template fivox::ImageSourcePtr<fivox::ByteVolume>
     fivox::URIHandler::newImageSource() const;
-template fivox::ImageSourcePtr< fivox::FloatVolume >
+template fivox::ImageSourcePtr<fivox::FloatVolume>
     fivox::URIHandler::newImageSource() const;
-template fivox::EventFunctorPtr< fivox::ByteVolume >
+template fivox::EventFunctorPtr<fivox::ByteVolume>
     fivox::URIHandler::newFunctor() const;
-template fivox::EventFunctorPtr< fivox::FloatVolume >
+template fivox::EventFunctorPtr<fivox::FloatVolume>
     fivox::URIHandler::newFunctor() const;

@@ -26,39 +26,36 @@
 
 namespace fivox
 {
-
 /**
  * Image source using a CUDA compute kernel on each pixel to generate the output
  */
-template< typename TImage >
-class CudaImageSource : public ImageSource< TImage >
+template <typename TImage>
+class CudaImageSource : public ImageSource<TImage>
 {
 public:
     /** Standard class typedefs. */
-    typedef CudaImageSource  Self;
-    typedef ImageSource< TImage >           Superclass;
-    typedef itk::SmartPointer< Self >       Pointer;
-    typedef itk::SmartPointer< const Self > ConstPointer;
+    typedef CudaImageSource Self;
+    typedef ImageSource<TImage> Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self)
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(CudaImageSource, ImageSource)
+        /** Run-time type information (and related methods). */
+        itkTypeMacro(CudaImageSource, ImageSource)
 
-protected:
-    CudaImageSource();
+            protected : CudaImageSource();
     virtual ~CudaImageSource() {}
-
-    CudaImageSource( const CudaImageSource& ) = delete;
-    void operator=( const CudaImageSource& ) = delete;
+    CudaImageSource(const CudaImageSource&) = delete;
+    void operator=(const CudaImageSource&) = delete;
 
     void GenerateData() override;
 };
 
 } // end namespace fivox
 
-#  ifndef ITK_MANUAL_INSTANTIATION
-#    include "cudaImageSource.hxx"
-#  endif
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "cudaImageSource.hxx"
+#endif
 #endif

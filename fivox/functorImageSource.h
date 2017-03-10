@@ -27,57 +27,57 @@
 
 namespace fivox
 {
-
 /** Image source using an EventFunctor on each pixel to generate the output */
-template< typename TImage >
-class FunctorImageSource : public ImageSource< TImage >
+template <typename TImage>
+class FunctorImageSource : public ImageSource<TImage>
 {
 public:
     /** Standard class typedefs. */
-    typedef FunctorImageSource              Self;
-    typedef ImageSource< TImage >           Superclass;
-    typedef itk::SmartPointer< Self >       Pointer;
-    typedef itk::SmartPointer< const Self > ConstPointer;
-    typedef EventFunctorPtr< TImage >       FunctorPtr;
+    typedef FunctorImageSource Self;
+    typedef ImageSource<TImage> Superclass;
+    typedef itk::SmartPointer<Self> Pointer;
+    typedef itk::SmartPointer<const Self> ConstPointer;
+    typedef EventFunctorPtr<TImage> FunctorPtr;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self)
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(FunctorImageSource, ImageSource)
+        /** Run-time type information (and related methods). */
+        itkTypeMacro(FunctorImageSource, ImageSource)
 
-    /** @return the functor executed for each pixel during update. */
-    FunctorPtr getFunctor();
+        /** @return the functor executed for each pixel during update. */
+        FunctorPtr getFunctor();
 
     /** Set a new functor. */
-    void setFunctor( FunctorPtr functor );
+    void setFunctor(FunctorPtr functor);
 
 protected:
     FunctorImageSource();
     virtual ~FunctorImageSource() {}
-
-    FunctorImageSource( const FunctorImageSource& ) = delete;
-    void operator=( const FunctorImageSource& ) = delete;
+    FunctorImageSource(const FunctorImageSource&) = delete;
+    void operator=(const FunctorImageSource&) = delete;
 
     const itk::ImageRegionSplitterBase* GetImageRegionSplitter() const override
-        { return _splitter; }
+    {
+        return _splitter;
+    }
 
     /** FunctorImageSource is implemented as a multithreaded filter. */
     void ThreadedGenerateData(
-            const typename Superclass::ImageRegionType& outputRegionForThread,
-            itk::ThreadIdType threadId ) override;
+        const typename Superclass::ImageRegionType& outputRegionForThread,
+        itk::ThreadIdType threadId) override;
 
     void BeforeThreadedGenerateData() override;
 
 private:
     FunctorPtr _functor;
-    lunchbox::Monitor< size_t > _completed;
+    lunchbox::Monitor<size_t> _completed;
     itk::ImageRegionSplitterBase::Pointer _splitter;
 };
 
 } // end namespace fivox
 
-#  ifndef ITK_MANUAL_INSTANTIATION
-#    include "functorImageSource.hxx"
-#  endif
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "functorImageSource.hxx"
+#endif
 #endif

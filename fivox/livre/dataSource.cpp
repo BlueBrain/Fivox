@@ -34,33 +34,36 @@
 #include <lunchbox/scopedMutex.h>
 #include <lunchbox/string.h>
 
-extern "C" int LunchboxPluginGetVersion() { return LIVRECORE_VERSION_ABI; }
+extern "C" int LunchboxPluginGetVersion()
+{
+    return LIVRECORE_VERSION_ABI;
+}
 extern "C" bool LunchboxPluginRegister()
 {
-    lunchbox::PluginRegisterer< fivox::DataSource > registerer;
+    lunchbox::PluginRegisterer<fivox::DataSource> registerer;
     return true;
 }
 
 namespace fivox
 {
-
 class DataSource::Impl
 {
 public:
-    explicit Impl( const livre::DataSourcePluginData& pluginData )
-        : params( pluginData.getURI( ))
-        , source( params.newImageSource< FloatVolume >( ))
-        , scaler( source->GetOutput(), params.getInputRange( ))
-    {}
+    explicit Impl(const livre::DataSourcePluginData& pluginData)
+        : params(pluginData.getURI())
+        , source(params.newImageSource<FloatVolume>())
+        , scaler(source->GetOutput(), params.getInputRange())
+    {
+    }
 
-    livre::MemoryUnitPtr sample( const livre::LODNode& node,
-                                 const livre::VolumeInformation& info ) const
+    livre::MemoryUnitPtr sample(const livre::LODNode& node,
+                                const livre::VolumeInformation& info) const
     {
         // called from multiple render threads, only have one update running
-        lunchbox::ScopedWrite mutex( _lock );
+        lunchbox::ScopedWrite mutex(_lock);
         EventSourcePtr loader = source->getEventSource();
         const uint32_t timeStep = node.getNodeId().getTimeStep();
-        loader->setTime( timeStep );
+        loader->setTime(timeStep);
 
         const vmml::Vector3i& voxels = info.maximumBlockSize;
 
@@ -70,14 +73,13 @@ public:
         vSize[2] = voxels[2];
 
         ByteVolume::RegionType region;
-        region.SetSize( vSize );
+        region.SetSize(vSize);
 
         // Real-world coordinate setup
         const AABBf& bbox = source->getBoundingBox();
-        const Vector3f& baseSpacing = ( bbox.getSize() + _borders )
-                                      / info.voxels;
-        const int32_t levelFromBottom = info.rootNode.getDepth() - 1 -
-                                        node.getRefLevel();
+        const Vector3f& baseSpacing = (bbox.getSize() + _borders) / info.voxels;
+        const int32_t levelFromBottom =
+            info.rootNode.getDepth() - 1 - node.getRefLevel();
         const float spacingFactor = 1 << levelFromBottom;
 
         ByteVolume::SpacingType spacing;
@@ -86,8 +88,8 @@ public:
         spacing[2] = spacing[0];
 
         const Vector3f& offset =
-            ( bbox.getMin() - _borders / 2.0f ) + node.getRelativePosition() *
-            Vector3f( bbox.getSize() + _borders );
+            (bbox.getMin() - _borders / 2.0f) +
+            node.getRelativePosition() * Vector3f(bbox.getSize() + _borders);
 
         ByteVolume::PointType origin;
         origin[0] = offset[0];
@@ -95,44 +97,45 @@ public:
         origin[2] = offset[2];
 
         auto volume = source->GetOutput();
-        volume->SetRegions( region );
-        volume->SetSpacing( spacing );
-        volume->SetOrigin( origin );
+        volume->SetRegions(region);
+        volume->SetSpacing(spacing);
+        volume->SetOrigin(origin);
 
         source->Modified();
         scaler.Update();
 
-        const size_t size = voxels[0] * voxels[1] * voxels[2] *
-                            info.compCount * info.getBytesPerVoxel();
-        return livre::MemoryUnitPtr( new livre::AllocMemoryUnit(
-                                scaler.GetOutput()->GetBufferPointer(), size ));
+        const size_t size = voxels[0] * voxels[1] * voxels[2] * info.compCount *
+                            info.getBytesPerVoxel();
+        return livre::MemoryUnitPtr(
+            new livre::AllocMemoryUnit(scaler.GetOutput()->GetBufferPointer(),
+                                       size));
     }
 
-    bool update( livre::VolumeInformation& info )
+    bool update(livre::VolumeInformation& info)
     {
         EventSourcePtr loader = source->getEventSource();
-        lunchbox::ScopedWrite mutex( _lock );
+        lunchbox::ScopedWrite mutex(_lock);
         const Vector2ui& frameRange = loader->getFrameRange();
 
-        if( info.frameRange == frameRange )
+        if (info.frameRange == frameRange)
             return false;
 
-        if( frameRange[1] > 0 ) // is any frame present
+        if (frameRange[1] > 0) // is any frame present
             info.frameRange = frameRange;
         return true;
     }
 
     const URIHandler params;
-    ImageSourcePtr< FloatVolume > source;
-    mutable ScaleFilter< ByteVolume > scaler;
+    ImageSourcePtr<FloatVolume> source;
+    mutable ScaleFilter<ByteVolume> scaler;
     Vector3f _borders;
 
 private:
     mutable std::mutex _lock;
 };
 
-DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
-    : _impl( new DataSource::Impl( pluginData ))
+DataSource::DataSource(const livre::DataSourcePluginData& pluginData)
+    : _impl(new DataSource::Impl(pluginData))
 {
     // We assume that the data's units are micrometers
     _volumeInfo.meterToDataUnitRatio = 1e6;
@@ -142,7 +145,7 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     const AABBf& bbox = _impl->source->getBoundingBox();
     const Vector3f resolution = _impl->source->getResolution();
     const Vector3f fullResolution =
-            _impl->source->getSizeInMicrometer() * resolution;
+        _impl->source->getSizeInMicrometer() * resolution;
 
     // maxTextureSize value should be retrieved from OpenGL. But at this
     // point in time there may be no GL context. So a general object is
@@ -151,12 +154,12 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
     const size_t maxBlockByteSize = _impl->params.getMaxBlockSize();
     Vector3f blockResolution = fullResolution;
     size_t depth = 0;
-    while( true )
+    while (true)
     {
-        if( blockResolution.product() < maxBlockByteSize &&
+        if (blockResolution.product() < maxBlockByteSize &&
             blockResolution.x() < maxTextureSize &&
             blockResolution.y() < maxTextureSize &&
-            blockResolution.z() < maxTextureSize )
+            blockResolution.z() < maxTextureSize)
         {
             break;
         }
@@ -164,72 +167,75 @@ DataSource::DataSource( const livre::DataSourcePluginData& pluginData )
         ++depth;
     }
 
-    vmml::Vector3ui blockDim( std::ceil( blockResolution.x( )),
-                              std::ceil( blockResolution.y( )),
-                              std::ceil( blockResolution.z( )));
-    if( blockDim.x() > 8 )
+    vmml::Vector3ui blockDim(std::ceil(blockResolution.x()),
+                             std::ceil(blockResolution.y()),
+                             std::ceil(blockResolution.z()));
+    if (blockDim.x() > 8)
         blockDim.x() -= blockDim.x() % 8;
-    if( blockDim.y() > 8 )
+    if (blockDim.y() > 8)
         blockDim.y() -= blockDim.y() % 8;
-    if( blockDim.z() > 8 )
+    if (blockDim.z() > 8)
         blockDim.z() -= blockDim.z() % 8;
 
     const size_t treeQuotient = 1 << depth;
     const vmml::Vector3ui totalTreeSize = blockDim * treeQuotient;
-    _impl->_borders = vmml::Vector3f( totalTreeSize ) / resolution -
-                      bbox.getSize();
+    _impl->_borders =
+        vmml::Vector3f(totalTreeSize) / resolution - bbox.getSize();
 
     _volumeInfo.voxels = totalTreeSize;
     _volumeInfo.maximumBlockSize = blockDim;
 
-    if( !livre::fillRegularVolumeInfo( _volumeInfo ))
-        LBTHROW( std::runtime_error( "Cannot setup the regular tree" ));
+    if (!livre::fillRegularVolumeInfo(_volumeInfo))
+        LBTHROW(std::runtime_error("Cannot setup the regular tree"));
 
-    const float maxDim = std::max( _impl->_borders.x() + bbox.getSize().x(),
-                         std::max( _impl->_borders.y() + bbox.getSize().y(),
-                                   _impl->_borders.z() + bbox.getSize().z( )));
-    const Vector3f scale( 1.0f / maxDim );
+    const float maxDim =
+        std::max(_impl->_borders.x() + bbox.getSize().x(),
+                 std::max(_impl->_borders.y() + bbox.getSize().y(),
+                          _impl->_borders.z() + bbox.getSize().z()));
+    const Vector3f scale(1.0f / maxDim);
     vmml::Matrix4f& transform = _volumeInfo.dataToLivreTransform;
-    transform.setTranslation( -bbox.getCenter( ));
-    transform.scale( scale );
-    transform.scaleTranslation( scale );
+    transform.setTranslation(-bbox.getCenter());
+    transform.scale(scale);
+    transform.scaleTranslation(scale);
     _volumeInfo.resolution = resolution;
 }
 
 DataSource::~DataSource()
-{}
+{
+}
 
-livre::MemoryUnitPtr DataSource::getData( const livre::LODNode& node )
+livre::MemoryUnitPtr DataSource::getData(const livre::LODNode& node)
 {
     try
     {
-        return _impl->sample( node, _volumeInfo );
+        return _impl->sample(node, _volumeInfo);
     }
-    catch( const std::exception& e )
+    catch (const std::exception& e)
     {
         LBERROR << "sample failed: " << e.what() << std::endl;
         return livre::MemoryUnitPtr();
     }
-    catch( ... )
+    catch (...)
     {
         LBERROR << "sample failed" << std::endl;
         return livre::MemoryUnitPtr();
     }
 }
 
-livre::LODNode DataSource::internalNodeToLODNode( const livre::NodeId& internalNode ) const
+livre::LODNode DataSource::internalNodeToLODNode(
+    const livre::NodeId& internalNode) const
 {
     const uint32_t refLevel = internalNode.getLevel();
     const vmml::Vector3ui& bricksInRefLevel =
-                                  _volumeInfo.rootNode.getBlockSize( refLevel );
-    const vmml::AABB< int32_t > localBlockPos( internalNode.getPosition(),
-                                               internalNode.getPosition() + 1u);
+        _volumeInfo.rootNode.getBlockSize(refLevel);
+    const vmml::AABB<int32_t> localBlockPos(internalNode.getPosition(),
+                                            internalNode.getPosition() + 1u);
 
-    const uint32_t index = bricksInRefLevel.find_max_index( );
-    const Vector3f boxCoordMin = Vector3f( localBlockPos.getMin( ))
-                                 / bricksInRefLevel[index];
-    const Vector3f boxCoordMax = Vector3f( localBlockPos.getMax( ))
-                                 / bricksInRefLevel[index];
+    const uint32_t index = bricksInRefLevel.find_max_index();
+    const Vector3f boxCoordMin =
+        Vector3f(localBlockPos.getMin()) / bricksInRefLevel[index];
+    const Vector3f boxCoordMax =
+        Vector3f(localBlockPos.getMax()) / bricksInRefLevel[index];
 
     LBVERB << "Internal Node to LOD Node" << std::endl
            << "  node id " << internalNode << std::endl
@@ -239,32 +245,29 @@ livre::LODNode DataSource::internalNodeToLODNode( const livre::NodeId& internalN
            << "  volume world size " << _volumeInfo.worldSize << std::endl
            << std::endl;
 
-    return livre::LODNode( internalNode,
-                           _volumeInfo.maximumBlockSize -
-                           _volumeInfo.overlap * 2,
-                           AABBf( boxCoordMin * _volumeInfo.worldSize -
-                                  _volumeInfo.worldSize * 0.5f,
-                                  boxCoordMax * _volumeInfo.worldSize -
-                                  _volumeInfo.worldSize * 0.5f ));
+    return livre::LODNode(internalNode, _volumeInfo.maximumBlockSize -
+                                            _volumeInfo.overlap * 2,
+                          AABBf(boxCoordMin * _volumeInfo.worldSize -
+                                    _volumeInfo.worldSize * 0.5f,
+                                boxCoordMax * _volumeInfo.worldSize -
+                                    _volumeInfo.worldSize * 0.5f));
 }
 
-bool DataSource::handles( const livre::DataSourcePluginData& data )
+bool DataSource::handles(const livre::DataSourcePluginData& data)
 {
     const std::string fivox = "fivox";
     const std::string& scheme = data.getURI().getScheme();
-    return scheme.substr( 0, fivox.size( )) == fivox;
+    return scheme.substr(0, fivox.size()) == fivox;
 }
 
 std::string DataSource::getDescription()
 {
-    return std::string( "Field volumes: fivox*://\n" ) +
-           lunchbox::string::prepend( URIHandler::getHelp(), "  " );
+    return std::string("Field volumes: fivox*://\n") +
+           lunchbox::string::prepend(URIHandler::getHelp(), "  ");
 }
-
 
 bool DataSource::update()
 {
-    return _impl->update( _volumeInfo );
+    return _impl->update(_volumeInfo);
 }
-
 }

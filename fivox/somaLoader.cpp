@@ -24,12 +24,12 @@
 #include "helpers.h"
 #include "uriHandler.h"
 
-#include <brion/brion.h>
 #include <brain/circuit.h>
+#include <brion/brion.h>
 #include <lunchbox/bitOperation.h>
 
 #ifdef final
-#  undef final
+#undef final
 #endif
 
 namespace fivox
@@ -39,31 +39,32 @@ using boost::lexical_cast;
 class SomaLoader::Impl
 {
 public:
-    Impl( EventSource& output, const URIHandler& params )
-        : _output( output )
-        , _report( params.getConfig().getReportSource( params.getReport( )),
-                   brion::MODE_READ, params.getGIDs( ))
+    Impl(EventSource& output, const URIHandler& params)
+        : _output(output)
+        , _report(params.getConfig().getReportSource(params.getReport()),
+                  brion::MODE_READ, params.getGIDs())
     {
-        const brain::Circuit circuit( params.getConfig( ));
-        const auto morphologies = circuit.loadMorphologies(
-            params.getGIDs(), brain::Circuit::Coordinates::global );
+        const brain::Circuit circuit(params.getConfig());
+        const auto morphologies =
+            circuit.loadMorphologies(params.getGIDs(),
+                                     brain::Circuit::Coordinates::global);
 
         // add soma events only
-        helpers::addCompartmentEvents( morphologies, _report, output, true );
+        helpers::addCompartmentEvents(morphologies, _report, output, true);
     }
 
     ssize_t load()
     {
         const brion::floatsPtr frame =
-                _report.loadFrame( _output.getCurrentTime( ));
-        if( !frame )
+            _report.loadFrame(_output.getCurrentTime());
+        if (!frame)
             return -1;
 
         const brion::GIDSet& gids = _report.getGIDs();
         const brion::SectionOffsets& offsets = _report.getOffsets();
-        const std::vector< float > reportValues = *frame;
+        const std::vector<float> reportValues = *frame;
 
-        for( size_t i = 0; i < gids.size(); ++i )
+        for (size_t i = 0; i < gids.size(); ++i)
         {
             // This code assumes that section 0 is the soma.
             const float v = reportValues[offsets[i][0]];
@@ -76,27 +77,26 @@ public:
     brion::CompartmentReport _report;
 };
 
-SomaLoader::SomaLoader( const URIHandler& params )
-    : EventSource( params )
-    , _impl( new SomaLoader::Impl( *this, params ))
+SomaLoader::SomaLoader(const URIHandler& params)
+    : EventSource(params)
+    , _impl(new SomaLoader::Impl(*this, params))
 {
-    if( getDt() < 0.f )
-        setDt( _impl->_report.getTimestep( ));
+    if (getDt() < 0.f)
+        setDt(_impl->_report.getTimestep());
 }
 
 SomaLoader::~SomaLoader()
-{}
+{
+}
 
 Vector2f SomaLoader::_getTimeRange() const
 {
-    return Vector2f( _impl->_report.getStartTime(),
-                     _impl->_report.getEndTime( ));
+    return Vector2f(_impl->_report.getStartTime(), _impl->_report.getEndTime());
 }
 
-ssize_t SomaLoader::_load( const size_t /*chunkIndex*/,
-                           const size_t /*numChunks*/ )
+ssize_t SomaLoader::_load(const size_t /*chunkIndex*/,
+                          const size_t /*numChunks*/)
 {
     return _impl->load();
 }
-
 }

@@ -25,7 +25,6 @@
 
 namespace fivox
 {
-
 /**
  * Display the progress of an ITK filter on std::cout and emits a progress event
  * using ZeroEQ (if available).
@@ -33,9 +32,9 @@ namespace fivox
 class ProgressObserver : public itk::Command
 {
 public:
-    typedef itk::SmartPointer< ProgressObserver > Pointer;
+    typedef itk::SmartPointer<ProgressObserver> Pointer;
 
-    itkNewMacro( ProgressObserver );
+    itkNewMacro(ProgressObserver);
 
     ProgressObserver();
 
@@ -47,12 +46,12 @@ public:
 
 private:
     class Impl;
-    std::unique_ptr< Impl > _impl;
+    std::unique_ptr<Impl> _impl;
 
-    void Execute( itk::Object* caller, const itk::EventObject& event ) override;
+    void Execute(itk::Object* caller, const itk::EventObject& event) override;
 
-    void Execute( const itk::Object* object,
-                  const itk::EventObject& event ) override;
+    void Execute(const itk::Object* object,
+                 const itk::EventObject& event) override;
 };
 
 } // end namespace fivox

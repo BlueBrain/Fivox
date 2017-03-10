@@ -31,75 +31,78 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "beerLambertProjectionImageFilter.h"
 #include "../commandLineApplication.h"
 #include "../volumeWriter.h"
+#include "beerLambertProjectionImageFilter.h"
 
 #include <itkImageFileWriter.h>
 
 namespace
 {
 typedef float FloatPixelType;
-typedef itk::Image< FloatPixelType, 2 > FloatImageType;
+typedef itk::Image<FloatPixelType, 2> FloatImageType;
 }
 
 class ComputeVSD : public CommandLineApplication
 {
 public:
     ComputeVSD()
-        : CommandLineApplication( "A tool to compute 2D projections of VSD "
-                                  "signals using the Beer-Lambert law.",
-                                  "fivoxvsd://" )
-        , _outputFile( "image" )
+        : CommandLineApplication(
+              "A tool to compute 2D projections of VSD "
+              "signals using the Beer-Lambert law.",
+              "fivoxvsd://")
+        , _outputFile("image")
     {
+        // clang-format off
         _options.add_options()
 //! [ComputeVSDParameters] @anchor ComputeVSD
-            ( "output,o", po::value< std::string >(),
-              "Name of the output volume (if 'export-volume' specified) and 2D "
-              "image (VTK format) files; contains frame number if --frames or "
-              "--times specified." )
-            ( "export-volume",
-              "Export also the 3d volume (mhd + raw) containing the VSD values,"
-              " in addition to the VTK file." )
-            ( "export-point-sprites",
-              "Export also the point sprite files containing the VSD values,"
-              " in addition to the VTK file." )
-            ( "sensor-res", po::value< size_t >()->default_value( 512 ),
-              "Number of pixels per side of square sensor." )
-            ( "sensor-dim", po::value< size_t >()->default_value( 1000 ),
-              "Length of side of square sensor in micrometers." )
-            ( "curve", po::value< std::string >(),
-              "Path to the dye curve file (default: no attenuation)")
-            ( "depth", po::value< float >()->default_value( 2081.75641787f ),
-              "Depth of the attenuation curve area of influence. It also "
-              "defines the Y-coordinate at which it starts being applied, "
-              "down until y=0 (default: 2081.75641787 micrometers)." )
-            ( "interpolate-attenuation",
-              "Interpolate the attenuation from the dye curve." )
-            ( "sigma", po::value< double >()->default_value( 0.0045, "0.0045" ),
-              "Absorption + scattering coefficient (units per micrometer) in "
-              "the Beer-Lambert law. Must be a positive value "
-              "(default: 0.0045).")
-            ( "v0", po::value< float >()->default_value( -65.f ),
-              "Resting potential (default: -65 mV)." )
-            ( "g0", po::value< float >()->default_value( 0.f ),
-              "Multiplier for surface area in background fluorescence term." )
-            ( "ap-threshold", po::value< float >(),
-              "Action potential threshold in millivolts." )
-            ( "soma-pixels", po::value< std::string >(),
-              "Produce a text file containing the GIDs loaded and their "
-              "corresponding 3D positions and indices in the resulting 2D "
-              "image." );
+            ("output,o", po::value<std::string>(),
+             "Name of the output volume (if 'export-volume' specified) and 2D "
+             "image (VTK format) files; contains frame number if --frames or "
+             "--times specified.")
+            ("export-volume",
+             "Export also the 3d volume (mhd + raw) containing the VSD values,"
+             " in addition to the VTK file.")
+            ("export-point-sprites",
+             "Export also the point sprite files containing the VSD values,"
+             " in addition to the VTK file.")
+            ("sensor-res", po::value<size_t>()->default_value(512),
+             "Number of pixels per side of square sensor.")
+            ("sensor-dim", po::value<size_t>()->default_value(1000),
+             "Length of side of square sensor in micrometers.")
+            ("curve", po::value<std::string>(),
+             "Path to the dye curve file (default: no attenuation)")
+            ("depth", po::value<float>()->default_value(2081.75641787f),
+             "Depth of the attenuation curve area of influence. It also "
+             "defines the Y-coordinate at which it starts being applied, "
+             "down until y=0 (default: 2081.75641787 micrometers).")
+            ("interpolate-attenuation",
+             "Interpolate the attenuation from the dye curve.")
+            ("sigma", po::value<double>()->default_value(0.0045, "0.0045"),
+             "Absorption + scattering coefficient (units per micrometer) in "
+             "the Beer-Lambert law. Must be a positive value "
+             "(default: 0.0045).")
+            ("v0", po::value<float>()->default_value(-65.f),
+             "Resting potential (default: -65 mV).")
+            ("g0", po::value<float>()->default_value(0.f),
+             "Multiplier for surface area in background fluorescence term.")
+            ("ap-threshold", po::value<float>(),
+             "Action potential threshold in millivolts.")
+            ("soma-pixels", po::value<std::string>(),
+             "Produce a text file containing the GIDs loaded and their "
+             "corresponding 3D positions and indices in the resulting 2D "
+             "image.");
 //! [ComputeVSDParameters]
+        // clang-format on
     }
 
-    bool parse( int argc, char* argv[] ) final
+    bool parse(int argc, char* argv[]) final
     {
-        if( !CommandLineApplication::parse( argc, argv ))
+        if (!CommandLineApplication::parse(argc, argv))
             return false;
 
-        if( _vm.count( "output" ))
-            _outputFile = _vm["output"].as< std::string >();
+        if (_vm.count("output"))
+            _outputFile = _vm["output"].as<std::string>();
 
         return true;
     }
@@ -113,24 +116,25 @@ public:
      * @param input 3d volume used as input  to generate the 2D projection
      * @param filename name of the output image file
      */
-    void projectVSD( VolumePtr input, const std::string& filename )
+    void projectVSD(VolumePtr input, const std::string& filename)
     {
-        typedef BeerLambertProjectionImageFilter
-            < fivox::FloatVolume, FloatImageType > FilterType;
+        typedef BeerLambertProjectionImageFilter<fivox::FloatVolume,
+                                                 FloatImageType>
+            FilterType;
         FilterType::Pointer projection = FilterType::New();
-        projection->SetInput( input );
-        projection->SetProjectionDimension( 1 ); // projection along Y-axis
-        projection->SetPixelSize( input->GetSpacing( ).GetElement( 0 ));
-        const double sigma = _vm["sigma"].as< double >();
-        projection->SetSigma( sigma );
+        projection->SetInput(input);
+        projection->SetProjectionDimension(1); // projection along Y-axis
+        projection->SetPixelSize(input->GetSpacing().GetElement(0));
+        const double sigma = _vm["sigma"].as<double>();
+        projection->SetSigma(sigma);
 
         // Write output image
-        typedef itk::ImageFileWriter< FloatImageType > ImageWriter;
+        typedef itk::ImageFileWriter<FloatImageType> ImageWriter;
         ImageWriter::Pointer imageWriter = ImageWriter::New();
-        imageWriter->SetInput( projection->GetOutput( ));
+        imageWriter->SetInput(projection->GetOutput());
 
         const std::string& imageFile = filename + ".vtk";
-        imageWriter->SetFileName( imageFile );
+        imageWriter->SetFileName(imageFile);
         imageWriter->Update();
         LBINFO << "VSD projection written as '" << imageFile
                << "' using a sigma value of " << sigma << std::endl;
@@ -140,59 +144,60 @@ public:
     {
         ::fivox::URI uri = getURI();
 
-        const size_t sensorRes( _vm["sensor-res"].as< size_t >( ));
-        const size_t sensorDim( _vm["sensor-dim"].as< size_t >( ));
+        const size_t sensorRes(_vm["sensor-res"].as<size_t>());
+        const size_t sensorDim(_vm["sensor-dim"].as<size_t>());
         const float resolution = (float)sensorDim / sensorRes;
         // the URI handler takes voxels/unit as resolution
-        uri.addQuery( "resolution", std::to_string( 1 / resolution ));
+        uri.addQuery("resolution", std::to_string(1 / resolution));
 
-        const ::fivox::URIHandler params( uri );
-        ImageSourcePtr source = params.newImageSource< fivox::FloatVolume >();
+        const ::fivox::URIHandler params(uri);
+        ImageSourcePtr source = params.newImageSource<fivox::FloatVolume>();
 
         _eventSource = source->getEventSource();
-        std::shared_ptr< fivox::VSDLoader > vsdLoader =
-                std::static_pointer_cast< fivox::VSDLoader >( _eventSource );
+        std::shared_ptr<fivox::VSDLoader> vsdLoader =
+            std::static_pointer_cast<fivox::VSDLoader>(_eventSource);
 
-        const float v0 = _vm["v0"].as< float >();
-        const float g0 = _vm["g0"].as< float >();
+        const float v0 = _vm["v0"].as<float>();
+        const float g0 = _vm["g0"].as<float>();
 
         LBINFO << "VSD info: V0 = " << v0 << " mV; G0 = " << g0 << std::endl;
-        vsdLoader->setRestingPotential( v0 );
-        vsdLoader->setAreaMultiplier( g0 );
+        vsdLoader->setRestingPotential(v0);
+        vsdLoader->setAreaMultiplier(g0);
 
-        if( _vm.count( "ap-threshold" ))
+        if (_vm.count("ap-threshold"))
         {
-            vsdLoader->setSpikeFilter( true );
-            const float apThreshold = _vm["ap-threshold"].as< float >();
+            vsdLoader->setSpikeFilter(true);
+            const float apThreshold = _vm["ap-threshold"].as<float>();
             LBINFO << "Action potential threshold set to " << apThreshold
                    << " mV." << std::endl;
-            vsdLoader->setApThreshold( apThreshold );
+            vsdLoader->setApThreshold(apThreshold);
         }
 
-        if( _vm.count( "curve" ))
+        if (_vm.count("curve"))
         {
-            const std::string& curveFile = _vm["curve"].as< std::string >();
-            const float depth = _vm["depth"].as< float >();
+            const std::string& curveFile = _vm["curve"].as<std::string>();
+            const float depth = _vm["depth"].as<float>();
 
-            const bool interpolate = _vm.count( "interpolate-attenuation" );
+            const bool interpolate = _vm.count("interpolate-attenuation");
             LBINFO << "Using '" << curveFile << "' as the dye curve file; "
                    << "depth of " << depth << " micrometers. "
-                   << "Attenuation values will" << (!interpolate ? " not " :" ")
-                   << "be interpolated." << std::endl;
+                   << "Attenuation values will"
+                   << (!interpolate ? " not " : " ") << "be interpolated."
+                   << std::endl;
 
-            const fivox::AttenuationCurve dye( curveFile, depth );
-            vsdLoader->setCurve( dye );
-            vsdLoader->setInterpolation( interpolate );
+            const fivox::AttenuationCurve dye(curveFile, depth);
+            vsdLoader->setCurve(dye);
+            vsdLoader->setInterpolation(interpolate);
         }
 
-        const size_t size( std::ceil( source->getSizeInVoxel().find_max( )));
+        const size_t size(std::ceil(source->getSizeInVoxel().find_max()));
 
         // crop the volume region to the specified sensor dimensions
-        fivox::Vector3f extent( source->getSizeInMicrometer( ));
+        fivox::Vector3f extent(source->getSizeInMicrometer());
         extent[0] = sensorDim;
         extent[2] = sensorDim;
 
-        const fivox::VolumeHandler volumeHandler( size, extent );
+        const fivox::VolumeHandler volumeHandler(size, extent);
         fivox::FloatVolume::IndexType vIndex;
         vIndex.Fill(0);
         fivox::FloatVolume::SizeType vSize;
@@ -201,23 +206,23 @@ public:
         vSize[2] = extent[2] / resolution;
 
         VolumePtr output = source->GetOutput();
-        output->SetRegions( fivox::FloatVolume::RegionType( vIndex, vSize ));
+        output->SetRegions(fivox::FloatVolume::RegionType(vIndex, vSize));
 
         fivox::AABBf bboxSomas;
         const auto& somaPositions = vsdLoader->getSomaPositions();
-        for( const auto& position : somaPositions )
-            bboxSomas.merge( position );
+        for (const auto& position : somaPositions)
+            bboxSomas.merge(position);
 
         // pixel/voxel size
         const auto spacing = volumeHandler.computeSpacing();
         // left bottom corner of the image/volume
-        const auto origin = volumeHandler.computeOrigin( bboxSomas.getCenter());
+        const auto origin = volumeHandler.computeOrigin(bboxSomas.getCenter());
 
-        if( _vm.count( "soma-pixels" ))
+        if (_vm.count("soma-pixels"))
         {
-            const auto& fileName = _vm["soma-pixels"].as< std::string >();
-            std::ofstream file( fileName );
-            if( !file.is_open( ))
+            const auto& fileName = _vm["soma-pixels"].as<std::string>();
+            std::ofstream file(fileName);
+            if (!file.is_open())
                 LBERROR << "File " << fileName << " could not be opened"
                         << std::endl;
             else
@@ -231,9 +236,9 @@ public:
 
                 size_t i = 0;
                 const auto& gids = vsdLoader->getGIDs();
-                for( const auto& gid : gids )
+                for (const auto& gid : gids)
                 {
-                    if( file.bad( ))
+                    if (file.bad())
                         break;
                     const auto& pos = somaPositions[i++];
                     file << gid << " " << pos << ": "
@@ -242,39 +247,39 @@ public:
                          << std::endl;
                 }
             }
-            if( file.good( ))
+            if (file.good())
                 LBINFO << "Soma positions written as " << fileName << std::endl;
             else
                 LBERROR << "Error while writing to " << fileName << std::endl;
         }
 
-        output->SetSpacing( spacing );
-        output->SetOrigin( origin );
+        output->SetSpacing(spacing);
+        output->SetOrigin(origin);
 
-        VolumeWriter< float > writer( output, fivox::Vector2ui( ));
+        VolumeWriter<float> writer(output, fivox::Vector2ui());
 
-        const fivox::Vector2ui frameRange( getFrameRange( _eventSource->getDt( )));
-        size_t numDigits = std::to_string( frameRange.y( )).length();
-        if( _vm.count( "times" ))
+        const fivox::Vector2ui frameRange(getFrameRange(_eventSource->getDt()));
+        size_t numDigits = std::to_string(frameRange.y()).length();
+        if (_vm.count("times"))
         {
-            const float endTime = _vm["times"].as< fivox::Vector2f >()[1];
+            const float endTime = _vm["times"].as<fivox::Vector2f>()[1];
             std::ostringstream s;
             s << std::fixed << std::setprecision(1) << endTime;
             numDigits = s.str().length();
         }
 
-        if( _vm.count( "export-point-sprites" ))
+        if (_vm.count("export-point-sprites"))
             _writePointSpritePositions();
 
-        for( uint32_t i = frameRange.x(); i < frameRange.y(); ++i )
+        for (uint32_t i = frameRange.x(); i < frameRange.y(); ++i)
         {
             std::string filename = _outputFile;
-            if( frameRange.y() - frameRange.x() > 1 )
+            if (frameRange.y() - frameRange.x() > 1)
             {
                 // append the frame number if --frames, timestamp otherwise
                 std::ostringstream os;
-                os << filename << std::setfill('0') << std::setw( numDigits );
-                if( _vm.count( "times" ))
+                os << filename << std::setfill('0') << std::setw(numDigits);
+                if (_vm.count("times"))
                     os << std::fixed << std::setprecision(1)
                        << i * vsdLoader->getDt();
                 else
@@ -283,34 +288,34 @@ public:
                 filename = os.str();
             }
 
-            _eventSource->setFrame( i );
+            _eventSource->setFrame(i);
             source->Modified();
 
-            if( _vm.count( "export-volume" ))
+            if (_vm.count("export-volume"))
             {
                 const std::string& volumeName = filename + ".mhd";
-                writer->SetFileName( volumeName );
+                writer->SetFileName(volumeName);
                 source->Modified();
                 writer->Update(); // Run pipeline to write volume
                 LBINFO << "Volume written as " << volumeName << std::endl;
             }
 
-            projectVSD( output, filename );
+            projectVSD(output, filename);
 
-            if( _vm.count( "export-point-sprites" ))
+            if (_vm.count("export-point-sprites"))
             {
-                _writePointSpriteIntensities( filename );
-                _writePointSpriteHeader( filename );
+                _writePointSpriteIntensities(filename);
+                _writePointSpriteHeader(filename);
             }
         }
     }
 
 private:
-    void _writePointSpriteHeader( const std::string& filename ) const
+    void _writePointSpriteHeader(const std::string& filename) const
     {
-        const std::string& pshFile( filename + ".psh" );
-        std::ofstream file( pshFile.c_str( ));
-        if( file.is_open( ))
+        const std::string& pshFile(filename + ".psh");
+        std::ofstream file(pshFile.c_str());
+        if (file.is_open())
         {
             file << "# VSD Point Sprite files\n"
                  << "# File version: 1\n"
@@ -318,7 +323,7 @@ private:
                  << std::endl;
 
             file << "EventsCount=" << _eventSource->getNumEvents() << std::endl;
-            const fivox::AABBf& bbox( _eventSource->getBoundingBox( ));
+            const fivox::AABBf& bbox(_eventSource->getBoundingBox());
             file << "XCenter=" << bbox.getCenter().x() << std::endl;
             file << "YCenter=" << bbox.getCenter().y() << std::endl;
             file << "ZCenter=" << bbox.getCenter().z() << std::endl;
@@ -333,7 +338,7 @@ private:
             // compatibility issues.
             file << "TimeStep=" << _eventSource->getCurrentTime() << std::endl;
 
-            if( file.good( ))
+            if (file.good())
                 LBINFO << "Point Sprite header written as " << pshFile
                        << std::endl;
         }
@@ -341,37 +346,37 @@ private:
 
     void _writePointSpritePositions() const
     {
-        const std::string& pspFile( _outputFile + ".psp" );
-        std::ofstream file( pspFile.c_str(), std::ios::binary );
-        if( file.is_open( ))
+        const std::string& pspFile(_outputFile + ".psp");
+        std::ofstream file(pspFile.c_str(), std::ios::binary);
+        if (file.is_open())
         {
-            for( size_t i = 0; i < _eventSource->getNumEvents(); ++i )
+            for (size_t i = 0; i < _eventSource->getNumEvents(); ++i)
             {
-                file.write( (const char*)&_eventSource->getPositionsX()[i],
-                            sizeof( float ));
-                file.write( (const char*)&_eventSource->getPositionsY()[i],
-                            sizeof( float ));
-                file.write( (const char*)&_eventSource->getPositionsZ()[i],
-                            sizeof( float ));
+                file.write((const char*)&_eventSource->getPositionsX()[i],
+                           sizeof(float));
+                file.write((const char*)&_eventSource->getPositionsY()[i],
+                           sizeof(float));
+                file.write((const char*)&_eventSource->getPositionsZ()[i],
+                           sizeof(float));
             }
-            if( file.good( ))
+            if (file.good())
                 LBINFO << "Point Sprite positions written as " << pspFile
                        << std::endl;
         }
     }
 
-    void _writePointSpriteIntensities( const std::string& filename ) const
+    void _writePointSpriteIntensities(const std::string& filename) const
     {
-        const std::string& psiFile( filename + ".psi" );
-        std::ofstream file( psiFile.c_str(), std::ios::binary );
-        if( file.is_open( ))
+        const std::string& psiFile(filename + ".psi");
+        std::ofstream file(psiFile.c_str(), std::ios::binary);
+        if (file.is_open())
         {
-            for( size_t i = 0; i < _eventSource->getNumEvents(); ++i )
-                file.write( (const char*)&_eventSource->getValues()[i],
-                            sizeof( float ));
-            if( file.good( ))
-                LBINFO << "Point Sprite intensities written as "
-                       << psiFile << std::endl;
+            for (size_t i = 0; i < _eventSource->getNumEvents(); ++i)
+                file.write((const char*)&_eventSource->getValues()[i],
+                           sizeof(float));
+            if (file.good())
+                LBINFO << "Point Sprite intensities written as " << psiFile
+                       << std::endl;
         }
     }
 
@@ -379,10 +384,10 @@ private:
     ::fivox::EventSourcePtr _eventSource;
 };
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
     ComputeVSD app;
-    if( !app.parse( argc, argv ))
+    if (!app.parse(argc, argv))
         return EXIT_SUCCESS;
 
     app.sample();

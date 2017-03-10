@@ -45,37 +45,37 @@ namespace
  * a specified data range when using an integer type to specialize the template.
  * Can also write a VSD projection from the same volume.
  */
-template< typename T > class VolumeWriter
+template <typename T>
+class VolumeWriter
 {
-    typedef itk::ImageFileWriter< itk::Image< T, 3 >> Writer;
+    typedef itk::ImageFileWriter<itk::Image<T, 3>> Writer;
 
 public:
     /**
      * @param input pointer to the input volume
      * @param dataRange range of the data to be used as reference to scale
      */
-    VolumeWriter( VolumePtr input, const vmml::Vector2f& dataRange )
-        : _input( input )
-        , _scaler( _input, dataRange )
-        , _writer( Writer::New( ))
+    VolumeWriter(VolumePtr input, const vmml::Vector2f& dataRange)
+        : _input(input)
+        , _scaler(_input, dataRange)
+        , _writer(Writer::New())
     {
-        _writer->SetInput( _scaler.GetOutput( ));
+        _writer->SetInput(_scaler.GetOutput());
     }
 
     typename Writer::Pointer operator->() { return _writer; }
-
 private:
     VolumePtr _input;
-    fivox::ScaleFilter< itk::Image< T, 3 >> _scaler;
+    fivox::ScaleFilter<itk::Image<T, 3>> _scaler;
     typename Writer::Pointer _writer;
 };
 
-template<> VolumeWriter< float >::VolumeWriter( VolumePtr input,
-                                                const vmml::Vector2f& )
-    : _input( input )
-    , _writer( Writer::New( ))
+template <>
+VolumeWriter<float>::VolumeWriter(VolumePtr input, const vmml::Vector2f&)
+    : _input(input)
+    , _writer(Writer::New())
 {
-    _writer->SetInput( _input );
+    _writer->SetInput(_input);
 }
 }
 #endif
