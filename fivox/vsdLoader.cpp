@@ -60,13 +60,13 @@ public:
         helpers::addCompartmentEvents(morphologies, _voltageReport, _output);
 
         LBINFO << "Loading areas..." << std::endl;
-        _areas = _areaReport.loadFrame(0.f);
+        _areas = _areaReport.loadFrame(0.).get();
     }
 
     ssize_t load()
     {
         brion::floatsPtr voltages =
-            _voltageReport.loadFrame(_output.getCurrentTime());
+            _voltageReport.loadFrame(_output.getCurrentTime()).get();
         if (!voltages)
             return -1;
 

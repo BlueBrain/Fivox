@@ -142,7 +142,7 @@ public:
      *
      * @param time The time stamp (ms) to be loaded.
      */
-    FIVOX_API void setTime(float time);
+    FIVOX_API void setTime(double time);
 
     /**
      * Gets the valid frame range according to data. The valid frames are in the
@@ -161,17 +161,17 @@ public:
     /**
      * @return the dt used for frame-to-time conversion in the data source,
      */
-    FIVOX_API float getDt() const;
+    FIVOX_API double getDt() const;
 
     /**
      * @return the frame duration. In general this will be equal to dt, but
      *         it can be larger for discrete event sources or in combination of
      *         functors that do data aggregation in a time window.
      */
-    FIVOX_API float getDuration() const;
+    FIVOX_API double getDuration() const;
 
     /** @return the current time from setTime() in milliseconds. */
-    FIVOX_API float getCurrentTime() const;
+    FIVOX_API double getCurrentTime() const;
 
     /**
      * Load and update events for the given chunks of the data source.
@@ -252,7 +252,7 @@ protected:
      *
      * This should be called by derived classes in their constructor.
      */
-    void setDt(float dt);
+    void setDt(double dt);
 
 private:
     class Impl;

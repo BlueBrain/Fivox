@@ -56,7 +56,7 @@ public:
     ssize_t load()
     {
         const brion::floatsPtr frame =
-            _report.loadFrame(_output.getCurrentTime());
+            _report.loadFrame(_output.getCurrentTime()).get();
         if (!frame)
             return -1;
 

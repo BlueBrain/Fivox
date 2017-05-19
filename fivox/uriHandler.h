@@ -101,7 +101,7 @@ public:
      *
      * @return the specified timestep. If invalid or empty, return 10.
      */
-    FIVOX_API float getDt() const;
+    FIVOX_API double getDt() const;
 
     /** @return URI to spikes source, empty by default */
     FIVOX_API std::string getSpikes() const;
@@ -111,7 +111,7 @@ public:
      *
      * @return the specified duration. If invalid or empty, return getDt().
      */
-    FIVOX_API float getDuration() const;
+    FIVOX_API double getDuration() const;
 
     /**
      * Get the range of values to consider in the input data for rescaling into
