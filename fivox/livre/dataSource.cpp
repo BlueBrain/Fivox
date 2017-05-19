@@ -26,9 +26,9 @@
 #include <fivox/scaleFilter.h>
 #include <fivox/uriHandler.h>
 
-#include <livre/core/data/LODNode.h>
-#include <livre/core/data/MemoryUnit.h>
-#include <livre/core/version.h>
+#include <livre/data/LODNode.h>
+#include <livre/data/MemoryUnit.h>
+#include <livre/data/version.h>
 
 #include <lunchbox/pluginRegisterer.h>
 #include <lunchbox/scopedMutex.h>
@@ -36,7 +36,7 @@
 
 extern "C" int LunchboxPluginGetVersion()
 {
-    return LIVRECORE_VERSION_ABI;
+    return LIVREDATA_VERSION_ABI;
 }
 extern "C" bool LunchboxPluginRegister()
 {

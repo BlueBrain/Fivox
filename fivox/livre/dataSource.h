@@ -21,7 +21,7 @@
 #ifndef FIVOX_LIVRE_DATASOURCE_H
 #define FIVOX_LIVRE_DATASOURCE_H
 
-#include <livre/core/data/DataSourcePlugin.h>
+#include <livre/data/DataSourcePlugin.h>
 
 namespace fivox
 {
