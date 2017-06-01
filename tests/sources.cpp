@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(fivoxSpikes_stream_source_frame_range)
 
     brion::Spikes spikes;
     for (uint32_t i = 0; i <= 50; ++i)
-        spikes.push_back(std::make_pair(i / 100.0f, i));
+        spikes.push_back(std::make_pair(i / 100.0, i));
     spikeWriter.write(spikes);
 
     // Time range: [0, 0.5](ms)
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(fivoxSpikes_stream_source_frame_range)
 
     spikes.clear();
     for (uint32_t i = 51; i <= 100; ++i)
-        spikes.push_back(std::make_pair(i / 100.0f, i));
+        spikes.push_back(std::make_pair(i / 100.0, i));
     spikeWriter.write(spikes);
 
     lunchbox::sleep(WRITE_DELAY);
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE(fivoxSpikes_stream_source_frame_range)
 
     spikes.clear();
     for (uint32_t i = 101; i <= 120; ++i)
-        spikes.push_back(std::make_pair(i / 100.0f, i));
+        spikes.push_back(std::make_pair(i / 100.0, i));
     spikeWriter.write(spikes);
 
     lunchbox::sleep(WRITE_DELAY);
@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_CASE(fivoxSpikes_stream_source_frame_range)
 
     spikes.clear();
     for (uint32_t i = 121; i <= 149; ++i)
-        spikes.push_back(std::make_pair(i / 100.0f, i));
+        spikes.push_back(std::make_pair(i / 100.0, i));
     spikeWriter.write(spikes);
     lunchbox::sleep(WRITE_DELAY);
     // The time window [0.5, 1.5) is still not complete, but [0.4, 1.4) is.
@@ -341,7 +341,7 @@ BOOST_AUTO_TEST_CASE(fivoxSpikes_stream_source_frame_range)
 
     spikes.clear();
     for (uint32_t i = 150; i <= 200; ++i)
-        spikes.push_back(std::make_pair(i / 100.0f, i));
+        spikes.push_back(std::make_pair(i / 100.0, i));
     spikeWriter.write(spikes);
     // After closing the report all spikes are made available, even for the
     // time window.

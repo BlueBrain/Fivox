@@ -78,7 +78,7 @@ public:
     explicit Impl(const URIHandler& params)
         : dt(params.getDt())
         , duration(params.getDuration())
-        , currentTime(-1.f)
+        , currentTime(-1.)
         , cutOffDistance(params.getCutoffDistance())
         , alignBoundary(32)
         , numEvents(0)
@@ -271,9 +271,9 @@ public:
 #endif
     }
 
-    float dt;
-    float duration;
-    float currentTime;
+    double dt;
+    double duration;
+    double currentTime;
     const float cutOffDistance;
 
     const size_t alignBoundary;
@@ -427,12 +427,12 @@ bool EventSource::setFrame(const uint32_t frame)
     if (!isInFrameRange(frame))
         return false;
 
-    const float time = _getTimeRange().x() + getDt() * frame;
+    const double time = _getTimeRange().x() + getDt() * frame;
     setTime(time);
     return true;
 }
 
-void EventSource::setTime(const float time)
+void EventSource::setTime(const double time)
 {
     _impl->currentTime = time;
 }
@@ -444,7 +444,7 @@ Vector2ui EventSource::getFrameRange() const
     {
     case SourceType::event:
     {
-        const float endTime = interval.y() - getDuration();
+        const double endTime = interval.y() - getDuration();
         if (endTime < interval.x())
             return Vector2ui(0, 0);
         // If the source end time is t it means that the frame starting and
@@ -466,22 +466,22 @@ bool EventSource::isInFrameRange(const uint32_t frame)
     return frame >= frameRange[0] && frame < frameRange[1];
 }
 
-float EventSource::getDt() const
+double EventSource::getDt() const
 {
     return _impl->dt;
 }
 
-void EventSource::setDt(const float dt)
+void EventSource::setDt(const double dt)
 {
     _impl->dt = dt;
 }
 
-float EventSource::getDuration() const
+double EventSource::getDuration() const
 {
     return _impl->duration;
 }
 
-float EventSource::getCurrentTime() const
+double EventSource::getCurrentTime() const
 {
     return _impl->currentTime;
 }

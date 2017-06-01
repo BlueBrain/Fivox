@@ -54,8 +54,8 @@ namespace fivox
 namespace
 {
 using boost::lexical_cast;
-const float _duration = 10.0f;
-const float _dt = -1.0f; // loaders use experiment/report dt
+const double _duration = 1.0;
+const double _dt = -1.0; // loaders use experiment/report dt
 const size_t _maxBlockSize = LB_64MB;
 const float _cutoff = 100.0f; // micrometers
 const float _extend = 0.f;    // micrometers
@@ -173,9 +173,9 @@ public:
         return areas;
     }
 
-    float getDt() const { return _get("dt", _dt); }
+    double getDt() const { return _get("dt", _dt); }
     std::string getSpikes() const { return _get("spikes"); }
-    float getDuration() const { return _get("duration", _duration); }
+    double getDuration() const { return _get("duration", _duration); }
     Vector2f getInputRange() const
     {
         Vector2f defaultValue(brion::MINIMUM_VOLTAGE, 0.f);
@@ -425,7 +425,7 @@ std::string URIHandler::getAreas() const
     return _impl->getAreas();
 }
 
-float URIHandler::getDt() const
+double URIHandler::getDt() const
 {
     return _impl->getDt();
 }
@@ -435,7 +435,7 @@ std::string URIHandler::getSpikes() const
     return _impl->getSpikes();
 }
 
-float URIHandler::getDuration() const
+double URIHandler::getDuration() const
 {
     return _impl->getDuration();
 }
@@ -532,7 +532,7 @@ Parameters for Somas:
 - dt: timestep between requested frames in milliseconds (default: report dt)
 
 Parameters for Spikes:
-- duration: time window in milliseconds to load spikes (default: 10)
+- duration: time window in milliseconds to load spikes (default: 1)
 - spikes: path to an alternate out.dat/out.spikes file (default: SpikesPath specified in the BlueConfig)
 
 Parameters for VSD:

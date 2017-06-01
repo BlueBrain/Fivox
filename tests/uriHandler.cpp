@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(compartment_defaults)
     BOOST_CHECK_EQUAL(handler.getReport(), "voltages");
     BOOST_CHECK_EQUAL(handler.getGIDs().size(), 50);
     BOOST_CHECK_EQUAL(handler.getDt(), -1.f);
-    BOOST_CHECK_EQUAL(handler.getDuration(), 10.0f);
+    BOOST_CHECK_EQUAL(handler.getDuration(), 1.0);
     BOOST_CHECK_EQUAL(handler.getMaxBlockSize(), LB_64MB);
 }
 
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(compartment_parameters)
         "fivoxcompartments://?report=simulation&dt=0.2&target=Column"));
     BOOST_CHECK_EQUAL(handler.getGIDs().size(), 1000);
     BOOST_CHECK_EQUAL(handler.getReport(), "simulation");
-    BOOST_CHECK_EQUAL(handler.getDt(), 0.2f);
+    BOOST_CHECK_EQUAL(handler.getDt(), 0.2);
 }
 
 BOOST_AUTO_TEST_CASE(compartment_targets)
@@ -121,8 +121,7 @@ BOOST_AUTO_TEST_CASE(vsd)
 {
     const fivox::URIHandler handler(fivox::URI("fivoxvsd://"));
     BOOST_CHECK_EQUAL(handler.getType(), fivox::VolumeType::vsd);
-    BOOST_CHECK_EQUAL(handler.getInputRange(),
-                      fivox::Vector2f(-100000.f, 300.f));
+    BOOST_CHECK_EQUAL(handler.getInputRange(), fivox::Vector2f(-100000., 300.));
     BOOST_CHECK_EQUAL(handler.getReport(), "voltages");
     BOOST_CHECK_NO_THROW(handler.getAreas());
 }

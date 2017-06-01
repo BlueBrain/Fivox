@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # git master {#master}
 
+* [#85](https://github.com/BlueBrain/Fivox/pull/85)
+  All timestamps changed to double.
+  Default duration changed to 1 ms.
 * [#82](https://github.com/BlueBrain/Fivox/pull/82)
   Frame duration moved from SpikeLoader internals to a public attribute of
   EventSource.
