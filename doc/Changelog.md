@@ -1,7 +1,7 @@
 Changelog {#changelog}
 =========
 
-# git master {#master}
+# Release 0.7 (02-06-2017) {#Release07}
 
 * [#85](https://github.com/BlueBrain/Fivox/pull/85)
   All timestamps changed to double.

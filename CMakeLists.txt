@@ -5,11 +5,15 @@
 #
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(Fivox VERSION 0.6.0)
-set(Fivox_VERSION_ABI 6)
+project(Fivox VERSION 0.7.0)
+set(Fivox_VERSION_ABI 7)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
                               ${CMAKE_SOURCE_DIR}/CMake/common)
+
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/CMake/common/Common.cmake)
+  message(FATAL_ERROR "CMake/common missing, run: git submodule update --init")
+endif()
 
 include(GitExternal)
 
