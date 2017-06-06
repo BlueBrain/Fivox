@@ -2,7 +2,6 @@ Debug
 Release
 Makefile
 CMakeLists.txt.user*
-CMake/common/
 fivox/lfp/
 *.mhd
 *.raw
@@ -26,5 +25,4 @@ ZeroEQ/
 Keyv/
 Lexis/
 Pydoxine/
-cppnetlib/
 

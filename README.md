@@ -44,11 +44,11 @@ Fivox provides the following major features:
 
 Build Fivox from source:
 ~~~
-git clone https://github.com/BlueBrain/Fivox
-mkdir Fivox/build
-cd Fivox/build
-cmake ..
-make
+git clone --recursive https://github.com/BlueBrain/Fivox
+mkdir Fivox/Build
+cd Fivox/Build
+cmake -GNinja -DCLONE_SUBPROJECTS=ON ..
+ninja
 ~~~
 
 # Usage
