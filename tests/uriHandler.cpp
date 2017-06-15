@@ -34,6 +34,7 @@
 #include "test.h"
 #include <brion/blueConfig.h>
 #include <fivox/uriHandler.h>
+#include <lunchbox/types.h>
 
 #include <BBP/TestDatasets.h>
 
