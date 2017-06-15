@@ -2,6 +2,6 @@
 git_subproject(vmmlib https://github.com/Eyescale/vmmlib.git 2635f7f)
 git_subproject(Lunchbox https://github.com/Eyescale/Lunchbox.git 7f06137)
 git_subproject(ZeroEQ https://github.com/HBPVIS/ZeroEQ.git 1949f24)
-git_subproject(Brion https://github.com/BlueBrain/Brion.git 4002faf)
+git_subproject(Brion https://github.com/BlueBrain/Brion.git 5abae4c)
 git_subproject(Lexis https://github.com/HBPVis/Lexis.git 92b8ff0)
 git_subproject(Livre https://github.com/BlueBrain/Livre.git 53e070d)
