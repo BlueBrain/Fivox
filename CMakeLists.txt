@@ -32,7 +32,7 @@ set(FIVOX_DEPENDENT_LIBRARIES CUDA Lunchbox ITK vmmlib)
 common_find_package(BBPTestData)
 common_find_package(Boost REQUIRED COMPONENTS unit_test_framework
                                               program_options system)
-common_find_package(Brion 2 REQUIRED)
+common_find_package(Brion REQUIRED)
 common_find_package(CUDA 4.0)
 common_find_package(ITK REQUIRED SYSTEM)
 common_find_package(Lexis)
