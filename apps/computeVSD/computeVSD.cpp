@@ -190,7 +190,7 @@ public:
             vsdLoader->setInterpolation(interpolate);
         }
 
-        const size_t size(std::ceil(source->getSizeInVoxel().find_max()));
+        const size_t size(source->getSizeInVoxel().find_max());
 
         // crop the volume region to the specified sensor dimensions
         fivox::Vector3f extent(source->getSizeInMicrometer());
@@ -214,7 +214,7 @@ public:
             bboxSomas.merge(position);
 
         // pixel/voxel size
-        const auto spacing = volumeHandler.computeSpacing();
+        const auto spacing = extent[1] / source->getSizeInVoxel()[1];
         // left bottom corner of the image/volume
         const auto origin = volumeHandler.computeOrigin(bboxSomas.getCenter());
 
@@ -242,8 +242,8 @@ public:
                         break;
                     const auto& pos = somaPositions[i++];
                     file << gid << " " << pos << ": "
-                         << std::floor((pos[0] - origin[0]) / spacing[0]) << " "
-                         << std::floor((pos[2] - origin[2]) / spacing[1])
+                         << std::floor((pos[0] - origin[0]) / spacing) << " "
+                         << std::floor((pos[2] - origin[2]) / spacing)
                          << std::endl;
                 }
             }
