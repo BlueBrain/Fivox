@@ -5,7 +5,7 @@
 #
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(Fivox VERSION 0.7.0)
+project(Fivox VERSION 0.7.1)
 set(Fivox_VERSION_ABI 7)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake

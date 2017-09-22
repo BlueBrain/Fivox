@@ -1,6 +1,11 @@
 Changelog {#changelog}
 =========
 
+# master
+
+* [#93](https://github.com/BlueBrain/Fivox/pull/93)
+  Fix computeVSD scaling bug
+
 # Release 0.7 (02-06-2017) {#Release07}
 
 * [#85](https://github.com/BlueBrain/Fivox/pull/85)
