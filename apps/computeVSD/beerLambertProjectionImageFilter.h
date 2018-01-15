@@ -39,36 +39,33 @@ class BeerLambertAccumulator
 public:
     typedef typename itk::NumericTraits<TInputPixel>::RealType RealType;
 
-    explicit BeerLambertAccumulator(itk::SizeValueType size)
-    {
-        m_Size = size;
-        m_Values.reserve(size);
-    }
-
+    explicit BeerLambertAccumulator(itk::SizeValueType) {}
     ~BeerLambertAccumulator() {}
     inline void Initialize()
     {
-        m_Sum = itk::NumericTraits<TAccumulate>::ZeroValue();
-        m_Values.clear();
+        _sum = itk::NumericTraits<TAccumulate>::ZeroValue();
+        _accumulatedValues = 0;
     }
 
     inline void operator()(const TInputPixel& input)
     {
-        // assume that values are being computed in order (top-down)
-        const double depth = m_PixelSize * m_Values.size();
-
-        m_Sum += input * std::exp(-m_Sigma * depth);
-        m_Values.push_back(input);
+        // assume that values are being computed with increaing y coordinates
+        // in image space, which is bottom to top in circuit space.
+        const double height = _pixelSize * _accumulatedValues + _yOrigin;
+        const double depth = _circuitHeight - height;
+        _sum += input * std::exp(-_sigma * depth);
+        ++_accumulatedValues;
     }
 
-    inline RealType GetValue() { return m_Sum; }
-    double m_PixelSize;
-    double m_Sigma;
+    inline RealType GetValue() { return _sum; }
+    double _pixelSize;
+    double _sigma;
+    double _yOrigin;
+    double _circuitHeight;
 
 private:
-    TAccumulate m_Sum;
-    itk::SizeValueType m_Size;
-    std::vector<TInputPixel> m_Values;
+    TAccumulate _sum;
+    size_t _accumulatedValues;
 };
 } // end namespace Function
 
@@ -114,6 +111,15 @@ public:
      * Defaults to 1.0. */
     itkSetMacro(Sigma, double);
 
+    /** Set the y position of the volume origin in circuit coordinates.
+     * Defaults to 0. */
+    itkSetMacro(yOrigin, double);
+
+    /** Set the position of the circuit top in circuit coordinates. Used
+        to compute depth measured from top to bottom.
+        Defaults to 2081.75. */
+    itkSetMacro(CircuitHeight, double);
+
     /** Get the absorption + scattering coefficient (units per micrometer).
      * Defaults to 1.0. */
     itkGetConstMacro(Sigma, double);
@@ -122,6 +128,8 @@ protected:
     BeerLambertProjectionImageFilter()
         : m_PixelSize(1.0)
         , m_Sigma(1.0)
+        , m_yOrigin(0.0)
+        , m_CircuitHeight(2081.75)
     {
     }
 
@@ -131,8 +139,10 @@ protected:
     {
         AccumulatorType accumulator(size);
 
-        accumulator.m_PixelSize = m_PixelSize;
-        accumulator.m_Sigma = m_Sigma;
+        accumulator._pixelSize = m_PixelSize;
+        accumulator._sigma = m_Sigma;
+        accumulator._yOrigin = m_yOrigin;
+        accumulator._circuitHeight = m_CircuitHeight;
         return accumulator;
     }
 
@@ -145,5 +155,8 @@ private:
 
     /** Absorption + scattering coefficient (units per micrometer) */
     double m_Sigma;
+
+    double m_yOrigin;
+    double m_CircuitHeight;
 };
 #endif

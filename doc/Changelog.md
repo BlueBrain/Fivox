@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # master
 
+* [#94](https://github.com/BlueBrain/Fivox/pull/94)
+  Fix depth calculation for exponential decay in VSD computation.
 * [#93](https://github.com/BlueBrain/Fivox/pull/93)
   Fix computeVSD scaling bug
 

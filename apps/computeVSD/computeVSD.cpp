@@ -125,6 +125,9 @@ public:
         projection->SetInput(input);
         projection->SetProjectionDimension(1); // projection along Y-axis
         projection->SetPixelSize(input->GetSpacing().GetElement(0));
+        projection->SetyOrigin(input->GetOrigin()[1]);
+        projection->SetCircuitHeight(_vm["depth"].as<float>());
+
         const double sigma = _vm["sigma"].as<double>();
         projection->SetSigma(sigma);
 
