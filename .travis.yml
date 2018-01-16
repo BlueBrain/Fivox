@@ -17,7 +17,13 @@ before_install:
   - brew update
   - brew outdated cmake || brew upgrade cmake
   - brew install cppcheck doxygen ninja
-  - brew install zeromq qt5 homebrew/science/hdf5 homebrew/science/insighttoolkit homebrew/science/vtk
+# We need to install gcc before hdf5 because otherwise hdf5 will fail.
+  # The or statement is a hack to ensure we override the existing gcc without
+  # having an error
+  - brew install gcc || brew link --overwrite gcc
+  - brew install cppcheck doxygen  hdf5 qt5  ninja vtk zeromq
+  - brew tap brewsci/homebrew-science
+  - brew install brewsci/science/insighttoolkit
   - pip install pyparsing
   - ssh-keyscan bbpcode.epfl.ch >> ~/.ssh/known_hosts
 script:
