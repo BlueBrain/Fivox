@@ -1,7 +1,7 @@
 # -*- mode: cmake -*-
 git_subproject(vmmlib https://github.com/Eyescale/vmmlib.git f4b3706)
 git_subproject(Lunchbox https://github.com/Eyescale/Lunchbox.git 80c14e0)
-git_subproject(ZeroEQ https://github.com/HBPVIS/ZeroEQ.git 4a94eda)
+#git_subproject(ZeroEQ https://github.com/HBPVIS/ZeroEQ.git 4a94eda)
 git_subproject(Brion https://github.com/BlueBrain/Brion.git 5e4c97f)
-git_subproject(Lexis https://github.com/HBPVis/Lexis.git a4e458a)
-git_subproject(Livre https://github.com/BlueBrain/Livre.git 857ed21)
+#git_subproject(Lexis https://github.com/HBPVis/Lexis.git a4e458a)
+#git_subproject(Livre https://github.com/BlueBrain/Livre.git 857ed21)
