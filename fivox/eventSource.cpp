@@ -427,7 +427,7 @@ bool EventSource::setFrame(const uint32_t frame)
     if (!isInFrameRange(frame))
         return false;
 
-    const double time = _getTimeRange().x() + getDt() * frame;
+    const double time = getDt() * frame;
     setTime(time);
     return true;
 }
