@@ -89,8 +89,11 @@ public:
                            const float area)
     {
         const float positionY = _output.getPositionsY()[index];
+
+        const double depth = _circuitHeight - positionY;
         _output[index] = (voltage - _restingPotential + _areaMultiplier) *
-                         area * _curve.getAttenuation(positionY, _interpolate);
+                         area * _curve.getAttenuation(positionY, _interpolate) *
+                         std::exp(-_sigma * depth);
     }
 
     EventSource& _output;
@@ -109,6 +112,10 @@ public:
     bool _spikeFilter;  // use the action potential threshold to filter spikes
     float _apThreshold; // action potential threshold (mV)
     bool _interpolate;  // interpolate the attenuation from the dye curve
+
+    double _sigma;
+    double _yOrigin;
+    double _circuitHeight;
 };
 
 VSDLoader::VSDLoader(const URIHandler& params)
@@ -161,6 +168,21 @@ void VSDLoader::setApThreshold(const float apThreshold)
 void VSDLoader::setInterpolation(const bool interpolate)
 {
     _impl->_interpolate = interpolate;
+}
+
+void VSDLoader::setSigma(double sigma)
+{
+    _impl->_sigma = sigma;
+}
+
+void VSDLoader::setYOrigin(double yOrigin)
+{
+    _impl->_yOrigin = yOrigin;
+}
+
+void VSDLoader::setCircuitHeight(double circuitHeight)
+{
+    _impl->_circuitHeight = circuitHeight;
 }
 
 Vector2f VSDLoader::_getTimeRange() const

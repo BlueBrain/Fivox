@@ -3,7 +3,7 @@
 # This file is part of Fivox <https://github.com/BlueBrain/Fivox>
 
 set(COMPUTE-VSD_HEADERS
-  beerLambertProjectionImageFilter.h
+  projectionImageFilter.h
   ../commandLineApplication.h
 )
 set(COMPUTE-VSD_SOURCES

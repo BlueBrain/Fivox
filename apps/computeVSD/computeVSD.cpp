@@ -33,7 +33,7 @@
 
 #include "../commandLineApplication.h"
 #include "../volumeWriter.h"
-#include "beerLambertProjectionImageFilter.h"
+#include "projectionImageFilter.h"
 
 #include <itkImageFileWriter.h>
 
@@ -118,18 +118,11 @@ public:
      */
     void projectVSD(VolumePtr input, const std::string& filename)
     {
-        typedef BeerLambertProjectionImageFilter<fivox::FloatVolume,
-                                                 FloatImageType>
+        typedef ProjectionImageFilter<fivox::FloatVolume, FloatImageType>
             FilterType;
         FilterType::Pointer projection = FilterType::New();
         projection->SetInput(input);
         projection->SetProjectionDimension(1); // projection along Y-axis
-        projection->SetPixelSize(input->GetSpacing().GetElement(0));
-        projection->SetyOrigin(input->GetOrigin()[1]);
-        projection->SetCircuitHeight(_vm["depth"].as<float>());
-
-        const double sigma = _vm["sigma"].as<double>();
-        projection->SetSigma(sigma);
 
         // Write output image
         typedef itk::ImageFileWriter<FloatImageType> ImageWriter;
@@ -139,8 +132,6 @@ public:
         const std::string& imageFile = filename + ".vtk";
         imageWriter->SetFileName(imageFile);
         imageWriter->Update();
-        LBINFO << "VSD projection written as '" << imageFile
-               << "' using a sigma value of " << sigma << std::endl;
     }
 
     void sample()
@@ -166,6 +157,8 @@ public:
         LBINFO << "VSD info: V0 = " << v0 << " mV; G0 = " << g0 << std::endl;
         vsdLoader->setRestingPotential(v0);
         vsdLoader->setAreaMultiplier(g0);
+        const double sigma = _vm["sigma"].as<double>();
+        vsdLoader->setSigma(sigma);
 
         if (_vm.count("ap-threshold"))
         {
@@ -258,6 +251,9 @@ public:
 
         output->SetSpacing(spacing);
         output->SetOrigin(origin);
+
+        vsdLoader->setYOrigin(output->GetOrigin()[1]);
+        vsdLoader->setCircuitHeight(_vm["depth"].as<float>());
 
         VolumeWriter<float> writer(output, fivox::Vector2ui());
 
