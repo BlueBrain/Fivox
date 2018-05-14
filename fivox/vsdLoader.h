@@ -103,6 +103,21 @@ public:
      */
     FIVOX_API void setApThreshold(float apThreshold);
 
+    /**
+     * @param sigma The sigma for the attenuation curve
+     */
+    FIVOX_API void setSigma(double sigma);
+
+    /**
+     * @param sigma The y origin of the circuit
+     */
+    FIVOX_API void setYOrigin(double yOrigin);
+
+    /**
+     * @param sigma The height of the circuit
+     */
+    FIVOX_API void setCircuitHeight(double circuitHeight);
+
 private:
     /** @name Abstract interface implementation */
     //@{

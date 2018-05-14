@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # master
 
+* [#97](https://github.com/BlueBrain/Fivox/pull/94)
+  VSD signal is now attenuated during event processing instead of during
+  projection. Output volumes from computeVSD are preattenuated as a result.
 * [#94](https://github.com/BlueBrain/Fivox/pull/94)
   Fix depth calculation for exponential decay in VSD computation.
 * [#93](https://github.com/BlueBrain/Fivox/pull/93)
