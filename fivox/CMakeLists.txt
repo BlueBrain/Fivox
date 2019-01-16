@@ -28,8 +28,6 @@ set(FIVOX_PUBLIC_HEADERS
 )
 
 # Try cloning lfpFivox into the 'fivox' folder
-#git_external(${FIVOXLFP_DIR} ssh://bbpcode.epfl.ch/viz/lfpFivox f1360df
-#             OPTIONAL)
 if(EXISTS ${FIVOXLFP_DIR}/lfpFunctor.h)
   list(APPEND FIVOX_PUBLIC_HEADERS lfp/lfpFunctor.h)
 endif()
