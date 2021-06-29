@@ -76,3 +76,9 @@ platforms and build environments are tested:
 
 The [API documentation](https://bluebrain.github.io/Fivox-0.7/index.html)
 can be found on [bluebrain.github.io](https://bluebrain.github.io).
+
+# Funding & Acknowledgment
+ 
+The development of this software was supported by funding to the Blue Brain Project,
+a research center of the École polytechnique fédérale de Lausanne (EPFL), from the
+Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
