@@ -1,10 +1,12 @@
-Marwan Abdellah
-Oren Amsalem
 Ahmet Bilgili
 Grigori Chevtchenko
 Raphael Dumusc
 Stefan Eilemann
 Juan Bautista Hernando Vieites 
 Daniel Nachbaur
-Pawel Jozef Podhajski
 Jafet Villafranca Diaz
+
+Marwan Abdellah (contributor)
+Oren Amsalem (contributor)
+Judit Planas Carbonell (contributor)
+Pawel Jozef Podhajski (contributor)
