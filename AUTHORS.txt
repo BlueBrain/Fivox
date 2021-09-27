@@ -1,6 +1,10 @@
-Juan Hernando
-Grigori Chevtchenko
+Marwan Abdellah
+Oren Amsalem
 Ahmet Bilgili
+Grigori Chevtchenko
+Raphael Dumusc
 Stefan Eilemann
-Jafet Villafranca
+Juan Bautista Hernando Vieites 
 Daniel Nachbaur
+Pawel Jozef Podhajski
+Jafet Villafranca Diaz
