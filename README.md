@@ -93,4 +93,4 @@ Programme for Research and Innovation under the Specific Grant Agreement No. 720
 This project is based upon work supported by the King Abdullah University of Science
 and Technology (KAUST) Office of Sponsored Research (OSR) under Award No. OSR-2017-CRG6-3438.
 
-Copyright (c) 2021-2022 Blue Brain Project/EPFL
+Copyright (c) 2013-2022 Blue Brain Project/EPFL
